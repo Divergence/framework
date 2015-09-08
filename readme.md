@@ -8,7 +8,7 @@ Out of the box support for
  * HTTP API - Controllers providing JSON and POST create, read, update, and delete functionality.
  * Dwoo Templates
 
-### Contributing To Laravel
+### Contributing To Divergence
 
 **All issues and pull requests should be filed on the [Akujin/divergence](http://github.com/Akujin/divergence) repository.**
 

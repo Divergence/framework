@@ -5,6 +5,7 @@ class App
 {
 	public static $ApplicationPath;
 	public static $Config;
+	public static $whoops;
 	
 	public static function init($Path)
 	{
@@ -22,8 +23,20 @@ class App
 	
 	public static function registerErrorHandler()
 	{
-		$whoops = new \Whoops\Run;
-		$whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
-		$whoops->register();
+		// only show errors in dev environment
+		if(static::$Config['environment'] == 'dev')
+		{
+			static::$whoops = new \Whoops\Run;
+			
+			$Handler = new \Whoops\Handler\PrettyPageHandler;
+			$Handler->setPageTitle("Divergence Error");
+			
+			static::$whoops->pushHandler($Handler);
+			static::$whoops->register();
+		}
+		else
+		{
+			error_reporting(0);
+		}
 	}
 }

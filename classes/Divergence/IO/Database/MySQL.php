@@ -3,6 +3,7 @@ namespace Divergence\IO\Database;
 
 use \PDO as PDO;
 use \App\App as App;
+use \Divergence\Helpers\Debug as Debug;
 
 class MySQL
 {
@@ -27,8 +28,6 @@ class MySQL
 		{
 			static::$Config = App::config('db');
 		}
-		
-		var_dump(static::$Config);
 		
 		return static::$Config;
 	}
@@ -475,7 +474,7 @@ class MySQL
 	
 	static protected function startQueryLog($query)
 	{
-		if (!Site::$debug)
+		if (!App::$Config['debug'])
 		{
 			return false;
 		}
@@ -580,24 +579,28 @@ class MySQL
 		}
 		
 		// respond
-		$report = sprintf("<h1 style='color:red'>Database Error</h1>\n");
-		$report .= sprintf("<h2>URI</h2>\n<p>%s</p>\n", htmlspecialchars($_SERVER['REQUEST_URI']));
-		$report .= sprintf("<h2>Query</h2>\n<p>%s</p>\n", htmlspecialchars($query));
-		$report .= sprintf("<h2>Reported</h2>\n<p>%s</p>\n", htmlspecialchars($message));
-			
-		//$report .= ErrorHandler::formatBacktrace(debug_backtrace());
-					
-		if(!empty($GLOBALS['Session']) && $GLOBALS['Session']->Person)
+		if(App::$Config['debug'])
 		{
-			$report .= sprintf("<h2>User</h2>\n<pre>%s</pre>\n", var_export($GLOBALS['Session']->Person->data, true));
-		}
-
-		$report .= sprintf("<h2>Backtrace</h2>\n<pre>%s</pre>\n", htmlspecialchars(print_r(debug_backtrace(), true)));
-		
-		
-		if(Site::$debug)
-		{
-			die($report);
+			if(class_exists('\Whoops\Run',true))
+			{
+				$Handler = \Divergence\App::$whoops->popHandler();
+				
+				$Handler->addDataTable("Query Information", array(
+					'Query'     =>	$query
+					,'Error'	=>	$message
+				));
+				
+				\Divergence\App::$whoops->pushHandler($Handler);
+				
+				throw new RuntimeException("Database error!");
+			}
+			else
+			{
+				echo sprintf("<h1 style='color:red'>Database Error</h1>\n");
+				echo sprintf("<h2>Query</h2>\n<p>%s</p>\n", htmlspecialchars($query));
+				echo sprintf("<h2>Reported</h2>\n<p>%s</p>\n", htmlspecialchars($message));
+				exit;
+			}
 		}
 		else
 		{
