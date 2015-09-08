@@ -1,0 +1,17 @@
+{
+	"name": "divergence/divergence"
+    ,"description": "The Divergence Framework."
+    ,"keywords": ["framework", "divergence"]
+    ,"type": "project"
+    ,"require": {
+        "php": ">=5.5.9"
+        ,"dwoo/dwoo": "2.*@beta"
+        ,"filp/whoops": ">=1.1.7"
+    }
+    ,"autoload": {
+	    "psr-4": {
+		    "App\\": "classes/App"
+		    ,"Divergence\\": "classes/Divergence"
+	    }
+    }
+}
