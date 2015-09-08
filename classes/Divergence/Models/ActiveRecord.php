@@ -2,6 +2,7 @@
 namespace Divergence\Models;
 
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\IO\Database\SQL as SQL;
 
 class ActiveRecord
 {
@@ -839,7 +840,7 @@ class ActiveRecord
         }
         else
         {
-            return DB::allRecords($query, $params);
+            return DB::allRecords($query, $params, array(static::$rootClass,'handleError'));
         }
     }
     
@@ -2175,9 +2176,10 @@ class ActiveRecord
     {
         $Connection = DB::getConnection();
         
-        if($Connection->errorCode() == 1146 && static::$autoCreateTables)
+        var_dump($Connection); exit;
+        
+        if($Connection->errorCode() == '42S02' && static::$autoCreateTables)
         {
-            static::__classLoaded(); // gotta run this when running from call_user_func :(
             $CreateTable = SQL::getCreateTable(static::$rootClass);
             
             $Statement = $Connection->query($CreateTable);

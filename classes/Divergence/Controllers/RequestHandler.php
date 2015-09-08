@@ -1,6 +1,8 @@
 <?php
 namespace Divergence\Controllers;
 
+use App\App as App;
+
 abstract class RequestHandler
 {
 
@@ -110,7 +112,7 @@ abstract class RequestHandler
 				}
 				
 				
-				$dwoo->setTemplateDir(DIVERGENCE_ROOT.'views/');
+				$dwoo->setTemplateDir(App::$ApplicationPath.'/views/');
 				echo $dwoo->get($TemplatePath,$data);
 				
 				if(function_exists('fastcgi_finish_request'))

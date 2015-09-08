@@ -544,9 +544,8 @@ class MySQL
 	}
 	
 	
-	static public function handleError($query = '', $queryLog = false, $parameters = null, $errorHandler = null)
+	static public function handleError($query = '', $queryLog = false, $errorHandler = null)
 	{
-        
         if(is_string($errorHandler)) {
             $errorHandler = explode('::',$errorHandler);   
         }
@@ -586,13 +585,14 @@ class MySQL
 				$Handler = \Divergence\App::$whoops->popHandler();
 				
 				$Handler->addDataTable("Query Information", array(
-					'Query'     =>	$query
-					,'Error'	=>	$message
+					'Query'     	=>	$query
+					,'Error'		=>	$message
+					,'ErrorCode'	=>	self::getConnection()->errorCode()
 				));
 				
 				\Divergence\App::$whoops->pushHandler($Handler);
 				
-				throw new RuntimeException("Database error!");
+				throw new \RuntimeException("Database error!");
 			}
 			else
 			{
@@ -604,7 +604,6 @@ class MySQL
 		}
 		else
 		{
-			//Email::send(Site::$webmasterEmail, 'Database error on '.$_SERVER['HTTP_HOST'], $report);
 			die('Error while communicating with database');
 		}
 	}
