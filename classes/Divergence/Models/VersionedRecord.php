@@ -1,6 +1,8 @@
 <?php
 namespace Divergence\Models;
 
+use Divergence\IO\Database\MySQL as DB;
+
 /*	Convert this whole thing to a trait
  *
  */

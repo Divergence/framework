@@ -202,20 +202,7 @@ class MySQL
 		// execute query
 		$Statement = self::getConnection()->query($query);
 		
-		if($Statement)
-		{
-		
-			// check for errors
-			$ErrorInfo = $Statement->errorInfo();
-			
-			// handle query error
-			if($ErrorInfo[0] != '00000')
-			{
-				self::handleError($query, $queryLog, $errorHandler);
-			}
-			
-		}
-		else
+		if(!$Statement)
 		{
 			// check for errors
 			$ErrorInfo = self::getConnection()->errorInfo();
@@ -223,7 +210,12 @@ class MySQL
 			// handle query error
 			if($ErrorInfo[0] != '00000')
 			{
-				self::handleError($query, $queryLog, $errorHandler);
+				$ErrorOutput = self::handleError($query, $queryLog, $errorHandler);
+				
+				if(is_a($ErrorOutput,'PDOStatement'))
+				{
+					$Statement = $ErrorOutput;
+				}
 			}
 		}
 		

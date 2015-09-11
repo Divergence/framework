@@ -14,13 +14,16 @@ class SiteRequestHandler extends \Divergence\Controllers\SiteRequestHandler
 		
 		//var_dump(App::$Config);
 		
-		//var_dump(\App\Models\Test::getClassFields());
 		
-		\App\Models\Test::getAllByField('ID',1);
+		$Data = \App\Models\Test::getAllByField('ID',1);
+		
+	
 		
 		
 		static::respond('dwoo/design.tpl',[
-			'Test'	=>	$Test
+			'Fields'	=>	\App\Models\Test::getClassFields()
+			,'Test'		=>	$Test
+			,'Data'		=>	$Data
 		]);
 	}
 }

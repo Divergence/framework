@@ -41,6 +41,15 @@ class SQL
 				array_unshift($field['values'], $rootClass);
 			}
 			
+			// escape namespaces in field names
+			if($field['columnName'] == 'Class')
+			{
+				foreach($field['values'] as $index=>$value)
+				{
+					$field['values'][$index] = str_replace('\\','\\\\',$value);
+				}
+			}
+			
 			$fieldDef = '`'.$field['columnName'].'`';
 			$fieldDef .= ' '.static::getSQLType($field);
 			$fieldDef .= ' '. ($field['notnull'] ? 'NOT NULL' : 'NULL');
@@ -145,12 +154,6 @@ class SQL
 			, join("\n\t,", $queryFields)
 			, DB::$charset
 		);
-		
-		// append history table SQL
-		if(!$historyVariant && is_subclass_of($recordClass, 'VersionedRecord'))
-		{
-			$createSQL .= PHP_EOL.PHP_EOL.PHP_EOL . static::getCreateTable($recordClass, true);
-		}
 		
 		return $createSQL;
 	}
