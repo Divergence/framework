@@ -10,7 +10,7 @@ Out of the box support for
 
 ### Contributing To Divergence
 
-**All issues and pull requests should be filed on the [Akujin/divergence](http://github.com/Akujin/divergence) repository.**
+**All issues and pull requests should be filed on the [Akujin/divergence](http://github.com/hparadiz/divergence) repository.**
 
 ### License
 
