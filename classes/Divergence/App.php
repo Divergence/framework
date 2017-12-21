@@ -11,6 +11,8 @@ class App
 	{
 		static::$ApplicationPath = $Path;
 		
+		Controllers\RequestHandler::$templateDirectory = $Path.'/views/';
+
 		static::$Config = static::config('app');
 		
 		static::registerErrorHandler();
