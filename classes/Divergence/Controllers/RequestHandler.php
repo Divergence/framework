@@ -14,6 +14,8 @@ abstract class RequestHandler
 	protected static $_path;
 	protected static $_parameters;
 	protected static $_options = array();
+	
+	public static $pathStack;
 
 	public static $templateDirectory;
 	
@@ -22,13 +24,13 @@ abstract class RequestHandler
 
 	protected static function setPath($path = null)
 	{
-		if(!Site::$pathStack)
+		if(!static::$pathStack)
 		{
 			$requestURI = parse_url($_SERVER['REQUEST_URI']);
-			Site::$pathStack = Site::$requestPath = explode('/', ltrim($requestURI['path'], '/'));	
+			static::$pathStack = static::$requestPath = explode('/', ltrim($requestURI['path'], '/'));	
 		}
 	
-		static::$_path = isset($path) ? $path : Site::$pathStack;
+		static::$_path = isset($path) ? $path : static::$pathStack;
 	}
 	
 	protected static function setOptions($options)
