@@ -16,6 +16,7 @@ abstract class RequestHandler
 	protected static $_options = array();
 	
 	public static $pathStack;
+	public static $requestPath;
 
 	public static $templateDirectory;
 	
