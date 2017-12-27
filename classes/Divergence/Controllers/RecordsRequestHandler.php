@@ -658,15 +658,6 @@ abstract class RecordsRequestHandler extends RequestHandler
 			
 			case 'Staff':
 			{
-				if(in_array($_GET['Key'],static::$config['recordKeys']))
-				{
-					return true;
-				}
-			
-				if(empty($_SESSION['username']))
-				{
-					return false;
-				}
 				return true;
 			}
 			case 'Guest':
@@ -685,10 +676,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 		{
 			case 'Staff':
 			{
-				if(in_array($_GET['Key'],static::$config['recordKeys']))
-				{
-					return true;
-				}
+				
 			
 				return true;
 			}
@@ -708,10 +696,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 		{	
 			case 'Staff':
 			{
-				if(in_array($_GET['Key'],static::$config['recordKeys']))
-				{
-					return true;
-				}
+			
 			
 				if(empty($_SESSION['username']))
 				{
@@ -737,10 +722,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 		{
 			case 'Staff':
 			{
-				if(in_array($_GET['Key'],static::$config['recordKeys']))
-				{
-					return true;
-				}
+				
 			
 				if(empty($_SESSION['username']))
 				{
