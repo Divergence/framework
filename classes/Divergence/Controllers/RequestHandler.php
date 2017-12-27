@@ -1,6 +1,9 @@
 <?php
 namespace Divergence\Controllers;
 
+use Divergence\Helpers\JSON;
+use Divergence\Helpers\JSONP;
+
 abstract class RequestHandler
 {
 
