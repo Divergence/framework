@@ -7,6 +7,8 @@ use Divergence\Helpers\Util as Util;
 abstract class RecordsRequestHandler extends RequestHandler
 {
 
+    static public $config;
+
 	// configurables
 	static public $recordClass;
 	static public $accountLevelRead = false;
