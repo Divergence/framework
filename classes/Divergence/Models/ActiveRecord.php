@@ -50,20 +50,20 @@ class ActiveRecord
      * Field definitions
      * @var array
      */
-    static public $fields = array();
+    static public $fields = [];
     
     /**
      * Index definitions
      * @var array
      */
-    static public $indexes = array();
+    static public $indexes = [];
     
     
     /**
      * Relationship definitions
      * @var array
      */
-    static public $relationships = array();
+    static public $relationships = [];
     
     /**
      * Map of existing tables
@@ -81,20 +81,20 @@ class ActiveRecord
      * Default conditions for get* operations
      * @var array
      */
-    static public $defaultConditions = array();
+    static public $defaultConditions = [];
     
     static public $primaryKey = null;
     
     // support subclassing
     static public $rootClass = null;
     static public $defaultClass = null;
-    static public $subClasses = array();
+    static public $subClasses = [];
 
     // protected members
-    protected static $_classFields = array();
-    protected static $_classRelationships = array();
-    protected static $_classBeforeSave = array();
-    protected static $_classAfterSave = array();
+    protected static $_classFields = [];
+    protected static $_classRelationships = [];
+    protected static $_classBeforeSave = [];
+    protected static $_classAfterSave = [];
     
     // class members subclassing
     protected static $_fieldsDefined = [];
@@ -159,10 +159,10 @@ class ActiveRecord
 	    }
     }
 
-    function __construct($record = array(), $isDirty = false, $isPhantom = null)
+    function __construct($record = [], $isDirty = false, $isPhantom = null)
     {
         $this->_record = static::_convertRecord($record);
-        $this->_relatedObjects = array();
+        $this->_relatedObjects = [];
         $this->_isPhantom = isset($isPhantom) ? $isPhantom : empty($record);
         $this->_wasPhantom = $this->_isPhantom;
         $this->_isDirty = $this->_isPhantom || $isDirty;
@@ -170,8 +170,8 @@ class ActiveRecord
         $this->_isUpdated = false;
         
         $this->_isValid = true;
-        $this->_validationErrors = array();
-        $this->_originalValues = array();
+        $this->_validationErrors = [];
+        $this->_originalValues = [];
 
         static::init();
 
@@ -311,7 +311,7 @@ class ActiveRecord
         return true;
     }
     
-    static public function create($values = array(), $save = false)
+    static public function create($values = [], $save = false)
     {
         $className = get_called_class();
         
@@ -377,7 +377,7 @@ class ActiveRecord
     
     public function getData()
     {
-        $data = array();
+        $data = [];
         
         foreach(static::$_classFields[get_called_class()] AS $field => $options)
         {
@@ -654,15 +654,15 @@ class ActiveRecord
         return DB::affectedRows() > 0;
     }
     
-    static public function getByContextObject(ActiveRecord $Record, $options = array())
+    static public function getByContextObject(ActiveRecord $Record, $options = [])
     {
         return static::getByContext($Record::$rootClass, $this->getPrimaryKey(), $options);
     }
     
-    static public function getByContext($contextClass, $contextID, $options = array())
+    static public function getByContext($contextClass, $contextID, $options = [])
     {
         $options = static::prepareOptions($options, array(
-            'conditions' => array()
+            'conditions' => []
             ,'order' => false
         ));
         
@@ -716,14 +716,14 @@ class ActiveRecord
             
     }
     
-    static public function getByWhere($conditions, $options = array())
+    static public function getByWhere($conditions, $options = [])
     {
         $record = static::getRecordByWhere($conditions, $options);
         
         return static::instantiateRecord($record);
     }
     
-    static public function getRecordByWhere($conditions, $options = array())
+    static public function getRecordByWhere($conditions, $options = [])
     {
         if(!is_array($conditions))
         {
@@ -736,7 +736,7 @@ class ActiveRecord
 
         // initialize conditions and order
         $conditions = static::_mapConditions($conditions);
-        $order = $options['order'] ? static::_mapFieldOrder($options['order']) : array();
+        $order = $options['order'] ? static::_mapFieldOrder($options['order']) : [];
         
         return DB::oneRecord(
             'SELECT * FROM `%s` WHERE (%s) %s LIMIT 1'
@@ -749,25 +749,25 @@ class ActiveRecord
         );    
     }
     
-    static public function getByQuery($query, $params = array())
+    static public function getByQuery($query, $params = [])
     {
         return static::instantiateRecord(DB::oneRecord($query, $params, array(static::$rootClass,'handleError')));
     }
 
-    static public function getAllByClass($className = false, $options = array())
+    static public function getAllByClass($className = false, $options = [])
     {
         return static::getAllByField('Class', $className ? $className : get_called_class(), $options);
     }
     
-    static public function getAllByContextObject(ActiveRecord $Record, $options = array())
+    static public function getAllByContextObject(ActiveRecord $Record, $options = [])
     {
         return static::getAllByContext($Record::$rootClass, $Record->ID, $options);
     }
 
-    static public function getAllByContext($contextClass, $contextID, $options = array())
+    static public function getAllByContext($contextClass, $contextID, $options = [])
     {
         $options = static::prepareOptions($options, array(
-            'conditions' => array()
+            'conditions' => []
         ));
         
         $options['conditions']['ContextClass'] = $contextClass;
@@ -776,17 +776,17 @@ class ActiveRecord
         return static::instantiateRecords(static::getAllRecordsByWhere($options['conditions'], $options));
     }
     
-    static public function getAllByField($field, $value, $options = array())
+    static public function getAllByField($field, $value, $options = [])
     {
         return static::getAllByWhere(array($field => $value), $options);
     }
         
-    static public function getAllByWhere($conditions = array(), $options = array())
+    static public function getAllByWhere($conditions = [], $options = [])
     {
         return static::instantiateRecords(static::getAllRecordsByWhere($conditions, $options));
     }
     
-    static public function getAllRecordsByWhere($conditions = array(), $options = array())
+    static public function getAllRecordsByWhere($conditions = [], $options = [])
     {
         $className = get_called_class();
     
@@ -901,12 +901,12 @@ class ActiveRecord
         }
     }
     
-    static public function getAll($options = array())
+    static public function getAll($options = [])
     {
         return static::instantiateRecords(static::getAllRecords($options));
     }
     
-    static public function getAllRecords($options = array())
+    static public function getAllRecords($options = [])
     {
         $options = static::prepareOptions($options, array(
             'indexField' => false
@@ -942,7 +942,7 @@ class ActiveRecord
 
     }
     
-    static public function getAllByQuery($query, $params = array())
+    static public function getAllByQuery($query, $params = [])
     {
         return static::instantiateRecords(DB::allRecords($query, $params, array(static::$rootClass,'handleError')));
     }
@@ -971,12 +971,12 @@ class ActiveRecord
         return $records;
     }
     
-    static public function getUniqueHandle($text, $options = array())
+    static public function getUniqueHandle($text, $options = [])
     {
         // apply default options
         $options = static::prepareOptions($options, array(
             'handleField' => 'Handle'
-            ,'domainConstraints' => array()
+            ,'domainConstraints' => []
             ,'alwaysSuffix' => false
             ,'format' => '%s:%u'
         ));
@@ -1079,7 +1079,7 @@ class ActiveRecord
         $classes = class_parents($className);
         array_unshift($classes, $className);
         
-        static::$_classFields[$className] = array();
+        static::$_classFields[$className] = [];
         while($class = array_pop($classes))
         {
             if(!empty($class::$fields))
@@ -1118,7 +1118,7 @@ class ActiveRecord
         // apply default values to field definitions
         if(!empty(static::$_classFields[$className]))
         {
-            $fields = array();
+            $fields = [];
             
             foreach(static::$_classFields[$className] AS $field => $options)
             {
@@ -1324,7 +1324,7 @@ class ActiveRecord
                 case 'set':
                 case 'list':
                 {
-                    return array();
+                    return [];
                 }
                 default:
                 {
@@ -1527,7 +1527,7 @@ class ActiveRecord
 
     protected function _prepareRecordValues()
     {
-        $record = array();
+        $record = [];
 
         foreach(static::$_classFields[get_called_class()] AS $field => $options)
         {
@@ -1586,7 +1586,7 @@ class ActiveRecord
     
     static protected function _mapValuesToSet($recordValues)
     {
-        $set = array();
+        $set = [];
 
         foreach($recordValues AS $field => $value)
         {
@@ -1620,7 +1620,7 @@ class ActiveRecord
         }
         elseif(is_array($order))
         {
-            $r = array();
+            $r = [];
             
             foreach($order AS $key => $value)
             {
@@ -1723,7 +1723,7 @@ class ActiveRecord
     public function validate($deep = true)
     {
         $this->_isValid = true;
-        $this->_validationErrors = array();
+        $this->_validationErrors = [];
         
         if(!isset($this->_validator))
         {
@@ -1780,7 +1780,7 @@ class ActiveRecord
         return $this->_isValid;
     }
     
-    static public function prepareOptions($value, $defaults = array())
+    static public function prepareOptions($value, $defaults = [])
     {
         if(is_string($value))
         {
