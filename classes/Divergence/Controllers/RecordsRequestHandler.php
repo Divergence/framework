@@ -2,6 +2,7 @@
 namespace Divergence\Controllers;
 
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\Models\ActiveRecord as ActiveRecord;
 use Divergence\Helpers\Util as Util;
 use Divergence\Helpers\JSON;
 use Divergence\Helpers\JSONP;
