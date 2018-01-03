@@ -97,9 +97,9 @@ class ActiveRecord
     protected static $_classAfterSave = array();
     
     // class members subclassing
-    protected static $_fieldsDefined = false;
-    protected static $_relationshipsDefined = false;
-    protected static $_eventsDefined = false;
+    protected static $_fieldsDefined = [];
+    protected static $_relationshipsDefined = [];
+    protected static $_eventsDefined = [];
     
     // versioning
     static public $historyTable;
@@ -134,6 +134,31 @@ class ActiveRecord
     	}
     }
     
+    public function init() {
+        $className = get_called_class();
+        if(!static::$_fieldsDefined[$className])
+	    {
+			static::_defineFields();
+		    static::_initFields();
+		    
+		    static::$_fieldsDefined[$className] = true;
+        }
+        if(!static::$_relationshipsDefined[$className] && static::isRelational())
+	    {
+			static::_defineRelationships();
+		    static::_initRelationships();
+		    
+		    static::$_fieldsDefined[$className] = true;
+	    }
+	    
+	    if(!static::$_eventsDefined[$className])
+	    {
+	    	static::_defineEvents();
+	    	
+	    	static::$_eventsDefined[$className] = true;
+	    }
+    }
+
     function __construct($record = array(), $isDirty = false, $isPhantom = null)
     {
         $this->_record = static::_convertRecord($record);
@@ -148,28 +173,7 @@ class ActiveRecord
         $this->_validationErrors = array();
         $this->_originalValues = array();
 
-		if(!static::$_fieldsDefined)
-	    {
-			static::_defineFields();
-		    static::_initFields();
-		    
-		    static::$_fieldsDefined = true;
-	    }
-	    
-	    if(!static::$_relationshipsDefined && static::isRelational())
-	    {
-			static::_defineRelationships();
-		    static::_initRelationships();
-		    
-		    static::$_fieldsDefined = true;
-	    }
-	    
-	    if(!static::$_eventsDefined)
-	    {
-	    	static::_defineEvents();
-	    	
-	    	static::$_eventsDefined = true;
-	    }
+        static::init();
 
         // authorize read access
         if(!$this->authorizeRead())
@@ -1084,7 +1088,6 @@ class ActiveRecord
             }
         }
         
-        
         // versioning
         if(static::isVersioned())
         {
@@ -1222,6 +1225,7 @@ class ActiveRecord
      */
     static public function getColumnName($field)
     {
+        static::init();
         if(!static::_fieldExists($field))
         {
             throw new Exception('getColumnName called on nonexisting column: ' . get_called_class().'->'.$field);
