@@ -134,7 +134,7 @@ class ActiveRecord
     	}
     }
     
-    public function init() {
+    static public function init() {
         $className = get_called_class();
         if(!static::$_fieldsDefined[$className])
 	    {
@@ -295,12 +295,12 @@ class ActiveRecord
         }
     }
     
-    public function isVersioned()
+    static public function isVersioned()
     {
 	    return in_array('Divergence\\Models\\Versioning',class_uses(get_called_class()));
     }
     
-    public function isRelational()
+    static public function isRelational()
     {
 	    return in_array('Divergence\\Models\\Relations',class_uses(get_called_class()));
     }
@@ -1207,6 +1207,7 @@ class ActiveRecord
     
     static public function getClassFields()
     {
+	    static::init();
         return static::$_classFields[get_called_class()];
     }
     
