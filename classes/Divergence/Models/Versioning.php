@@ -28,6 +28,7 @@ trait Versioning
             throw new Exception('Static variable $historyTable must be defined to use model versioning.');
         }
         
+        return static::$historyTable;
     }
     
     /*
