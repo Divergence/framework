@@ -1,4 +1,6 @@
 <?php
 namespace Divergence\Models;
 
-class Exception extends \Exception {}
+class Exception extends \Exception
+{
+}

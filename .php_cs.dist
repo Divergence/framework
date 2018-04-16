@@ -1,0 +1,22 @@
+<?php
+
+$finder = PhpCsFixer\Finder::create()
+    //->exclude('somedir')
+    ->in(__DIR__)
+;
+
+return PhpCsFixer\Config::create()
+    ->setRules([
+        '@PSR1' => true,
+        '@PSR2' => true,
+        'array_syntax' => ['syntax' => 'short'],
+        'trailing_comma_in_multiline_array' => true,
+        'ternary_operator_spaces' => true,
+        'trim_array_spaces' => true,
+        'ordered_imports' => [
+            'sortAlgorithm' => 'length'
+        ],
+        'ordered_class_elements' => true
+    ])
+    ->setFinder($finder)
+;

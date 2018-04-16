@@ -1,11 +1,11 @@
 <?php
 namespace Divergence\Helpers;
 
-class Util {
-    static public function prepareOptions($value, $defaults = array())
+class Util
+{
+    public static function prepareOptions($value, $defaults = [])
     {
-        if(is_string($value))
-        {
+        if (is_string($value)) {
             $value = json_decode($value, true);
         }
         

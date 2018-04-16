@@ -1,5 +1,6 @@
 composer.lock
 phpunit.xml
+.php_cs.cache
 vendor
 .debug
 .dev
