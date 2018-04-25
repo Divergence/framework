@@ -10,7 +10,7 @@
     </testsuites>
     <filter>
         <whitelist>
-            <directory>./app</directory>
+            <directory>./classes</directory>
             <exclude>
                 <directory>./public</directory>
                 <directory>./vendor</directory>
