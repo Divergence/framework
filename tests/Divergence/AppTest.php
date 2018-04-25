@@ -63,7 +63,7 @@ class AppTest extends TestCase
     }
 
     /**
-     * @covers App::init
+     * @covers Divergence\App::init
      */
     public function testAppInit()
     {
@@ -76,7 +76,7 @@ class AppTest extends TestCase
     }
 
     /**
-     * @covers App::config
+     * @covers Divergence\App::config
      */
     public function testAppConfig()
     {
@@ -89,7 +89,7 @@ class AppTest extends TestCase
     }
 
     /**
-     * @covers App::registerErrorHandler
+     * @covers Divergence\App::registerErrorHandler
      */
     public function testAppRegisterErrorHandler()
     {
