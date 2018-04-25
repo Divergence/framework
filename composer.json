@@ -13,5 +13,18 @@
 		    "App\\": "classes/App"
 		    ,"Divergence\\": "classes/Divergence"
 	    }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Divergence\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.0",
+        "friendsofphp/php-cs-fixer": "*"
+    },
+    "scripts": {
+        "fix-code": "php-cs-fixer fix",
+        "test": "vendor/bin/phpunit --color tests"
     }
 }
