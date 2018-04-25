@@ -9,7 +9,13 @@
         </testsuite>
     </testsuites>
     <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
+        <whitelist>
+            <directory>./app</directory>
+            <exclude>
+                <directory>./public</directory>
+                <directory>./vendor</directory>
+                <directory>./tests</directory>
+            </exclude>
         </whitelist>
     </filter>
     <php>
