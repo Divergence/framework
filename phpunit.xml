@@ -8,6 +8,10 @@
             <directory>tests/Divergence</directory>
         </testsuite>
     </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+        </whitelist>
+    </filter>
     <php>
         <const name="PHPUNIT_TESTSUITE" value="true"/>
     </php>
