@@ -62,6 +62,9 @@ class AppTest extends TestCase
         App::init($this->ApplicationPath);
     }
 
+    /**
+     * @covers App::init
+     */
     public function testAppInit()
     {
         $this->doInit();
@@ -72,6 +75,9 @@ class AppTest extends TestCase
         $this->assertEquals(App::config('app'), App::$Config);
     }
 
+    /**
+     * @covers App::config
+     */
     public function testAppConfig()
     {
         $this->doInit();
@@ -82,6 +88,9 @@ class AppTest extends TestCase
         $this->cleanFakeDevEnv();
     }
 
+    /**
+     * @covers App::registerErrorHandler
+     */
     public function testAppRegisterErrorHandler()
     {
         $this->doInit();
