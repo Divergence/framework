@@ -1,4 +1,6 @@
 ## Divergence PHP Framework
+[![Build Status](https://travis-ci.org/hparadiz/divergence.svg?branch=master)](https://travis-ci.org/hparadiz/divergence)
+
 A simple PHP framework designed for rapid development and modern practices.
 
 Based on the [PHP framework portion](https://github.com/JarvusInnovations/Emergence-Skeleton) of [Emergence](https://github.com/JarvusInnovations/Emergence).
