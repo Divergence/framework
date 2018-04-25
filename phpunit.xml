@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         verbose="true"
+         colors="true">
+    <testsuites>
+        <testsuite name="all">
+            <directory>tests/Divergence</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <const name="PHPUNIT_TESTSUITE" value="true"/>
+    </php>
+</phpunit>

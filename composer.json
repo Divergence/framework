@@ -25,6 +25,6 @@
     },
     "scripts": {
         "fix-code": "php-cs-fixer fix",
-        "test": "vendor/bin/phpunit --color tests"
+        "test": "vendor/bin/phpunit"
     }
 }
