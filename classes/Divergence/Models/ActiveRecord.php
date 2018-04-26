@@ -372,11 +372,6 @@ class ActiveRecord
         return $this->_originalValues[$field];
     }
     
-    public function dumpData()
-    {
-        Debug::dump($this->getData(), get_class($this));
-    }
-    
     public function save($deep = true)
     {
     
@@ -1051,7 +1046,6 @@ class ActiveRecord
     {
         // save relationship objects
         foreach (static::$_classRelationships[get_called_class()] as $relationship => $options) {
-            //Debug::dump($this->_relatedObjects[$relationship], "Saving Related: $relationship");
             if ($options['type'] == 'one-one') {
                 if (isset($this->_relatedObjects[$relationship]) && $options['local'] != 'ID') {
                     $this->_relatedObjects[$relationship]->save();
@@ -1086,7 +1080,6 @@ class ActiveRecord
                 continue;
             }
         
-            //Debug::dump($this->_relatedObjects[$relationship], "Saving Related: $relationship");
             if ($options['type'] == 'handle') {
                 $this->_relatedObjects[$relationship]->Context = $this;
                 $this->_relatedObjects[$relationship]->save();
@@ -1470,7 +1463,6 @@ class ActiveRecord
         }
         
         if ($forceDirty || ($this->_record[$field] !== $value)) {
-            //if($this->_record['Class'] == 'CMS_Page') Debug::dump($value, "$field is dirty");
             $columnName = static::_cn($field);
             if (isset($this->_record[$columnName])) {
                 $this->_originalValues[$field] = $this->_record[$columnName];

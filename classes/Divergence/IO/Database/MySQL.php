@@ -98,9 +98,7 @@ class MySQL
     }
     
     public static function nonQuery($query, $parameters = [], $errorHandler = null)
-    {
-        // MICS::dump(func_get_args(), 'nonquery');
-        
+    {        
         $query = self::preprocessQuery($query, $parameters);
         
         // start query log
@@ -273,8 +271,6 @@ class MySQL
     
     public static function allValues($valueKey, $query, $parameters = [], $errorHandler = null)
     {
-        // MICS::dump(array('query' => $query, 'params' => $parameters), 'allRecords');
-        
         // execute query
         $result = self::query($query, $parameters, $errorHandler);
         
@@ -358,19 +354,6 @@ class MySQL
         }
     }
     
-    
-    public static function dump($query, $parameters = [])
-    {
-        Debug::dump($query, false);
-        
-        if (count($parameters)) {
-            Debug::dump($parameters, false);
-            Debug::dump(self::preprocessQuery($query, $parameters), 'processed');
-        }
-    }
-    
-    
-    
     public static function makeOrderString($order = [])
     {
         $s = '';
@@ -415,24 +398,17 @@ class MySQL
         
         // respond
         if (App::$Config['environment']=='dev') {
-            if (class_exists('\Whoops\Run', true)) {
-                $Handler = \Divergence\App::$whoops->popHandler();
-                
-                $Handler->addDataTable("Query Information", [
-                    'Query'     	=>	$query
-                    ,'Error'		=>	$message
-                    ,'ErrorCode'	=>	self::getConnection()->errorCode(),
-                ]);
-                
-                \Divergence\App::$whoops->pushHandler($Handler);
-                
-                throw new \RuntimeException("Database error!");
-            } else {
-                echo sprintf("<h1 style='color:red'>Database Error</h1>\n");
-                echo sprintf("<h2>Query</h2>\n<p>%s</p>\n", htmlspecialchars($query));
-                echo sprintf("<h2>Reported</h2>\n<p>%s</p>\n", htmlspecialchars($message));
-                exit;
-            }
+            $Handler = \Divergence\App::$whoops->popHandler();
+            
+            $Handler->addDataTable("Query Information", [
+                'Query'     	=>	$query
+                ,'Error'		=>	$message
+                ,'ErrorCode'	=>	self::getConnection()->errorCode(),
+            ]);
+            
+            \Divergence\App::$whoops->pushHandler($Handler);
+            
+            throw new \RuntimeException("Database error!");
         } else {
             die('Error while communicating with database');
         }
@@ -441,8 +417,6 @@ class MySQL
     // protected static methods
     protected static function preprocessQuery($query, $parameters = [])
     {
-        // MICS::dump(array('query'=>$query,'params'=>$parameters), __FUNCTION__);
-        
         if (is_array($parameters) && count($parameters)) {
             return vsprintf($query, $parameters);
         } elseif (isset($parameters)) {
@@ -455,7 +429,7 @@ class MySQL
     
     protected static function startQueryLog($query)
     {
-        if (!App::$Config['debug']) {
+        if (App::$Config['environment']!='dev') {
             return false;
         }
         

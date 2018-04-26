@@ -20,7 +20,6 @@ class SQL
         // compile fields
         $rootClass = !empty($recordClass::$rootClass) ? $recordClass::$rootClass : $recordClass;
         foreach ($recordClass::getClassFields() as $fieldId => $field) {
-            //Debug::dump($field, "Field: $field[columnName]");
             if ($field['columnName'] == 'RevisionID') {
                 continue;
             }

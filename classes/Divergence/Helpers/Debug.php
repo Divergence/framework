@@ -1,46 +1,11 @@
 <?php
 namespace Divergence\Helpers;
 
-use App\App as App;
+use Divergence\App as App;
 
 class Debug
 {
     public static $log = [];
-
-    public static function dump($var, $exit = true)
-    {
-        if (!App::$Config['debug']) {
-            return;
-        }
-    
-        print '<pre>';
-        print_r($var);
-        print '</pre>';
-        
-        if ($exit) {
-            exit();
-        } else {
-            return $var;
-        }
-    }
-    
-    public static function dumpVar($var, $exit = true)
-    {
-        if (!App::$Config['debug']) {
-            return;
-        }
-    
-        print '<pre>';
-        var_export($var);
-        print '</pre>';
-        
-        if ($exit) {
-            exit();
-        } else {
-            return $var;
-        }
-    }
-    
     
     public static function logMessage($message, $source = null)
     {
@@ -49,7 +14,7 @@ class Debug
     
     public static function log($entry, $source = null)
     {
-        if (!App::$Config['debug']) {
+        if (App::$Config['environment']!='dev') {
             return;
         }
     
@@ -62,12 +27,10 @@ class Debug
     public static function showLog()
     {
         echo '<table><tr><td>#</td><td>Duration (ms)</td><td>Query</td><td>Method</td></tr>';
-    
         foreach (static::$log as $LogItem) {
             $i++;
             echo "<tr><td>$i</td><td>{$LogItem['time_duration_ms']}</td><td>{$LogItem['query']}</td><td>{$LogItem['method']}</td></tr>";
         }
-        
         echo '</table>';
     }
     

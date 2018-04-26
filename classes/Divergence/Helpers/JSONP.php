@@ -8,7 +8,7 @@ class JSONP
         $JSON = json_encode($data, JSON_UNESCAPED_UNICODE && JSON_HEX_TAG);
         
         if (!$JSON) {
-            throw new Exception(json_last_error_msg());
+            throw new \Exception(json_last_error_msg());
         }
         header('Content-type: application/javascript; charset=utf-8', true);
         echo 'var data = ' . $JSON;
