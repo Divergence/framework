@@ -44,6 +44,9 @@ class JSONtest extends TestCase
 
         $this->assertEquals($A, $x);
         $this->assertEquals($B, $x['object']);
+
+        vfsStream::setup('input', null, ['data' => '']);
+        $this->assertEquals(JSON::getRequestData(),false);
     }
 
     /**
