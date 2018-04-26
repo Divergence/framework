@@ -12,6 +12,7 @@
         <whitelist>
             <directory>./classes</directory>
             <exclude>
+                <directory>./classes/App</directory>
                 <directory>./public</directory>
                 <directory>./vendor</directory>
                 <directory>./tests</directory>
