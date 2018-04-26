@@ -98,7 +98,7 @@ class MySQL
     }
     
     public static function nonQuery($query, $parameters = [], $errorHandler = null)
-    {        
+    {
         $query = self::preprocessQuery($query, $parameters);
         
         // start query log

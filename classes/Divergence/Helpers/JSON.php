@@ -22,7 +22,7 @@ class JSON
     }
     
     public static function translateAndRespond($data)
-    {        
+    {
         static::respond(static::translateObjects($data));
     }
 
