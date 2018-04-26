@@ -2,7 +2,7 @@
 namespace Divergence\IO\Database;
 
 use \PDO as PDO;
-use \App\App as App;
+use \Divergence\App as App;
 use \Divergence\Helpers\Debug as Debug;
 
 class MySQL
@@ -414,7 +414,7 @@ class MySQL
         }
         
         // respond
-        if (App::$Config['debug']) {
+        if (App::$Config['environment']=='dev') {
             if (class_exists('\Whoops\Run', true)) {
                 $Handler = \Divergence\App::$whoops->popHandler();
                 
