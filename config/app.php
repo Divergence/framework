@@ -1,5 +1,5 @@
 <?php
-use \App\App as App;
+use \Divergence\App as App;
 
 return [
     'debug'			=>	file_exists(App::$ApplicationPath . '/.debug')
