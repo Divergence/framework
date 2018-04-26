@@ -22,7 +22,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^7.0",
-        "friendsofphp/php-cs-fixer": "*"
+        "friendsofphp/php-cs-fixer": "*",
+        "mikey179/vfsStream": "1.6.5"
     },
     "scripts": {
         "fix-code": "php-cs-fixer fix",

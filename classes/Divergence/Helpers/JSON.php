@@ -3,9 +3,10 @@ namespace Divergence\Helpers;
 
 class JSON
 {
+    public static $inputStream = 'php://input'; // this is a setting so that unit tests can provide a fake stream :)
     public static function getRequestData($subkey = false)
     {
-        if (!$requestText = file_get_contents('php://input')) {
+        if (!$requestText = file_get_contents(static::$inputStream)) {
             return false;
         }
         
