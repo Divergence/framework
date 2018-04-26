@@ -32,28 +32,11 @@ abstract class RequestHandler
         switch ($responseMode ? $responseMode : static::$responseMode) {
             case 'json':
                 JSON::translateAndRespond($responseData);
-
-                // no break
+                break;
             case 'jsonp':
                 JSONP::translateAndRespond($responseData);
+                break;
 
-                // no break
-            case 'text':
-                header('Content-Type: text/plain');
-            
-                // no break
-            case 'html':
-                if (!file_exists($TemplatePath)) {
-                    throw new \Exception($TemplatePath . ' not found.');
-                }
-                
-                if (!is_readable($TemplatePath)) {
-                    throw new \Exception($TemplatePath . ' is not readable.');
-                }
-                
-                include($TemplatePath);
-                
-                // no break
             case 'dwoo':
                 $dwoo = new \Divergence\Templates\Engines\Dwoo();
                 
@@ -77,7 +60,7 @@ abstract class RequestHandler
                 if (function_exists('fastcgi_finish_request')) {
                     fastcgi_finish_request();
                 }
-                exit;
+                break;
                 
             case 'return':
                 return [

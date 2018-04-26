@@ -19,39 +19,33 @@ class JSON
     {
         header('Content-type: application/json', true);
         echo json_encode($data);
-        exit;
     }
     
     public static function translateAndRespond($data)
     {
         static::respond(static::translateObjects($data));
     }
-
     
     public static function error($message)
     {
-        $args = func_get_args();
-        
-        self::respond([
-            'success' => false
-            ,'message' => vsprintf($message, array_slice($args, 1)),
+        static::respond([
+            'success' => false,
+            'message' => $message
         ]);
     }
     
-    public static function translateObjects($input, $summary = false)
+    public static function translateObjects($input)
     {
         if (is_object($input)) {
             if (method_exists($input, 'getData')) {
                 return $input->getData();
-            } elseif (!$summary && ($data = $input->data)) {
-                return self::translateObjects($data);
-            } elseif ($data = $input->summaryData) {
-                return self::translateObjects($data, true);
+            } else if ($data = $input->data) {
+                return static::translateObjects($data);
             }
             return $input;
         } elseif (is_array($input)) {
             foreach ($input as &$item) {
-                $item = static::translateObjects($item, $summary);
+                $item = static::translateObjects($item);
             }
             return $input;
         } else {
