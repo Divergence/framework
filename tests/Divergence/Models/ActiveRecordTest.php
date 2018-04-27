@@ -52,6 +52,8 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::__get
      * @covers Divergence\Models\ActiveRecord::getValue
      * @covers Divergence\Models\ActiveRecord::_getFieldValue
+     * @covers Divergence\Models\ActiveRecord::getData
+     * @covers Divergence\Models\ActiveRecord::_fieldExists
      */
     public function test__get() {
         $A = new Tag([
@@ -75,9 +77,48 @@ class ActiveRecordTest extends TestCase
             "Tag" => "Linux",
             "Slug" => "linux"
         ],$A->data);
+        $this->assertEquals([
+            "ID" => null,
+            "Class" => "Divergence\Tests\MockSite\Models\Tag",
+            "Created" => "CURRENT_TIMESTAMP",
+            "CreatorID" => null,
+            "Tag" => "Linux",
+            "Slug" => "linux"
+        ],$A->getData());
         $this->assertEquals('linux',$A->Slug);
         $this->assertEquals(null,$A->fake);
         $this->assertEquals(null,$A->Handle);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::__set
+     * @covers Divergence\Models\ActiveRecord::setFields
+     * @covers Divergence\Models\ActiveRecord::setField
+     * @covers Divergence\Models\ActiveRecord::setValue
+     * @covers Divergence\Models\ActiveRecord::_cn
+     * @covers Divergence\Models\ActiveRecord::_fieldExists
+     */
+    public function test__set() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $this->assertEquals('linux',$A->Slug);
+        $A->Slug = 'abc123';
+        $this->assertEquals('abc123',$A->Slug);
+        $A->setFields([
+            'Tag' => 'OSX',
+            'Slug' => 'osx'
+        ]);
+        $this->assertEquals('osx',$A->Slug);
+        $this->assertEquals([
+            "ID" => null,
+            "Class" => "Divergence\Tests\MockSite\Models\Tag",
+            "Created" => "CURRENT_TIMESTAMP",
+            "CreatorID" => null,
+            'Tag' => 'OSX',
+            'Slug' => 'osx'
+        ],$A->getData());
     }
 
     /**
@@ -172,5 +213,16 @@ class ActiveRecordTest extends TestCase
         $this->assertInstanceOf(ActiveRecord::class,$B);
         $C = $B->changeClass();
         $this->assertInstanceOf(ActiveRecord::class,$B);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getOriginalValue
+     */
+    public function testGetOriginalValue() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $this->assertEquals($A->getOriginalValue('Tag'),null);
     }
 }
