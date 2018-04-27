@@ -124,6 +124,39 @@ class RequestHandlerTest extends TestCase
         testableRequestHandler::testShiftPath();
         $this->assertEquals(false,testableRequestHandler::testPeekPath());
     }
+
+    /**
+     * @covers Divergence\Controllers\RequestHandler::shiftPath
+     */
+    public function testShiftPath() {
+        $_SERVER['REQUEST_URI'] = '/blogs/edit/1';
+        testableRequestHandler::clear();
+        $this->assertEquals('blogs',testableRequestHandler::testShiftPath());
+        $this->assertEquals('edit',testableRequestHandler::testShiftPath());
+        $this->assertEquals('1',testableRequestHandler::testShiftPath());
+        $this->assertEquals(false,testableRequestHandler::testShiftPath());
+    }
+
+    /**
+     * @covers Divergence\Controllers\RequestHandler::getPath
+     */
+    public function testGetPath() {
+        $_SERVER['REQUEST_URI'] = '/blogs/edit/1';
+        testableRequestHandler::clear();
+        $this->assertEquals(['blogs','edit','1'],testableRequestHandler::testGetPath());
+    }
+    /**
+     * @covers Divergence\Controllers\RequestHandler::unshiftPath
+     */
+    public function testUnshiftPath() {
+        $_SERVER['REQUEST_URI'] = '/blogs/edit/1';
+        testableRequestHandler::clear();
+        $this->assertEquals('blogs',testableRequestHandler::testShiftPath());
+        $this->assertEquals('edit',testableRequestHandler::testShiftPath());
+        $this->assertEquals('1',testableRequestHandler::testShiftPath());
+        testableRequestHandler::testUnshiftPath('blogs');
+        $this->assertEquals('blogs',testableRequestHandler::testShiftPath());
+    }
 }
 
 class testableRequestHandler extends RequestHandler {
