@@ -156,4 +156,19 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals($A->isA(Model::class),true);
     }
     
+    /**
+     * @covers Divergence\Models\ActiveRecord::changeClass
+     */
+    public function testChangeClass() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $this->assertInstanceOf(ActiveRecord::class,$A);
+        $this->assertInstanceOf(Model::class,$A);
+        $B = $A->changeClass(ActiveRecord::class);
+        $this->assertNotInstanceOf(Tag::class,$B);
+        $this->assertNotInstanceOf(Model::class,$B);
+        $this->assertInstanceOf(ActiveRecord::class,$B);
+    }
 }
