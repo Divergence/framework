@@ -139,11 +139,6 @@ class ActiveRecord
         $this->_originalValues = [];
 
         static::init();
-
-        // authorize read access
-        if (!$this->authorizeRead()) {
-            throw new UserUnauthorizedException('Read authorization denied');
-        }
         
         // set Class
         if (static::_fieldExists('Class') && !$this->Class) {
@@ -287,12 +282,6 @@ class ActiveRecord
     public static function isRelational()
     {
         return in_array('Divergence\\Models\\Relations', class_uses(get_called_class()));
-    }
-    
-    // public methods
-    public function authorizeRead()
-    {
-        return true;
     }
     
     public static function create($values = [], $save = false)
