@@ -3,6 +3,7 @@ namespace Divergence\Models;
 
 use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\Helpers\Util as Util;
 
 class ActiveRecord
 {
@@ -537,7 +538,7 @@ class ActiveRecord
     
     public static function getByContext($contextClass, $contextID, $options = [])
     {
-        $options = static::prepareOptions($options, [
+        $options = Util::prepareOptions($options, [
             'conditions' => []
             ,'order' => false,
         ]);
@@ -601,7 +602,7 @@ class ActiveRecord
             $conditions = [$conditions];
         }
         
-        $options = static::prepareOptions($options, [
+        $options = Util::prepareOptions($options, [
             'order' => false,
         ]);
 
@@ -639,7 +640,7 @@ class ActiveRecord
 
     public static function getAllByContext($contextClass, $contextID, $options = [])
     {
-        $options = static::prepareOptions($options, [
+        $options = Util::prepareOptions($options, [
             'conditions' => [],
         ]);
         
@@ -663,7 +664,7 @@ class ActiveRecord
     {
         $className = get_called_class();
     
-        $options = static::prepareOptions($options, [
+        $options = Util::prepareOptions($options, [
             'indexField' => false
             ,'order' => false
             ,'limit' => false
@@ -763,7 +764,7 @@ class ActiveRecord
     
     public static function getAllRecords($options = [])
     {
-        $options = static::prepareOptions($options, [
+        $options = Util::prepareOptions($options, [
             'indexField' => false
             ,'order' => false
             ,'limit' => false
@@ -822,7 +823,7 @@ class ActiveRecord
     public static function getUniqueHandle($text, $options = [])
     {
         // apply default options
-        $options = static::prepareOptions($options, [
+        $options = Util::prepareOptions($options, [
             'handleField' => 'Handle'
             ,'domainConstraints' => []
             ,'alwaysSuffix' => false
@@ -859,7 +860,7 @@ class ActiveRecord
     public static function generateRandomHandle($length = 32)
     {
         // apply default options
-        $options = static::prepareOptions($options, [
+        $options = Util::prepareOptions($options, [
             'handleField' => 'Handle',
         ]);
     
@@ -1000,15 +1001,6 @@ class ActiveRecord
         }
         
         return $this->_isValid;
-    }
-    
-    public static function prepareOptions($value, $defaults = [])
-    {
-        if (is_string($value)) {
-            $value = json_decode($value, true);
-        }
-        
-        return is_array($value) ? array_merge($defaults, $value) : $defaults;
     }
     
     public static function handleError($query = null, $queryLog = null, $parameters = null)

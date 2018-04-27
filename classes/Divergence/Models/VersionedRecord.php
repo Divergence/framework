@@ -49,7 +49,7 @@ abstract class VersionedRecord extends ActiveRecord
     
     public static function getRevisionRecords($options = [])
     {
-        $options = static::prepareOptions($options, [
+        $options = Util::prepareOptions($options, [
             'indexField' => false
             ,'conditions' => []
             ,'order' => false
