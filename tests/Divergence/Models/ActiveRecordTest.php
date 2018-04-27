@@ -119,6 +119,8 @@ class ActiveRecordTest extends TestCase
             'Tag' => 'OSX',
             'Slug' => 'osx'
         ],$A->getData());
+        $A->fakefield = 'test';
+        $this->assertEquals('osx',$A->Slug);
     }
 
     /**
@@ -224,5 +226,95 @@ class ActiveRecordTest extends TestCase
             'Slug' => 'linux'
         ]);
         $this->assertEquals($A->getOriginalValue('Tag'),null);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getClassFields
+     */
+    public function testGetClassFields() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $classFields = $A->getClassFields();
+        $this->assertEquals([
+            "type" => "integer",
+            "length" => null,
+            "primary" => true,
+            "unique" => null,
+            "autoincrement" => true,
+            "notnull" => true,
+            "unsigned" => true,
+            "default" => null,
+            "values" => null,
+            "columnName" => "ID"
+          ],$classFields['ID']);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getFieldOptions
+     */
+    public function testGetFieldOptions() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $this->assertEquals([
+            "type" => "integer",
+            "length" => null,
+            "primary" => true,
+            "unique" => null,
+            "autoincrement" => true,
+            "notnull" => true,
+            "unsigned" => true,
+            "default" => null,
+            "values" => null,
+            "columnName" => "ID"
+        ],$A->getFieldOptions('ID'));
+        $this->assertEquals('integer',$A->getFieldOptions('ID','type'));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getColumnName
+     */
+    public function testGetColumnName() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $this->assertEquals('ID',$A->getColumnName('ID'));
+        $this->assertEquals('Tag',$A->getColumnName('Tag'));
+
+        $this->expectException('Exception');
+        $A->getColumnName('nohere');
+    }
+    
+    /**
+     * @covers Divergence\Models\ActiveRecord::getRootClass
+     */
+    public function testGetRootClass() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $this->assertEquals(Tag::class,$A->getRootClass());
+    }
+    
+    /**
+     * @covers Divergence\Models\ActiveRecord::addValidationErrors
+     * @covers Divergence\Models\ActiveRecord::addValidationError
+     * @covers Divergence\Models\ActiveRecord::getValidationError
+     */
+    public function testAddValidationErrors() {
+        $A = Tag::create([
+            'Tag' => '',
+            'Slug' => 'li nux'
+        ]);
+        $A->addValidationErrors([
+            'Tag' => 'Empty',
+            'Slug' => 'Contains space'
+        ]);
+        $this->assertEquals('Empty',($A->getValidationError('Tag')));
+        $this->assertEquals('Contains space',($A->getValidationError('Slug')));
     }
 }

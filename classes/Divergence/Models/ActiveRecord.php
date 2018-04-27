@@ -5,6 +5,8 @@ use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Helpers\Util as Util;
 
+use Exception;
+
 class ActiveRecord
 {
     // configurables
@@ -126,7 +128,7 @@ class ActiveRecord
 
     public function __construct($record = [], $isDirty = false, $isPhantom = null)
     {
-        $this->_record = static::_convertRecord($record);
+        $this->_record = $record;
         $this->_relatedObjects = [];
         $this->_isPhantom = isset($isPhantom) ? $isPhantom : empty($record);
         $this->_wasPhantom = $this->_isPhantom;
@@ -265,8 +267,10 @@ class ActiveRecord
             $this->_setFieldValue($name, $value);
         }
         // handle relationship
-        elseif (static::_relationshipExists($name)) {
-            $this->_setRelationshipValue($name, $value);
+        elseif (static::isRelational()) {
+            if (static::_relationshipExists($name)) {
+                $this->_setRelationshipValue($name, $value);
+            }
         }
         // undefined
         else {
@@ -905,12 +909,6 @@ class ActiveRecord
         return static::_mapConditions($conditions);
     }
     
-    
-    public function getNoun($count = 1)
-    {
-        return ($count == 1) ? static::$singularNoun : static::$pluralNoun;
-    }
-    
     public function getRootClass()
     {
         return static::$rootClass;
@@ -1016,11 +1014,6 @@ class ActiveRecord
         } else {
             return DB::handleError($query, $queryLog, $parameters);
         }
-    }
-    
-    protected static function _convertRecord($record)
-    {
-        return $record;
     }
     
     protected static function _defineEvents()
