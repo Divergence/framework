@@ -427,4 +427,57 @@ trait Relations
         $this->_relatedObjects[$relationship] = $value;
         $this->_isDirty = true;
     }
+
+    protected function _saveRelationships()
+    {
+        // save relationship objects
+        foreach (static::$_classRelationships[get_called_class()] as $relationship => $options) {
+            if ($options['type'] == 'one-one') {
+                if (isset($this->_relatedObjects[$relationship]) && $options['local'] != 'ID') {
+                    $this->_relatedObjects[$relationship]->save();
+                    $this->_setFieldValue($options['local'], $this->_relatedObjects[$relationship]->getValue($options['foreign']));
+                }
+            } elseif ($options['type'] == 'one-many') {
+                if (isset($this->_relatedObjects[$relationship]) && $options['local'] != 'ID') {
+                    foreach ($this->_relatedObjects[$relationship] as $related) {
+                        if ($related->isPhantom) {
+                            $related->_setFieldValue($options['foreign'], $this->_getFieldValue($options['local']));
+                        }
+                            
+                        $related->save();
+                    }
+                }
+            } elseif ($options['type'] == 'handle') {
+                if (isset($this->_relatedObjects[$relationship])) {
+                    $this->_setFieldValue($options['local'], $this->_relatedObjects[$relationship]->Handle);
+                }
+            } else {
+                // TODO: Implement other methods
+            }
+        }
+    }
+    
+    protected function _postSaveRelationships()
+    {
+        //die('psr');
+        // save relationship objects
+        foreach (static::$_classRelationships[get_called_class()] as $relationship => $options) {
+            if (!isset($this->_relatedObjects[$relationship])) {
+                continue;
+            }
+        
+            if ($options['type'] == 'handle') {
+                $this->_relatedObjects[$relationship]->Context = $this;
+                $this->_relatedObjects[$relationship]->save();
+            } elseif ($options['type'] == 'one-one' && $options['local'] == 'ID') {
+                $this->_relatedObjects[$relationship]->setField($options['foreign'], $this->getValue($options['local']));
+                $this->_relatedObjects[$relationship]->save();
+            } elseif ($options['type'] == 'one-many' && $options['local'] == 'ID') {
+                foreach ($this->_relatedObjects[$relationship] as $related) {
+                    $related->setField($options['foreign'], $this->getValue($options['local']));
+                    $related->save();
+                }
+            }
+        }
+    }
 }

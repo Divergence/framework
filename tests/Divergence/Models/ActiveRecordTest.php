@@ -49,6 +49,44 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
+     * @covers Divergence\Models\ActiveRecord::__get
+     * @covers Divergence\Models\ActiveRecord::getValue
+     * @covers Divergence\Models\ActiveRecord::getFieldValue
+     */
+    public function test__get() {
+        $A = new Tag([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ],true,true);
+        $this->assertEquals(true,$A->isDirty);
+        $this->assertEquals(true,$A->isPhantom);
+        $this->assertEquals(true,$A->wasPhantom);
+        $this->assertEquals(false,$A->isNew);
+        $this->assertEquals(false,$A->isUpdated);
+        $this->assertEquals(true,$A->isValid);
+        $this->assertEquals([],$A->originalValues);
+        $this->assertEquals([],$A->validationErrors);
+        $this->assertEquals('Linux',$A->Tag);
+        $this->assertEquals('linux',$A->Slug);
+        $this->assertEquals(null,$A->fake);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getPrimaryKey
+     */
+    public function testGetPrimaryKey() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+
+        $this->assertEquals(null,$A->getPrimaryKey());
+        Tag::$primaryKey = 'Tag';
+        $this->assertEquals('Linux',$A->getPrimaryKey());
+        Tag::$primaryKey = null;
+    }
+
+    /**
      * @covers Divergence\Models\ActiveRecord::create
      */
     public function testCreate() {
@@ -69,4 +107,32 @@ class ActiveRecordTest extends TestCase
         $this->assertInstanceOf(ActiveRecord::class,$A);
         $this->assertInstanceOf(Model::class,$A);
     }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::isVersioned
+     */
+    public function testIsVersioned() {
+        $this->assertEquals(Tag::isVersioned(),false);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::isRelational
+     */
+    public function testIsRelational() {
+        $this->assertEquals(Tag::isRelational(),false);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::isA
+     */
+    public function testIsA() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $this->assertEquals($A->isA(Tag::class),true);
+        $this->assertEquals($A->isA(ActiveRecord::class),true);
+        $this->assertEquals($A->isA(Model::class),true);
+    }
+    
 }
