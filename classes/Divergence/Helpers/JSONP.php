@@ -12,7 +12,6 @@ class JSONP
         }
         header('Content-type: application/javascript; charset=utf-8', true);
         echo 'var data = ' . $JSON;
-        exit;
     }
     
     public static function translateAndRespond($data)
