@@ -67,8 +67,17 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals([],$A->originalValues);
         $this->assertEquals([],$A->validationErrors);
         $this->assertEquals('Linux',$A->Tag);
+        $this->assertEquals([
+            "ID" => null,
+            "Class" => "Divergence\Tests\MockSite\Models\Tag",
+            "Created" => "CURRENT_TIMESTAMP",
+            "CreatorID" => null,
+            "Tag" => "Linux",
+            "Slug" => "linux"
+        ],$A->data);
         $this->assertEquals('linux',$A->Slug);
         $this->assertEquals(null,$A->fake);
+        $this->assertEquals(null,$A->Handle);
     }
 
     /**
@@ -106,6 +115,18 @@ class ActiveRecordTest extends TestCase
 
         $this->assertInstanceOf(ActiveRecord::class,$A);
         $this->assertInstanceOf(Model::class,$A);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::__isset
+     */
+    public function testIsset() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $this->assertEquals(isset($A->Tag),true);
+        $this->assertEquals(isset($A->fakefield),false);
     }
 
     /**
