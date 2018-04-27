@@ -31,4 +31,8 @@ class Tag extends \Divergence\Models\Model
     public static function getProtected($field) {
         return static::$$field;
     }
+
+    public static function getRecordClass($record) {
+        return static::_getRecordClass($record);
+    }
 }

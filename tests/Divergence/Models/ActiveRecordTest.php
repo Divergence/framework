@@ -94,6 +94,7 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::__set
      * @covers Divergence\Models\ActiveRecord::setFields
      * @covers Divergence\Models\ActiveRecord::setField
+     * @covers Divergence\Models\ActiveRecord::_setFieldValue
      * @covers Divergence\Models\ActiveRecord::setValue
      * @covers Divergence\Models\ActiveRecord::_cn
      * @covers Divergence\Models\ActiveRecord::_fieldExists
@@ -106,6 +107,8 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals('linux',$A->Slug);
         $A->Slug = 'abc123';
         $this->assertEquals('abc123',$A->Slug);
+        $A->setField('Slug','xyz123');
+        $this->assertEquals('xyz123',$A->Slug);
         $A->setFields([
             'Tag' => 'OSX',
             'Slug' => 'osx'
@@ -316,5 +319,35 @@ class ActiveRecordTest extends TestCase
         ]);
         $this->assertEquals('Empty',($A->getValidationError('Tag')));
         $this->assertEquals('Contains space',($A->getValidationError('Slug')));
+        $this->assertEquals(null,($A->getValidationError('fake')));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::isFieldDirty
+     */
+    public function testIsFieldDirty() {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux'
+        ]);
+        $this->assertEquals(true,$A->isFieldDirty('Tag'));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::_getRecordClass
+     */
+    public function test_getRecordClass() {
+        $record = [
+            "ID" => null,
+            "Class" => "Divergence\Tests\MockSite\Models\Tag",
+            "Created" => "CURRENT_TIMESTAMP",
+            "CreatorID" => null,
+            "Tag" => "Linux",
+            "Slug" => "linux"
+        ];
+        
+
+        $this->assertEquals('Divergence\Tests\MockSite\Models\Tag',Tag::getRecordClass($record));
+        $this->assertEquals('Divergence\Tests\MockSite\Models\Tag',Tag::getRecordClass([]));
     }
 }
