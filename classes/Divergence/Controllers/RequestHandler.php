@@ -3,6 +3,7 @@ namespace Divergence\Controllers;
 
 use Divergence\Helpers\JSON;
 use Divergence\Helpers\JSONP;
+use Divergence\Templates\Engines\Dwoo;
 
 abstract class RequestHandler
 {
@@ -38,7 +39,7 @@ abstract class RequestHandler
                 break;
 
             case 'dwoo':
-                $dwoo = new \Divergence\Templates\Engines\Dwoo();
+                $dwoo = new Dwoo();
                 
                 $data = [
                     'responseID' => $responseID
@@ -52,7 +53,6 @@ abstract class RequestHandler
                 if (function_exists('fastcgi_finish_request')) {
                     while (@ob_end_flush());
                 }
-                
                 
                 $dwoo->setTemplateDir(static::$templateDirectory);
                 echo $dwoo->get($TemplatePath, $data);
