@@ -170,5 +170,7 @@ class ActiveRecordTest extends TestCase
         $this->assertNotInstanceOf(Tag::class,$B);
         $this->assertNotInstanceOf(Model::class,$B);
         $this->assertInstanceOf(ActiveRecord::class,$B);
+        $C = $B->changeClass();
+        $this->assertInstanceOf(ActiveRecord::class,$B);
     }
 }

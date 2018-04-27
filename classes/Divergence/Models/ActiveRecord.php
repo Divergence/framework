@@ -308,16 +308,11 @@ class ActiveRecord
     public function changeClass($className = false, $fieldValues = false)
     {
         if (!$className) {
-            $className = $this->Class;
+            return $this;
         }
-    
-        // return if no change needed
-        if ($className == get_class($this)) {
-            $ActiveRecord = $this;
-        } else {
-            $this->_record[static::_cn('Class')] = $className;
-            $ActiveRecord = new $className($this->_record, true, $this->isPhantom);
-        }
+
+        $this->_record[static::_cn('Class')] = $className;
+        $ActiveRecord = new $className($this->_record, true, $this->isPhantom);
         
         if ($fieldValues) {
             $ActiveRecord->setFields($fieldValues);
