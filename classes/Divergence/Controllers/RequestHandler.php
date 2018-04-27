@@ -42,8 +42,7 @@ abstract class RequestHandler
                 $dwoo = new Dwoo();
                 
                 $data = [
-                    'responseID' => $responseID
-                    ,'data' => 	$responseData,
+                    'data' => 	$responseData
                 ];
                 
                 if (is_array(static::$injectableData)) {
@@ -63,13 +62,16 @@ abstract class RequestHandler
                 break;
                 
             case 'return':
+                $data = [
+                    'data' => 	$responseData,
+                ];
                 return [
-                    'TemplatePath'	=> $$TemplatePath
+                    'TemplatePath'	=> $TemplatePath
                     ,'data'			=> $data,
                 ];
 
             default:
-                die('Invalid response mode');
+                throw new \Exception('Invalid response mode');
         }
     }
     
