@@ -156,6 +156,12 @@ class RequestHandlerTest extends TestCase
         $this->assertEquals('1',testableRequestHandler::testShiftPath());
         testableRequestHandler::testUnshiftPath('blogs');
         $this->assertEquals('blogs',testableRequestHandler::testShiftPath());
+
+        
+        testableRequestHandler::clear();
+        testableRequestHandler::testUnshiftPath('json');
+        $this->assertEquals('json',testableRequestHandler::testShiftPath());
+
     }
 }
 

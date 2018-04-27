@@ -206,6 +206,9 @@ class ActiveRecord
                 
             case 'isPhantom':
                 return $this->_isPhantom;
+
+            case 'wasPhantom':
+                return $this->_wasPhantom;
                 
             case 'isValid':
                 return $this->_isValid;
