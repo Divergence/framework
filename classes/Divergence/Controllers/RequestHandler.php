@@ -47,7 +47,7 @@ abstract class RequestHandler
                 ];
                 
                 if (is_array(static::$injectableData)) {
-                    $data = array_merge($data, static::$injectableData);
+                    $data['data'] = array_merge($data['data'], static::$injectableData);
                 }
                 
                 if (function_exists('fastcgi_finish_request')) {

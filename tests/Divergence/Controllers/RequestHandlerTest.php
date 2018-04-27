@@ -46,4 +46,15 @@ class RequestHandlerTest extends TestCase
         unlink($tpl);
     }
 
+    /**
+     * @covers Divergence\Controllers\RequestHandler::respond
+     */
+    public function testInjectableData() {
+        $tpl = realpath(__DIR__.'/../../../views').'/testInjectableData.tpl';
+        file_put_contents($tpl,'{dump $data}');
+        RequestHandler::$injectableData = ['a'=>1,'b'=>2];
+        RequestHandler::respond('testInjectableData.tpl',['c'=>3]);
+        unlink($tpl);
+        $this->expectOutputString('<div style="background:#aaa; padding:5px; margin:5px; color:#000;">dump:<div style="padding-left:20px;">c = 3<br />a = 1<br />b = 2<br /></div></div>');
+    }
 }
