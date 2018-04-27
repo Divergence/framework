@@ -51,7 +51,7 @@ class ActiveRecordTest extends TestCase
     /**
      * @covers Divergence\Models\ActiveRecord::__get
      * @covers Divergence\Models\ActiveRecord::getValue
-     * @covers Divergence\Models\ActiveRecord::getFieldValue
+     * @covers Divergence\Models\ActiveRecord::_getFieldValue
      */
     public function test__get() {
         $A = new Tag([
