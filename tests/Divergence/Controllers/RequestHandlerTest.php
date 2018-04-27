@@ -109,6 +109,21 @@ class RequestHandlerTest extends TestCase
         testableRequestHandler::testSetOptions($B);
         $this->assertEquals(testableRequestHandler::getOptions(),array_merge($A,$B));
     }
+
+    /**
+     * @covers Divergence\Controllers\RequestHandler::peekPath
+     */
+    public function testPeekPath() {
+        $_SERVER['REQUEST_URI'] = '/blogs/edit/1';
+        testableRequestHandler::clear();        
+        $this->assertEquals('blogs',testableRequestHandler::testPeekPath());
+        testableRequestHandler::testShiftPath();
+        $this->assertEquals('edit',testableRequestHandler::testPeekPath());
+        testableRequestHandler::testShiftPath();
+        $this->assertEquals('1',testableRequestHandler::testPeekPath());
+        testableRequestHandler::testShiftPath();
+        $this->assertEquals(false,testableRequestHandler::testPeekPath());
+    }
 }
 
 class testableRequestHandler extends RequestHandler {
@@ -149,6 +164,7 @@ class testableRequestHandler extends RequestHandler {
 
     public static function clear() {
         static::$pathStack = null;
+        static::$_path = null;
     }
 
     public static function getOptions() {
