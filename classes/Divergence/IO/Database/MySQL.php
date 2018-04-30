@@ -47,8 +47,8 @@ class MySQL
             try {
                 // try to initiate connection
                 self::$Connections[$label] = new PDO($DSN, $config['username'], $config['password']);
-            } catch (PDOException $e) {
-                throw new Exception('Connection failed: ' . $e->getMessage());
+            } catch (\PDOException $e) {
+                throw new \Exception('PDO failed to connect on config "'.$label.'" '.$DSN);
             }
             
             // set timezone

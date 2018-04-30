@@ -17,7 +17,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Divergence\\Tests\\": "tests/"
+            "Divergence\\Tests\\": "tests/Divergence"
         }
     },
     "require-dev": {
@@ -27,6 +27,6 @@
     },
     "scripts": {
         "fix-code": "php-cs-fixer fix",
-        "test": "vendor/bin/phpunit"
+        "test": "vendor/bin/phpunit --coverage-clover build/logs/clover.xml"
     }
 }
