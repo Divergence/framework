@@ -8,6 +8,9 @@
             <directory>tests/Divergence</directory>
         </testsuite>
     </testsuites>
+    <listeners>
+        <listener class="Divergence\Tests\TestListener" file="./tests/Divergence/TestListener.php"></listener>
+    </listeners>
     <filter>
         <whitelist>
             <directory>./classes</directory>
