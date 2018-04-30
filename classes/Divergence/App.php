@@ -21,7 +21,7 @@ class App
     public static function config($Label)
     {
         $Config = static::$ApplicationPath . '/config/' . $Label . '.php';
-        if(!file_exists($Config)) {
+        if (!file_exists($Config)) {
             throw new \Exception($Config . ' not found in '.static::class.'::config()');
         }
         return require $Config;

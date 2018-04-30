@@ -62,14 +62,13 @@ class MySQL
     // public static methods
     public static function escape($data)
     {
-        if(is_string($data)) {
+        if (is_string($data)) {
             $data = static::getConnection()->quote($data);
             $data = substr($data, 1, strlen($data)-2);
             return $data;
-        }
-        else if (is_array($data)) {
+        } elseif (is_array($data)) {
             foreach ($data as $key=>$string) {
-                if(is_string($string)) {
+                if (is_string($string)) {
                     $data[$key] = static::escape($string);
                 }
             }

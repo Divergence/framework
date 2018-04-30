@@ -30,7 +30,7 @@ class JSON
     {
         static::respond([
             'success' => false,
-            'message' => $message
+            'message' => $message,
         ]);
     }
     
@@ -39,7 +39,7 @@ class JSON
         if (is_object($input)) {
             if (method_exists($input, 'getData')) {
                 return $input->getData();
-            } else if ($data = $input->data) {
+            } elseif ($data = $input->data) {
                 return static::translateObjects($data);
             }
             return $input;

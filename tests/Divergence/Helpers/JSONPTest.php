@@ -12,9 +12,10 @@ class JSONPtest extends TestCase
     /**
      * @covers Divergence\Helpers\JSONP::respond
      */
-    public function testRespond() {
+    public function testRespond()
+    {
         $json = '{"array":[1,2,3],"boolean":true,"null":null,"number":123,"object":{"a":"b","c":"d","e":"f"},"string":"Hello World"}';
-        $obj = json_decode($json,true);
+        $obj = json_decode($json, true);
         $this->expectOutputString('var data = '.$json);
         JSONP::respond($obj);
 
@@ -22,18 +23,19 @@ class JSONPtest extends TestCase
         $this->expectException('Exception');
         $invalid = [utf8_decode("Düsseldorf"),
             "Washington",
-            "Nairobi"];
+            "Nairobi", ];
         JSONP::respond($invalid);
     }
 
     /**
      * @covers Divergence\Helpers\JSONP::translateAndRespond
      */
-    public function testTranslateAndRespond() {
+    public function testTranslateAndRespond()
+    {
         $Objects = [new nothing(),'mocks'=>[new mock(), new mock(), new mock()], 'mocksWithData' => [new mockWithData(),new mockWithData()]];
         $Expected = [new nothing(), 'mocks'=>[['a'=>1,'b'=>2],['a'=>1,'b'=>2],['a'=>1,'b'=>2]], 'mocksWithData'=>[['a'=>1,'b'=>2,'c'=>3],['a'=>1,'b'=>2,'c'=>3]]];
 
-        $b = 'var data = '.json_encode($Expected,true);
+        $b = 'var data = '.json_encode($Expected, true);
         $this->expectOutputString($b);
         JSONP::translateAndRespond($Objects);
     }

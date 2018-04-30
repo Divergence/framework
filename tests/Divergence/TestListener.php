@@ -1,17 +1,19 @@
 <?php
 namespace Divergence\Tests;
 
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\TestListener as PHPUnit_TestListener;
 use PHPUnit\Framework\Test;
+use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\TestSuite;
-
-use \Divergence\Tests\MockSite\App;
 use \Divergence\IO\Database\MySQL;
 
-class TestListener implements  PHPUnit_TestListener
+use \Divergence\Tests\MockSite\App;
+use PHPUnit\Framework\TestListener as PHPUnit_TestListener;
+
+class TestListener implements PHPUnit_TestListener
 {
-    public function __construct() {} // does nothing but throws an error if not here
+    public function __construct()
+    {
+    } // does nothing but throws an error if not here
 
     public function addError(Test $test, \Throwable $e, float $time): void
     {
@@ -57,7 +59,7 @@ class TestListener implements  PHPUnit_TestListener
     public function startTestSuite(TestSuite $suite): void
     {
         //printf("TestSuite '%s' started.\n", $suite->getName());
-        if($suite->getName() == 'all') {
+        if ($suite->getName() == 'all') {
             MySQL::$defaultProductionLabel = 'tests-mysql';
             App::init(__DIR__.'/../../');
             App::setUp();
@@ -68,7 +70,7 @@ class TestListener implements  PHPUnit_TestListener
     public function endTestSuite(TestSuite $suite): void
     {
         //printf("TestSuite '%s' ended.\n", $suite->getName());
-        if($suite->getName() == 'all') {
+        if ($suite->getName() == 'all') {
             fwrite(STDERR, "\n".'Cleaning up Divergence Mock Environment for PHPUnit'."\n");
         }
     }

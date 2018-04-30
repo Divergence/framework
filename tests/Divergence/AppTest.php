@@ -75,7 +75,8 @@ class AppTest extends TestCase
         $this->assertEquals(App::config('app'), App::$Config);
     }
 
-    public function testAppInitException() {
+    public function testAppInitException()
+    {
         $original = $this->ApplicationPath;
         $this->ApplicationPath = 'fake';
         $this->expectException('Exception');

@@ -1,11 +1,11 @@
 <?php
 namespace Divergence\Models;
 
-use Divergence\IO\Database\SQL as SQL;
-use Divergence\IO\Database\MySQL as DB;
-use Divergence\Helpers\Util as Util;
-
 use Exception;
+use Divergence\Helpers\Util as Util;
+use Divergence\IO\Database\SQL as SQL;
+
+use Divergence\IO\Database\MySQL as DB;
 
 class ActiveRecord
 {

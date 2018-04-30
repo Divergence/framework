@@ -1,12 +1,12 @@
 <?php
 namespace Divergence\Tests\IO\Database;
 
-use Divergence\Tests\MockSite\App;
-use Divergence\Tests\MockSite\Models\Tag;
-use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\TestUtils;
-
 use PHPUnit\Framework\TestCase;
+use Divergence\Tests\MockSite\App;
+use Divergence\IO\Database\MySQL as DB;
+
+use Divergence\Tests\MockSite\Models\Tag;
 
 class MySQLTest extends TestCase
 {
@@ -21,29 +21,31 @@ class MySQLTest extends TestCase
     /**
      * @covers Divergence\IO\Database\MySQL::getConnection
      */
-    public function testGetConnection() {
+    public function testGetConnection()
+    {
         TestUtils::requireDB($this);
-        $this->assertInstanceOf(\PDO::class,DB::getConnection());
-        $this->assertInstanceOf(\PDO::class,DB::getConnection('tests-mysql'));
-        $this->assertInstanceOf(\PDO::class,DB::getConnection('tests-mysql-socket'));
+        $this->assertInstanceOf(\PDO::class, DB::getConnection());
+        $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql'));
+        $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql-socket'));
         $this->expectExceptionMessage('PDO failed to connect on config "mysql" mysql:host=localhost;port=3306;dbname=divergence');
-        $this->assertInstanceOf(\PDO::class,DB::getConnection('mysql'));
+        $this->assertInstanceOf(\PDO::class, DB::getConnection('mysql'));
     }
 
     /**
      * @covers Divergence\IO\Database\MySQL::escape
-     * 
+     *
      * I hope you had as much fun reading this code as I had writing it.
-     * 
+     *
      */
-    public function testEscape() {
+    public function testEscape()
+    {
         TestUtils::requireDB($this);
 
         $Connection = DB::getConnection();
-        $z = function($x) use ($Connection) {
+        $z = function ($x) use ($Connection) {
             $x = $Connection->quote($x);
             return substr($x, 1, strlen($x)-2);
-        };      
+        };
 
         $littleBobbyTables = 'Robert\'); DROP TABLE Students;--';
         $safeLittleBobbyTables = $z($littleBobbyTables);
@@ -51,23 +53,23 @@ class MySQLTest extends TestCase
         $arrayOfBobbies = [
             'lorum ipsum',
             $littleBobbyTables,
-            '; DROP tests '
+            '; DROP tests ',
         ];
         $safeArrayOfBobbies = [];
 
-        foreach($arrayOfBobbies as $oneBob) {
+        foreach ($arrayOfBobbies as $oneBob) {
             $safeArrayOfBobbies[] = $z($oneBob);
         }
         
-        $this->assertEquals($safeLittleBobbyTables,DB::escape($littleBobbyTables));
-        $this->assertEquals($safeArrayOfBobbies,DB::escape($arrayOfBobbies));
-        $this->assertEquals(new \stdClass(),new \stdClass());
+        $this->assertEquals($safeLittleBobbyTables, DB::escape($littleBobbyTables));
+        $this->assertEquals($safeArrayOfBobbies, DB::escape($arrayOfBobbies));
+        $this->assertEquals(new \stdClass(), new \stdClass());
     }
 
     /**
      * @covers Divergence\IO\Database\MySQL::affectedRows
      * @covers Divergence\IO\Database\MySQL::nonQuery
-     * 
+     *
      */
     public function testAffectedRows()
     {
@@ -75,13 +77,13 @@ class MySQLTest extends TestCase
 
         DB::nonQuery('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`<3');
 
-        $this->assertEquals(2,DB::affectedRows());
+        $this->assertEquals(2, DB::affectedRows());
     }
     
     /**
      * @covers Divergence\IO\Database\MySQL::foundRows
      * @covers Divergence\IO\Database\MySQL::oneValue
-     * 
+     *
      */
     public function testFoundRows()
     {
@@ -91,28 +93,28 @@ class MySQLTest extends TestCase
         $foundRows = DB::oneValue('SELECT FOUND_ROWS()');
         $tagsCount = DB::oneValue('SELECT COUNT(*) as `Count` FROM `tags`');
         
-        $this->assertEquals($tagsCount,$foundRows);
-        $this->assertEquals(count($tags),1);
+        $this->assertEquals($tagsCount, $foundRows);
+        $this->assertEquals(count($tags), 1);
     }
     
-     /**
-     * @covers Divergence\IO\Database\MySQL::insertID
-     * @covers Divergence\IO\Database\MySQL::oneRecord
-     * @covers Divergence\IO\Database\MySQL::nonQuery
-     * @covers Divergence\Models\ActiveRecord::create
-     * @covers Divergence\Models\ActiveRecord::save
-     * @covers Divergence\Models\ActiveRecord::destroy
-     * 
-     */
+    /**
+    * @covers Divergence\IO\Database\MySQL::insertID
+    * @covers Divergence\IO\Database\MySQL::oneRecord
+    * @covers Divergence\IO\Database\MySQL::nonQuery
+    * @covers Divergence\Models\ActiveRecord::create
+    * @covers Divergence\Models\ActiveRecord::save
+    * @covers Divergence\Models\ActiveRecord::destroy
+    *
+    */
     public function testInsertID()
     {
         TestUtils::requireDB($this);
 
         $expected = DB::oneRecord('SHOW TABLE STATUS WHERE name = "tags"')['Auto_increment'];
-        $x = Tag::create(['Tag'=>'deleteMe','Slug'=>'deleteme'],true);
+        $x = Tag::create(['Tag'=>'deleteMe','Slug'=>'deleteme'], true);
         $returned = DB::getConnection()->lastInsertId();
-        $this->assertEquals($expected,$returned);
-        $this->assertEquals($returned,DB::insertID());
+        $this->assertEquals($expected, $returned);
+        $this->assertEquals($returned, DB::insertID());
         $x->destroy();
     }
 
@@ -122,28 +124,28 @@ class MySQLTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::getByID
      * @covers Divergence\Models\ActiveRecord::getRecordByField
      * @covers Divergence\Models\ActiveRecord::instantiateRecord
-     * 
+     *
      */
     public function testPrepareQuery()
     {
         TestUtils::requireDB($this);
 
-        $data = DB::prepareQuery('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d',[
+        $data = DB::prepareQuery('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d', [
             Tag::$tableName,
             1,
-            3
+            3,
         ]);
         $this->assertEquals(vsprintf('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d', [
             Tag::$tableName,
             1,
-            3
-        ]),$data);
+            3,
+        ]), $data);
 
-        $data = DB::prepareQuery('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d',3);
-        $this->assertEquals(sprintf('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d',3),$data);
+        $data = DB::prepareQuery('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d', 3);
+        $this->assertEquals(sprintf('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d', 3), $data);
 
         $data = DB::prepareQuery($query = 'UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=3');
-        $this->assertEquals($query,$data);
+        $this->assertEquals($query, $data);
     }
 
     /**
@@ -151,26 +153,26 @@ class MySQLTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::getByID
      * @covers Divergence\Models\ActiveRecord::getRecordByField
      * @covers Divergence\Models\ActiveRecord::instantiateRecord
-     * 
+     *
      */
     public function testNonQuery()
     {
         TestUtils::requireDB($this);
 
-        DB::nonQuery('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d',[
+        DB::nonQuery('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d', [
             Tag::$tableName,
             1,
-            3
+            3,
         ]);
 
         $Tag = Tag::getByID(3);
-        $this->assertEquals(1,$Tag->CreatorID);
+        $this->assertEquals(1, $Tag->CreatorID);
     }
 
     /**
      * @covers Divergence\IO\Database\MySQL::query
      * @covers Divergence\IO\Database\MySQL::handleError
-     * 
+     *
      */
     public function testQueryException()
     {
@@ -184,7 +186,7 @@ class MySQLTest extends TestCase
     /**
      * @covers Divergence\IO\Database\MySQL::query
      * @covers Divergence\IO\Database\MySQL::handleError
-     * 
+     *
      */
     public function testQueryExceptionHandled()
     {
@@ -192,22 +194,23 @@ class MySQLTest extends TestCase
 
         $Context = $this;
         // bad queries!
-        DB::query('SELECT malformed query',null,function() use ($Context) {
+        DB::query('SELECT malformed query', null, function () use ($Context) {
             $args = func_get_args();
 
         
 
-            $Context->assertEquals('SELECT malformed query',$args[0]);
-            $Context->assertEquals(0,$args[1]);
-        }); 
+            $Context->assertEquals('SELECT malformed query', $args[0]);
+            $Context->assertEquals(0, $args[1]);
+        });
     }
 
     /**
      * @covers Divergence\IO\Database\MySQL::nonQuery
      * @covers Divergence\IO\Database\MySQL::handleError
-     * 
+     *
      */
-    public function testNonQueryExceptionDevException() {
+    public function testNonQueryExceptionDevException()
+    {
         TestUtils::requireDB($this);
 
         App::$Config['environment']='dev';
@@ -221,28 +224,29 @@ class MySQLTest extends TestCase
     /**
      * @covers Divergence\IO\Database\MySQL::nonQuery
      * @covers Divergence\IO\Database\MySQL::handleError
-     * 
+     *
      */
-    public function testNonQueryHandledException() {
+    public function testNonQueryHandledException()
+    {
         TestUtils::requireDB($this);
         
         $Context = $this;
         // another bad query but this time we handle the problem
-        DB::nonQuery('UPDATE `%s` SET fake`=%d WHERE `ID`=%d',[
+        DB::nonQuery('UPDATE `%s` SET fake`=%d WHERE `ID`=%d', [
             Tag::$tableName,
             1,
-            3
-        ],function() use ($Context) {
+            3,
+        ], function () use ($Context) {
             $args = func_get_args();
 
-            $a = vsprintf('UPDATE `%s` SET fake`=%d WHERE `ID`=%d',[
+            $a = vsprintf('UPDATE `%s` SET fake`=%d WHERE `ID`=%d', [
                 Tag::$tableName,
                 1,
-                3
+                3,
             ]);
 
-            $Context->assertEquals($a,$args[0]);
-            $Context->assertEquals(0,$args[1]);
+            $Context->assertEquals($a, $args[0]);
+            $Context->assertEquals(0, $args[1]);
         });
     }
 }

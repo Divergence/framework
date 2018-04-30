@@ -42,7 +42,7 @@ abstract class RequestHandler
                 $dwoo = new Dwoo();
                 
                 $data = [
-                    'data' => 	$responseData
+                    'data' => 	$responseData,
                 ];
                 
                 if (is_array(static::$injectableData)) {

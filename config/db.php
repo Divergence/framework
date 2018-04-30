@@ -39,9 +39,9 @@ return [
     'tests-mysql-socket' => [
         // the first is for travis ci and default-ish linux, the second is for my dev machine using osx.
         // feel free to adjust for yourself but do not commit your preference
-        'socket'   => file_exists('/var/run/mysqld/mysqld.sock')?'/var/run/mysqld/mysqld.sock':'/tmp/mysql.sock',
+        'socket'   => file_exists('/var/run/mysqld/mysqld.sock') ? '/var/run/mysqld/mysqld.sock' : '/tmp/mysql.sock',
         'database' =>  'test',
         'username' =>  'travis',
         'password' =>  '',
-    ]
+    ],
 ];

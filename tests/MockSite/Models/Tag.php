@@ -28,11 +28,13 @@ class Tag extends \Divergence\Models\Model
     ];
 
     /* expose protected attributes for unit testing */
-    public static function getProtected($field) {
+    public static function getProtected($field)
+    {
         return static::$$field;
     }
 
-    public static function getRecordClass($record) {
+    public static function getRecordClass($record)
+    {
         return static::_getRecordClass($record);
     }
 }
