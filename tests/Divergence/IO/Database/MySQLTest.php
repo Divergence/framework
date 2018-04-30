@@ -71,6 +71,8 @@ class MySQLTest extends TestCase
      */
     public function testAffectedRows()
     {
+        TestUtils::requireDB($this);
+
         DB::nonQuery('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`<3');
 
         $this->assertEquals(2,DB::affectedRows());
@@ -83,6 +85,8 @@ class MySQLTest extends TestCase
      */
     public function testFoundRows()
     {
+        TestUtils::requireDB($this);
+
         $tags = DB::allRecords('select SQL_CALC_FOUND_ROWS * from `tags` LIMIT 1;');
         $foundRows = DB::oneValue('SELECT FOUND_ROWS()');
         $tagsCount = DB::oneValue('SELECT COUNT(*) as `Count` FROM `tags`');
@@ -101,6 +105,8 @@ class MySQLTest extends TestCase
      */
     public function testInsertID()
     {
+        TestUtils::requireDB($this);
+
         $expected = DB::oneRecord('SHOW TABLE STATUS WHERE name = "tags"')['Auto_increment'];
         $x = Tag::create(['Tag'=>'deleteMe','Slug'=>'deleteme'],true);
         $returned = DB::getConnection()->lastInsertId();
@@ -119,6 +125,8 @@ class MySQLTest extends TestCase
      */
     public function testPrepareQuery()
     {
+        TestUtils::requireDB($this);
+
         $data = DB::prepareQuery('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d',[
             Tag::$tableName,
             1,
@@ -146,6 +154,7 @@ class MySQLTest extends TestCase
      */
     public function testNonQuery()
     {
+        TestUtils::requireDB($this);
 
         DB::nonQuery('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d',[
             Tag::$tableName,
@@ -164,6 +173,8 @@ class MySQLTest extends TestCase
      */
     public function testQueryException()
     {
+        TestUtils::requireDB($this);
+
         // bad queries!
         DB::query('SELECT malformed query'); // literally nothing should happen.. fail gracefully
         $this->expectOutputString('');
@@ -176,6 +187,8 @@ class MySQLTest extends TestCase
      */
     public function testQueryExceptionHandled()
     {
+        TestUtils::requireDB($this);
+
         $Context = $this;
         // bad queries!
         DB::query('SELECT malformed query',null,function() use ($Context) {
@@ -194,6 +207,8 @@ class MySQLTest extends TestCase
      * 
      */
     public function testNonQueryExceptionDevException() {
+        TestUtils::requireDB($this);
+
         App::$Config['environment']='dev';
         DB::$defaultDevLabel = 'tests-mysql';
 
@@ -208,6 +223,8 @@ class MySQLTest extends TestCase
      * 
      */
     public function testNonQueryHandledException() {
+        TestUtils::requireDB($this);
+        
         $Context = $this;
         // another bad query but this time we handle the problem
         DB::nonQuery('UPDATE `%s` SET fake`=%d WHERE `ID`=%d',[
