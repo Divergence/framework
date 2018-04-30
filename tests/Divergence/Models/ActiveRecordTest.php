@@ -374,4 +374,36 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals('changed',$x->Tag);
         $x->destroy();
     }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getByHandle
+     * @covers Divergence\Models\ActiveRecord::getByID
+     */
+    public function testGetByHandle() {
+        TestUtils::requireDB($this);
+
+        $x = Tag::getByHandle(1);
+        $this->assertEquals('Linux',$x->Tag);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getByField
+     * @covers Divergence\Models\ActiveRecord::getByID
+     * @covers Divergence\Models\ActiveRecord::destroy
+     * @covers Divergence\Models\ActiveRecord::delete
+     */
+    public function testGetByField() {
+        TestUtils::requireDB($this);
+        
+        $x = Tag::getByField('Tag','Linux');
+        $this->assertEquals('Linux',$x->Tag);
+
+        $a = Tag::create(['Tag'=>'first','Slug'=>'deleteme'],true);
+        $b = Tag::create(['Tag'=>'second','Slug'=>'deleteme'],true);
+
+        $c = Tag::getByField('Slug','deleteme');
+        $this->assertEquals('first',$c->Tag);
+        $a->destroy();
+        $b->destroy();
+    }
 }
