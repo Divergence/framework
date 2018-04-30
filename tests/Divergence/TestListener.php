@@ -6,6 +6,9 @@ use PHPUnit\Framework\TestListener as PHPUnit_TestListener;
 use PHPUnit\Framework\Test;
 use PHPUnit\Framework\TestSuite;
 
+use \Divergence\App;
+use \Divergence\IO\Database\MySQL;
+
 class TestListener implements  PHPUnit_TestListener
 {
     public function __construct() {} // does nothing but throws an error if not here
@@ -53,15 +56,19 @@ class TestListener implements  PHPUnit_TestListener
 
     public function startTestSuite(TestSuite $suite): void
     {
+        //printf("TestSuite '%s' started.\n", $suite->getName());
         if($suite->getName() == 'all') {
-            printf("TestSuite '%s' started.\n", $suite->getName());
+            MySQL::$defaultProductionLabel = 'tests-mysql';
+            App::init(realpath(__DIR__.'/../../'));
+            fwrite(STDERR, 'Starting Divergence Mock Environment for PHPUnit'."\n");
         }
     }
 
     public function endTestSuite(TestSuite $suite): void
     {
+        //printf("TestSuite '%s' ended.\n", $suite->getName());
         if($suite->getName() == 'all') {
-            printf("TestSuite '%s' ended.\n", $suite->getName());
+            fwrite(STDERR, "\n".'Cleaning up Divergence Mock Environment for PHPUnit'."\n");
         }
     }
 }
