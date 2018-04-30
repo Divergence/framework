@@ -75,6 +75,15 @@ class AppTest extends TestCase
         $this->assertEquals(App::config('app'), App::$Config);
     }
 
+    public function testAppInitException() {
+        $original = $this->ApplicationPath;
+        $this->ApplicationPath = 'fake';
+        $this->expectException('Exception');
+        $this->doInit();
+        $this->ApplicationPath = $original;
+        $this->doInit();
+    }
+
     /**
      * @covers Divergence\App::config
      */

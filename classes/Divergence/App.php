@@ -20,7 +20,11 @@ class App
     
     public static function config($Label)
     {
-        return require static::$ApplicationPath . '/config/' . $Label . '.php';
+        $Config = static::$ApplicationPath . '/config/' . $Label . '.php';
+        if(!file_exists($Config)) {
+            throw new \Exception($Config . ' not found in '.static::class.'::config()');
+        }
+        return require $Config;
     }
     
     public static function registerErrorHandler()
