@@ -391,6 +391,8 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::getByID
      * @covers Divergence\Models\ActiveRecord::destroy
      * @covers Divergence\Models\ActiveRecord::delete
+     * @covers Divergence\Models\ActiveRecord::getRecordByField
+     * @covers Divergence\Models\ActiveRecord::instantiateRecord
      */
     public function testGetByField() {
         TestUtils::requireDB($this);
@@ -405,5 +407,35 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals('first',$c->Tag);
         $a->destroy();
         $b->destroy();
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getByWhere
+     * @covers Divergence\Models\ActiveRecord::destroy
+     * @covers Divergence\Models\ActiveRecord::delete
+     * @covers Divergence\Models\ActiveRecord::instantiateRecord
+     * @covers Divergence\Models\ActiveRecord::_mapConditions
+     * @covers Divergence\Models\ActiveRecord::_mapFieldOrder
+     */
+    public function testGetByWhere() {
+        TestUtils::requireDB($this);
+
+        $a = Tag::create(['Tag'=>'first','Slug'=>'deleteme'],true);
+        $b = Tag::create(['Tag'=>'second','Slug'=>'deleteme'],true);
+
+        $search = Tag::getByWhere(['Slug'=>'deleteme'],['order'=>['Tag'=>'ASC']]);
+
+        $this->assertEquals($a->data,$search->data);
+
+        $search = Tag::getByWhere(['Slug'=>'deleteme'],['order'=>['Tag'=>'DESC']]);
+        $this->assertEquals($b->data,$search->data);
+
+        $search = Tag::getByWhere(["Tag in ('first','second')"],[
+            'order'=> [
+                'ID'=>'DESC',
+            ]
+        ]);
+        $this->assertEquals($b->data,$search->data);
+
     }
 }
