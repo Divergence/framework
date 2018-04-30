@@ -17,7 +17,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Divergence\\Tests\\": "tests/Divergence"
+            "Divergence\\Tests\\": "tests/Divergence",
+            "Divergence\\Tests\\MockSite\\": "tests/MockSite"
         }
     },
     "require-dev": {

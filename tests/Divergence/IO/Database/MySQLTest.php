@@ -39,12 +39,28 @@ class MySQLTest extends TestCase
      */
     public function testEscape() {
         TestUtils::requireDB($this);
+
+        $Connection = DB::getConnection();
+        $z = function($x) use ($Connection) {
+            $x = $Connection->quote($x);
+            return substr($x, 1, strlen($x)-2);
+        };      
+
         $littleBobbyTables = 'Robert\'); DROP TABLE Students;--';
-        dump(DB::escape([
+        $safeLittleBobbyTables = $z($littleBobbyTables);
+        
+        $arrayOfBobbies = [
             'lorum ipsum',
             $littleBobbyTables,
-            ''
-        ]));
-        dump(DB::escape($littleBobbyTables));
+            '; DROP tests '
+        ];
+        $safeArrayOfBobbies = [];
+
+        foreach($arrayOfBobbies as $oneBob) {
+            $safeArrayOfBobbies[] = $z($oneBob);
+        }
+        
+        $this->assertEquals($safeLittleBobbyTables,DB::escape($littleBobbyTables));
+        $this->assertEquals($safeArrayOfBobbies,DB::escape($arrayOfBobbies));
     }
 }

@@ -60,19 +60,22 @@ class MySQL
     }
     
     // public static methods
-    public static function escape($string)
+    public static function escape($data)
     {
-        if (is_array($string)) {
-            foreach ($string as &$sub) {
-                $sub = self::getConnection()->quote($sub);
-            }
-        } else {
-            $string = self::getConnection()->quote($string);
+        if(is_string($data)) {
+            $data = static::getConnection()->quote($data);
+            $data = substr($data, 1, strlen($data)-2);
+            return $data;
         }
-        
-        $string = substr($string, 1, strlen($string)-2);
-        
-        return $string;
+        else if (is_array($data)) {
+            foreach ($data as $key=>$string) {
+                if(is_string($string)) {
+                    $data[$key] = static::escape($string);
+                }
+            }
+            return $data;
+        }
+        return $data;
     }
     
     
