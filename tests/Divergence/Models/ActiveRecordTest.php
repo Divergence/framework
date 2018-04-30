@@ -5,6 +5,7 @@ use Divergence\Tests\MockSite\Models\Tag;
 
 use Divergence\Models\ActiveRecord;
 use Divergence\Models\Model;
+use Divergence\Tests\TestUtils;
 
 use PHPUnit\Framework\TestCase;
 
@@ -349,5 +350,28 @@ class ActiveRecordTest extends TestCase
 
         $this->assertEquals('Divergence\Tests\MockSite\Models\Tag',Tag::getRecordClass($record));
         $this->assertEquals('Divergence\Tests\MockSite\Models\Tag',Tag::getRecordClass([]));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::save
+     * @covers Divergence\Models\ActiveRecord::destroy
+     * @covers Divergence\Models\ActiveRecord::delete
+     */
+    public function testSave() {
+        TestUtils::requireDB($this);
+
+        $x = Tag::create(['Tag'=>'deleteMe','Slug'=>'deleteme']);
+        $this->assertEquals('deleteMe',$x->Tag);
+        $this->assertEquals(true,$x->isPhantom);
+        $this->assertEquals(true,$x->isDirty);
+        $x->save();
+        $this->assertEquals(false,$x->isPhantom);
+        $this->assertEquals(false,$x->isDirty);
+        $x->Tag = 'changed';
+        $this->assertEquals(false,$x->isPhantom);
+        $this->assertEquals(true,$x->isDirty);
+        $x->save();
+        $this->assertEquals('changed',$x->Tag);
+        $x->destroy();
     }
 }

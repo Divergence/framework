@@ -101,6 +101,7 @@ class MySQLTest extends TestCase
      * @covers Divergence\IO\Database\MySQL::nonQuery
      * @covers Divergence\Models\ActiveRecord::create
      * @covers Divergence\Models\ActiveRecord::save
+     * @covers Divergence\Models\ActiveRecord::destroy
      * 
      */
     public function testInsertID()
