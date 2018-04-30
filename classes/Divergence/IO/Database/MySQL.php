@@ -379,7 +379,7 @@ class MySQL
             $errorHandler = explode('::', $errorHandler);
         }
         if (is_callable($errorHandler, false, $callable)) {
-            return call_user_func($errorHandler, $query, $queryLog, $parameters);
+            return call_user_func($errorHandler, $query, $queryLog);
         }
         
         // save queryLog
@@ -412,8 +412,6 @@ class MySQL
             \Divergence\App::$whoops->pushHandler($Handler);
             
             throw new \RuntimeException("Database error!");
-        } else {
-            die('Error while communicating with database');
         }
     }
     

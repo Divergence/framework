@@ -1012,7 +1012,7 @@ class ActiveRecord
             
             return $Connection->query($query); // now the query should finish with no error
         } else {
-            return DB::handleError($query, $queryLog, $parameters);
+            return DB::handleError($query, $queryLog);
         }
     }
     

@@ -66,12 +66,15 @@ class MySQLTest extends TestCase
 
     /**
      * @covers Divergence\IO\Database\MySQL::affectedRows
+     * @covers Divergence\IO\Database\MySQL::nonQuery
      * 
      */
-    /*public static function testAffectedRows()
+    public function testAffectedRows()
     {
-        //return self::$LastStatement->rowCount();
-    }*/
+        DB::nonQuery('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`<3');
+
+        $this->assertEquals(2,DB::affectedRows());
+    }
     
     /**
      * @covers Divergence\IO\Database\MySQL::foundRows
@@ -105,9 +108,123 @@ class MySQLTest extends TestCase
         $this->assertEquals($returned,DB::insertID());
         $x->destroy();
     }
-    
-    /*public function testPrepareQuery()
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::prepareQuery
+     * @covers Divergence\IO\Database\MySQL::preprocessQuery
+     * @covers Divergence\Models\ActiveRecord::getByID
+     * @covers Divergence\Models\ActiveRecord::getRecordByField
+     * @covers Divergence\Models\ActiveRecord::instantiateRecord
+     * 
+     */
+    public function testPrepareQuery()
     {
-        //return self::preprocessQuery($query, $parameters);
-    }*/
+        $data = DB::prepareQuery('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d',[
+            Tag::$tableName,
+            1,
+            3
+        ]);
+        $this->assertEquals(vsprintf('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d', [
+            Tag::$tableName,
+            1,
+            3
+        ]),$data);
+
+        $data = DB::prepareQuery('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d',3);
+        $this->assertEquals(sprintf('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d',3),$data);
+
+        $data = DB::prepareQuery($query = 'UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=3');
+        $this->assertEquals($query,$data);
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::nonQuery
+     * @covers Divergence\Models\ActiveRecord::getByID
+     * @covers Divergence\Models\ActiveRecord::getRecordByField
+     * @covers Divergence\Models\ActiveRecord::instantiateRecord
+     * 
+     */
+    public function testNonQuery()
+    {
+
+        DB::nonQuery('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d',[
+            Tag::$tableName,
+            1,
+            3
+        ]);
+
+        $Tag = Tag::getByID(3);
+        $this->assertEquals(1,$Tag->CreatorID);
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::query
+     * @covers Divergence\IO\Database\MySQL::handleError
+     * 
+     */
+    public function testQueryException()
+    {
+        // bad queries!
+        DB::query('SELECT malformed query'); // literally nothing should happen.. fail gracefully
+        $this->expectOutputString('');
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::query
+     * @covers Divergence\IO\Database\MySQL::handleError
+     * 
+     */
+    public function testQueryExceptionHandled()
+    {
+        $Context = $this;
+        // bad queries!
+        DB::query('SELECT malformed query',null,function() use ($Context) {
+            $args = func_get_args();
+
+        
+
+            $Context->assertEquals('SELECT malformed query',$args[0]);
+            $Context->assertEquals(0,$args[1]);
+        }); 
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::nonQuery
+     * @covers Divergence\IO\Database\MySQL::handleError
+     * 
+     */
+    public function testNonQueryExceptionDevException() {
+        App::$Config['environment']='dev';
+        DB::$defaultDevLabel = 'tests-mysql';
+
+        $this->expectException(\RunTimeException::class);
+        $this->expectExceptionMessage('Database error!');
+        DB::nonQuery('SELECT malformed query');
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::nonQuery
+     * @covers Divergence\IO\Database\MySQL::handleError
+     * 
+     */
+    public function testNonQueryHandledException() {
+        $Context = $this;
+        // another bad query but this time we handle the problem
+        DB::nonQuery('UPDATE `%s` SET fake`=%d WHERE `ID`=%d',[
+            Tag::$tableName,
+            1,
+            3
+        ],function() use ($Context) {
+            $args = func_get_args();
+
+            $a = vsprintf('UPDATE `%s` SET fake`=%d WHERE `ID`=%d',[
+                Tag::$tableName,
+                1,
+                3
+            ]);
+
+            $Context->assertEquals($a,$args[0]);
+            $Context->assertEquals(0,$args[1]);
+        });
+    }
 }
