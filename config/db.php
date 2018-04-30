@@ -24,5 +24,16 @@ return [
         'database' =>  'divergence',
         'username' =>  'divergence',
         'password' =>  'abc123',
+    ],
+    /*
+     *	If you plan on working on the framework itself it's a good idea to provide
+     *	an empty database for unit testing.
+     *
+     */
+    'tests-mysql' => [
+        'host'     =>   'localhost',
+        'database' =>  'test',
+        'username' =>  'travis',
+        'password' =>  '',
     ]
 ];
