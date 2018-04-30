@@ -2,6 +2,7 @@
 namespace Divergence\Tests\IO\Database;
 
 use Divergence\Tests\MockSite\App;
+use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\TestUtils;
 
@@ -63,5 +64,50 @@ class MySQLTest extends TestCase
         $this->assertEquals(new \stdClass(),new \stdClass());
     }
 
+    /**
+     * @covers Divergence\IO\Database\MySQL::affectedRows
+     * 
+     */
+    /*public static function testAffectedRows()
+    {
+        //return self::$LastStatement->rowCount();
+    }*/
     
+    /**
+     * @covers Divergence\IO\Database\MySQL::foundRows
+     * @covers Divergence\IO\Database\MySQL::oneValue
+     * 
+     */
+    public function testFoundRows()
+    {
+        $tags = DB::allRecords('select SQL_CALC_FOUND_ROWS * from `tags` LIMIT 1;');
+        $foundRows = DB::oneValue('SELECT FOUND_ROWS()');
+        $tagsCount = DB::oneValue('SELECT COUNT(*) as `Count` FROM `tags`');
+        
+        $this->assertEquals($tagsCount,$foundRows);
+        $this->assertEquals(count($tags),1);
+    }
+    
+     /**
+     * @covers Divergence\IO\Database\MySQL::insertID
+     * @covers Divergence\IO\Database\MySQL::oneRecord
+     * @covers Divergence\IO\Database\MySQL::nonQuery
+     * @covers Divergence\Models\ActiveRecord::create
+     * @covers Divergence\Models\ActiveRecord::save
+     * 
+     */
+    public function testInsertID()
+    {
+        $expected = DB::oneRecord('SHOW TABLE STATUS WHERE name = "tags"')['Auto_increment'];
+        $x = Tag::create(['Tag'=>'deleteMe','Slug'=>'deleteme'],true);
+        $returned = DB::getConnection()->lastInsertId();
+        $this->assertEquals($expected,$returned);
+        $this->assertEquals($returned,DB::insertID());
+        $x->destroy();
+    }
+    
+    /*public function testPrepareQuery()
+    {
+        //return self::preprocessQuery($query, $parameters);
+    }*/
 }
