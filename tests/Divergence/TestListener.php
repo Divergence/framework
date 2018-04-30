@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestListener as PHPUnit_TestListener;
 use PHPUnit\Framework\Test;
 use PHPUnit\Framework\TestSuite;
 
-use \Divergence\App;
+use \Divergence\Tests\MockSite\App;
 use \Divergence\IO\Database\MySQL;
 
 class TestListener implements  PHPUnit_TestListener
@@ -59,7 +59,8 @@ class TestListener implements  PHPUnit_TestListener
         //printf("TestSuite '%s' started.\n", $suite->getName());
         if($suite->getName() == 'all') {
             MySQL::$defaultProductionLabel = 'tests-mysql';
-            App::init(realpath(__DIR__.'/../../'));
+            App::init(__DIR__.'/../../');
+            App::setUp();
             fwrite(STDERR, 'Starting Divergence Mock Environment for PHPUnit'."\n");
         }
     }

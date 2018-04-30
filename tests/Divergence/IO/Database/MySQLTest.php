@@ -1,7 +1,7 @@
 <?php
 namespace Divergence\Tests\IO\Database;
 
-use Divergence\App;
+use Divergence\Tests\MockSite\App;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\TestUtils;
 
@@ -15,8 +15,6 @@ class MySQLTest extends TestCase
     {
         $this->ApplicationPath = realpath(__DIR__.'/../../../../');
         App::init($this->ApplicationPath);
-        
-        // initiate pdo and abort all tests
     }
 
     /**
@@ -62,5 +60,8 @@ class MySQLTest extends TestCase
         
         $this->assertEquals($safeLittleBobbyTables,DB::escape($littleBobbyTables));
         $this->assertEquals($safeArrayOfBobbies,DB::escape($arrayOfBobbies));
+        $this->assertEquals(new \stdClass(),new \stdClass());
     }
+
+    
 }

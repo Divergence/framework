@@ -368,7 +368,7 @@ class ActiveRecord
     
     public function save($deep = true)
     {
-    
+        
         // run before save
         foreach (static::$_classBeforeSave as $beforeSave) {
             if (is_callable($beforeSave)) {
@@ -407,7 +407,7 @@ class ActiveRecord
         }
         
         // traverse relationships
-        if ($deep) {
+        if ($deep && static::isRelational()) {
             $this->_saveRelationships();
         }
 
@@ -476,7 +476,7 @@ class ActiveRecord
         }
         
         // traverse relationships again
-        if ($deep) {
+        if ($deep && static::isRelational()) {
             $this->_postSaveRelationships();
         }
     }

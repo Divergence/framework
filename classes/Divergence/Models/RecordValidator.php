@@ -1,6 +1,8 @@
 <?php
 namespace Divergence\Models;
 
+use Exception;
+
 class RecordValidator
 {
 
