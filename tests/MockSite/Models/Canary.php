@@ -125,6 +125,10 @@ class Canary extends \Divergence\Models\Model
         return static::_getRecordClass($record);
     }
 
+    public function getRecord() {
+        return $this->_record;
+    }
+
     /*
      *  @incantation        (AH-viss)
      *  @url                http://harrypotter.wikia.com/wiki/Bird-Conjuring_Charm
