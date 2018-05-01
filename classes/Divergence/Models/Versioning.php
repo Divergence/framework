@@ -1,6 +1,8 @@
 <?php
 namespace Divergence\Models;
 
+use Exception;
+
 use Divergence\IO\Database\MySQL as DB;
 
 trait Versioning

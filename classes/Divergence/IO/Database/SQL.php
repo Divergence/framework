@@ -101,7 +101,7 @@ class SQL
 
         $createSQL = sprintf(
             "CREATE TABLE IF NOT EXISTS `%s` (\n\t%s\n) ENGINE=MyISAM DEFAULT CHARSET=utf8;",
-            $historyVariant ? $recordClass::getHistoryTableName() : $recordClass::$tableName,
+            $historyVariant ? $recordClass::getHistoryTable() : $recordClass::$tableName,
             join("\n\t,", $queryFields)
         );
 

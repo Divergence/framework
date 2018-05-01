@@ -1,6 +1,9 @@
 <?php
 namespace Divergence\Tests\MockSite\Models;
 
+use Divergence\Models\Relations;
+use Divergence\Models\Versioning;
+
 use Divergence\Tests\MockSite\Mock\Data;
 
 /*
@@ -10,7 +13,7 @@ use Divergence\Tests\MockSite\Mock\Data;
  */
 class Canary extends \Divergence\Models\Model
 {
-    //use \Divergence\Models\Versioning;
+    use Versioning;
     //use \Divergence\Models\Relations;
     
     // support subclassing
@@ -25,9 +28,9 @@ class Canary extends \Divergence\Models\Model
     public static $pluralNoun = 'canaries';
     
     // versioning
-    //static public $historyTable = 'canaries_history';
-    //static public $createRevisionOnDestroy = true;
-    //static public $createRevisionOnSave = true;
+    static public $historyTable = 'canaries_history';
+    static public $createRevisionOnDestroy = true;
+    static public $createRevisionOnSave = true;
 
     public static $fields = [
         'ContextID' => [

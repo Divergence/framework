@@ -8,8 +8,11 @@ use PHPUnit\Framework\TestCase;
 use Divergence\Models\ActiveRecord;
 use Divergence\IO\Database\MySQL as DB;
 
+
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
+
+class fakeCanary extends Canary { /* so we can test init on a brand new class */ }
 
 class ActiveRecordTest extends TestCase
 {
@@ -45,6 +48,14 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(false, $A->isUpdated);
         $this->assertEquals(true, $A->isValid);
         $this->assertEquals([], $A->originalValues);
+
+        $this->assertEquals(false, fakeCanary::getProtected('_fieldsDefined')[fakeCanary::class]);
+        $this->assertEquals(false, fakeCanary::getProtected('_relationshipsDefined')[fakeCanary::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
+        $this->assertEquals(false, fakeCanary::getProtected('_eventsDefined')[fakeCanary::class]);
+
+        $x = fakeCanary::create(fakeCanary::avis(),true);
+        $x->Name = 'Changed';
+        $x->save();
 
         $this->assertEquals(true, Tag::getProtected('_fieldsDefined')[Tag::class]);
         $this->assertEquals(false, Tag::getProtected('_relationshipsDefined')[Tag::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
