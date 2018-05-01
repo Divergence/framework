@@ -30,7 +30,7 @@ class App extends \Divergence\App
             fwrite(STDOUT, 'Summoning Canaries'."\n");
 
             $Canaries = [];
-            while (count($Canaries) < 100) {
+            while (count($Canaries) < 10) {
                 $Canary = Canary::create(Canary::avis());
                 
                 $Canary->save();

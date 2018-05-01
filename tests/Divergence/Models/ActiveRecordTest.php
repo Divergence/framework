@@ -328,11 +328,38 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::mapConditions
      * @covers Divergence\Models\ActiveRecord::_mapConditions
      */
-    /*public function testMapConditions()
+    public function testMapConditions()
     {
-        $Canary = Canary::create(Canary::avis());
-        $Canary->save();
-    }*/
+        $conditions = [
+            'Handle' => null,
+            'Name' => [
+                'operator' => 'NOT',
+                'value' => "Frank"
+            ],
+            'isAlive' => true,
+        ];
+        
+        $this->assertEquals([
+            "Handle" => "`Handle` IS NULL",
+            "Name" => "`Name` NOT \"Frank\"",
+            "isAlive" => "`isAlive` = \"1\""
+        ],Canary::mapConditions($conditions));
+
+        $conditions = [
+            'Handle' => '',
+            'Name' => [
+                'operator' => 'NOT',
+                'value' => "Frank"
+            ],
+            'isAlive' => true,
+        ];
+
+        $this->assertEquals([
+            "Handle" => "`Handle` IS NULL",
+            "Name" => "`Name` NOT \"Frank\"",
+            "isAlive" => "`isAlive` = \"1\""
+        ],Canary::mapConditions($conditions));
+    }
 
     /**
      * @covers Divergence\Models\ActiveRecord::getColumnName
