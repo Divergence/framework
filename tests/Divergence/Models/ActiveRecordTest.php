@@ -9,6 +9,7 @@ use Divergence\Models\ActiveRecord;
 use Divergence\IO\Database\MySQL as DB;
 
 use Divergence\Tests\MockSite\Models\Tag;
+use Divergence\Tests\MockSite\Models\Canary;
 
 class ActiveRecordTest extends TestCase
 {
@@ -299,18 +300,18 @@ class ActiveRecordTest extends TestCase
     public function testMapFieldOrder()
     {
         $x = ActiveRecord::mapFieldOrder('some string');
-        $this->assertEquals(['some string'],$x);
+        $this->assertEquals(['some string'], $x);
         
         $x = Tag::mapFieldOrder([
             'Tag' => 'DESC',
             'Created' => 'ASC',
-            'ID' // should default to ASC when direction not provided
+            'ID', // should default to ASC when direction not provided
         ]);
         $this->assertEquals([
             0 => "`Tag` DESC",
             1 => "`Created` ASC",
-            2 => "`ID` ASC"
-        ],$x);
+            2 => "`ID` ASC",
+        ], $x);
     }
 
     /**
@@ -327,10 +328,11 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::mapConditions
      * @covers Divergence\Models\ActiveRecord::_mapConditions
      */
-    /*public function testMapConditions()
+    public function testMapConditions()
     {
-
-    }*/
+        $Canary = Canary::create(Canary::avis());
+        $Canary->save();
+    }
 
     /**
      * @covers Divergence\Models\ActiveRecord::getColumnName
@@ -519,13 +521,13 @@ class ActiveRecordTest extends TestCase
      */
     public function testGetByQuery()
     {
-        $x = Tag::getByQuery("SELECT * FROM `tags` WHERE Tag in ('%s','%s') ORDER BY ID DESC LIMIT 1",[
-            'Linux','PHPUnit'
+        $x = Tag::getByQuery("SELECT * FROM `tags` WHERE Tag in ('%s','%s') ORDER BY ID DESC LIMIT 1", [
+            'Linux','PHPUnit',
         ]);
         $this->assertEquals('PHPUnit', $x->Tag);
 
-        $x = Tag::getByQuery("SELECT * FROM `tags` WHERE Tag in ('%s','%s') ORDER BY ID ASC LIMIT 1",[
-            'Linux','PHPUnit'
+        $x = Tag::getByQuery("SELECT * FROM `tags` WHERE Tag in ('%s','%s') ORDER BY ID ASC LIMIT 1", [
+            'Linux','PHPUnit',
         ]);
         $this->assertEquals('Linux', $x->Tag);
     }
@@ -549,7 +551,7 @@ class ActiveRecordTest extends TestCase
      */
     public function testGetAllByField()
     {
-        $x = Tag::getAllByField('CreatorID',1);
+        $x = Tag::getAllByField('CreatorID', 1);
         $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags WHERE CreatorID=1'), count($x));
     }
 

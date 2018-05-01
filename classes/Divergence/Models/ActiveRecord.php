@@ -665,7 +665,7 @@ class ActiveRecord
 
         
         // handle joining related tables
-        if(static::isRelational()) {
+        if (static::isRelational()) {
             $join = '';
             if ($options['joinRelated']) {
                 if (is_string($options['joinRelated'])) {
@@ -1294,9 +1294,6 @@ class ActiveRecord
                 // normalize encoding to ASCII
                 $value = @mb_convert_encoding($value, DB::$encoding, 'auto');
                 
-                // remove any remaining non-printable characters
-                //$value = preg_replace('/[^[:print:][:space:]]/', '', $value);
-                
                 break;
             }
             
@@ -1368,6 +1365,11 @@ class ActiveRecord
                 $value = serialize($value);
                 break;
             }
+            case 'enum':
+            {
+                $value = in_array($value, $fieldOptions['values']) ? $value : null;
+                break;
+            }
             case 'set':
             case 'list':
             {
@@ -1392,7 +1394,7 @@ class ActiveRecord
             $this->_isDirty = true;
             
             // unset invalidated relationships
-            if (!empty($fieldOptions['relationships'])) {
+            if (!empty($fieldOptions['relationships']) && static::isRelational()) {
                 foreach ($fieldOptions['relationships'] as $relationship => $isCached) {
                     if ($isCached) {
                         unset($this->_relatedObjects[$relationship]);

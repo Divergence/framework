@@ -4,6 +4,7 @@ namespace Divergence\Tests\MockSite;
 use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\MockSite\Models\Tag;
+use Divergence\Tests\MockSite\Models\Canary;
 
 class App extends \Divergence\App
 {
@@ -24,6 +25,16 @@ class App extends \Divergence\App
             foreach ($Tags as &$Tag) {
                 $Tag = Tag::create($Tag);
                 $Tag->save();
+            }
+
+            fwrite(STDOUT, 'Summoning Canaries'."\n");
+
+            $Canaries = [];
+            while (count($Canaries) < 100) {
+                $Canary = Canary::create(Canary::avis());
+                
+                $Canary->save();
+                array_push($Canaries, $Canary);
             }
         }
     }
