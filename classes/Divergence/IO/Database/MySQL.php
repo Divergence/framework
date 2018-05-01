@@ -298,14 +298,6 @@ class MySQL
 
         // check for cached record
         if (array_key_exists($cacheKey, self::$_record_cache)) {
-            // log cache hit
-            Debug::log([
-                'cache_hit' => true
-                ,'query' => $query
-                ,'cache_key' => $cacheKey
-                ,'method' => __FUNCTION__,
-            ]);
-            
             // return cache hit
             return self::$_record_cache[$cacheKey];
         }
@@ -487,9 +479,6 @@ class MySQL
             }
             $queryLog['method'] .= $backtick['function'];
         }
-        
-        // append to static log
-        Debug::log($queryLog);
     }
     
     private static function config()
