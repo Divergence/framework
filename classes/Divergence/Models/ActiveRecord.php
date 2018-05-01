@@ -143,7 +143,7 @@ class ActiveRecord
         static::init();
         
         // set Class
-        if (static::_fieldExists('Class') && !$this->Class) {
+        if (static::fieldExists('Class') && !$this->Class) {
             $this->Class = get_class($this);
         }
     }
@@ -229,7 +229,7 @@ class ActiveRecord
             default:
             {
                 // handle field
-                if (static::_fieldExists($name)) {
+                if (static::fieldExists($name)) {
                     return $this->_getFieldValue($name);
                 }
                 // handle relationship
@@ -263,7 +263,7 @@ class ActiveRecord
     public function setValue($name, $value)
     {
         // handle field
-        if (static::_fieldExists($name)) {
+        if (static::fieldExists($name)) {
             $this->_setFieldValue($name, $value);
         }
         // handle relationship
@@ -389,7 +389,7 @@ class ActiveRecord
         
         
         // set created
-        if (static::_fieldExists('Created') && (!$this->Created || ($this->Created == 'CURRENT_TIMESTAMP'))) {
+        if (static::fieldExists('Created') && (!$this->Created || ($this->Created == 'CURRENT_TIMESTAMP'))) {
             $this->Created = time();
         }
         
@@ -487,7 +487,7 @@ class ActiveRecord
         if (static::isVersioned()) {
             if (static::$createRevisionOnDestroy) {
                 // save a copy to history table
-                if ($this->_fieldExists('Created')) {
+                if ($this->fieldExists('Created')) {
                     $this->Created = time();
                 }
                 
@@ -861,7 +861,7 @@ class ActiveRecord
         return $handle;
     }
     
-    public static function _fieldExists($field)
+    public static function fieldExists($field)
     {
         if (is_array(static::$_classFields[get_called_class()])) {
             return array_key_exists($field, static::$_classFields[get_called_class()]);
@@ -894,7 +894,7 @@ class ActiveRecord
     public static function getColumnName($field)
     {
         static::init();
-        if (!static::_fieldExists($field)) {
+        if (!static::fieldExists($field)) {
             throw new Exception('getColumnName called on nonexisting column: ' . get_called_class().'->'.$field);
         }
         
@@ -1141,7 +1141,7 @@ class ActiveRecord
     {
         $static = get_called_class();
         
-        if (!static::_fieldExists('Class')) {
+        if (!static::fieldExists('Class')) {
             return $static;
         }
         
@@ -1263,7 +1263,7 @@ class ActiveRecord
         }
         
         
-        if (!static::_fieldExists($field)) {
+        if (!static::fieldExists($field)) {
             // set relationship
             if (static::isRelational()) {
                 if (static::_relationshipExists($field)) {

@@ -89,7 +89,7 @@ abstract class VersionedRecord extends ActiveRecord
             // save a copy to history table
             $this->Created = time();
             $this->CreatorID = $_SESSION['User'] ? $_SESSION['User']->ID : null;
-            if ($this->_fieldExists('end_date')) {
+            if ($this->fieldExists('end_date')) {
                 $this->end_date = date('Y-m-d');
             }
             $recordValues = $this->_prepareRecordValues();

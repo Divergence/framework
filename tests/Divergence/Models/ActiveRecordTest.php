@@ -56,7 +56,7 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::getValue
      * @covers Divergence\Models\ActiveRecord::_getFieldValue
      * @covers Divergence\Models\ActiveRecord::getData
-     * @covers Divergence\Models\ActiveRecord::_fieldExists
+     * @covers Divergence\Models\ActiveRecord::fieldExists
      */
     public function test__get()
     {
@@ -90,7 +90,7 @@ class ActiveRecordTest extends TestCase
             "Slug" => "linux",
         ], $A->getData());
         $this->assertEquals('linux', $A->Slug);
-        $this->assertEquals(null, $A->_fieldExists('fake'));
+        $this->assertEquals(null, $A->fieldExists('fake'));
         $this->assertEquals(null, $A->fake);
         $this->assertEquals(null, $A->Handle);
     }
@@ -102,7 +102,7 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::_setFieldValue
      * @covers Divergence\Models\ActiveRecord::setValue
      * @covers Divergence\Models\ActiveRecord::_cn
-     * @covers Divergence\Models\ActiveRecord::_fieldExists
+     * @covers Divergence\Models\ActiveRecord::fieldExists
      */
     public function test__set()
     {
@@ -330,11 +330,13 @@ class ActiveRecordTest extends TestCase
      */
     public function testMapConditions()
     {
+        TestUtils::requireDB($this);
+
         $conditions = [
             'Handle' => null,
             'Name' => [
                 'operator' => 'NOT',
-                'value' => "Frank"
+                'value' => "Frank",
             ],
             'isAlive' => true,
         ];
@@ -342,14 +344,14 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals([
             "Handle" => "`Handle` IS NULL",
             "Name" => "`Name` NOT \"Frank\"",
-            "isAlive" => "`isAlive` = \"1\""
-        ],Canary::mapConditions($conditions));
+            "isAlive" => "`isAlive` = \"1\"",
+        ], Canary::mapConditions($conditions));
 
         $conditions = [
             'Handle' => '',
             'Name' => [
                 'operator' => 'NOT',
-                'value' => "Frank"
+                'value' => "Frank",
             ],
             'isAlive' => true,
         ];
@@ -357,8 +359,8 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals([
             "Handle" => "`Handle` IS NULL",
             "Name" => "`Name` NOT \"Frank\"",
-            "isAlive" => "`isAlive` = \"1\""
-        ],Canary::mapConditions($conditions));
+            "isAlive" => "`isAlive` = \"1\"",
+        ], Canary::mapConditions($conditions));
     }
 
     /**
@@ -465,6 +467,23 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
+     * @covers Divergence\Models\ActiveRecord::getByContext
+     * @covers Divergence\Models\ActiveRecord::getByContextObject
+     * @covers Divergence\Models\ActiveRecord::getRecordByWhere
+     * @covers Divergence\Models\ActiveRecord::_getRecordClass
+     */
+    public function testGetByContext()
+    {
+        TestUtils::requireDB($this);
+
+        $x = Canary::getByContext(Tag::class, 7);
+        $this->assertEquals(1,$x->ID);
+
+        $x = Canary::getByContext(Tag::class, 7, ['order'=>['ID'=>'DESC']]);
+        $this->assertEquals(10,$x->ID);
+    }
+
+    /**
      * @covers Divergence\Models\ActiveRecord::getByHandle
      * @covers Divergence\Models\ActiveRecord::getByID
      */
@@ -548,6 +567,8 @@ class ActiveRecordTest extends TestCase
      */
     public function testGetByQuery()
     {
+        TestUtils::requireDB($this);
+
         $x = Tag::getByQuery("SELECT * FROM `tags` WHERE Tag in ('%s','%s') ORDER BY ID DESC LIMIT 1", [
             'Linux','PHPUnit',
         ]);
@@ -565,6 +586,8 @@ class ActiveRecordTest extends TestCase
      */
     public function testGetAllByClass()
     {
+        TestUtils::requireDB($this);
+
         $x = Tag::getAllByClass();
         $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags'), count($x));
         $y = Tag::getAllByClass(Tag::class);
@@ -578,6 +601,8 @@ class ActiveRecordTest extends TestCase
      */
     public function testGetAllByField()
     {
+        TestUtils::requireDB($this);
+
         $x = Tag::getAllByField('CreatorID', 1);
         $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags WHERE CreatorID=1'), count($x));
     }
@@ -589,6 +614,8 @@ class ActiveRecordTest extends TestCase
      */
     public function testGetAllByWhere()
     {
+        TestUtils::requireDB($this);
+
         $x = Tag::getAllByWhere(['CreatorID'=>1]);
         $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags WHERE CreatorID=1'), count($x));
     }
@@ -599,6 +626,8 @@ class ActiveRecordTest extends TestCase
      */
     public function testGetAll()
     {
+        TestUtils::requireDB($this);
+
         $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags'), count(Tag::getAll()));
     }
 

@@ -30,6 +30,15 @@ class Canary extends \Divergence\Models\Model
     //static public $createRevisionOnSave = true;
 
     public static $fields = [
+        'ContextID' => [
+            'type' => 'int',
+            'default' => 7,
+        ],
+        'ContextClass' => [
+            'type' => 'enum',
+            'values' => [Tag::class],
+            'default' => Tag::class,
+        ],
         'DNA' => [
             'type' => 'clob',
             'notnull' => true,

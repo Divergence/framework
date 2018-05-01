@@ -271,7 +271,7 @@ trait Relations
                     $this->_relatedObjects[$relationship] = null;
                 }
             } elseif ($rel['type'] == 'one-many') {
-                if (!empty($rel['indexField']) && !$rel['class']::_fieldExists($rel['indexField'])) {
+                if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
                 
@@ -291,7 +291,7 @@ trait Relations
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'context-children') {
-                if (!empty($rel['indexField']) && !$rel['class']::_fieldExists($rel['indexField'])) {
+                if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
                 
@@ -341,7 +341,7 @@ trait Relations
                     $this->_relatedObjects[$relationship] = null;
                 }
             } elseif ($rel['type'] == 'many-many') {
-                if (!empty($rel['indexField']) && !$rel['class']::_fieldExists($rel['indexField'])) {
+                if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
                 

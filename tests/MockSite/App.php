@@ -13,6 +13,10 @@ class App extends \Divergence\App
         if (static::isDatabaseTestingEnabled()) {
             static::clean();
 
+            ini_set('error_reporting', E_ALL ^ E_NOTICE ^ E_WARNING); // or error_reporting(E_ALL);
+            ini_set('display_errors', '1');
+            ini_set('display_startup_errors', '1');
+
             $Tags = [
                 ['Tag'=>'Linux','Slug' => 'linux'],
                 ['Tag'=>'OSX','Slug' => 'osx'],
@@ -20,6 +24,7 @@ class App extends \Divergence\App
                 ['Tag'=>'Unit Testing','Slug' => 'unit_testing'],
                 ['Tag'=>'Refactoring','Slug' => 'refactoring'],
                 ['Tag'=>'Encryption','Slug' => 'encryption'],
+                ['Tag'=>'Canaries','Slug'=> 'canaries'],
             ];
             
             foreach ($Tags as &$Tag) {
