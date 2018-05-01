@@ -492,20 +492,21 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::_getRecordClass
      * @covers Divergence\Models\ActiveRecord::fieldExists
      */
-    public function testGetByContext()
+    public function testGetByContextObject()
     {
         TestUtils::requireDB($this);
 
-        $x = Canary::getByContext(Tag::class, 7);
+        $Tag = Tag::getByID(7);
+
+        $x = Canary::getByContextObject($Tag);
         $this->assertEquals(1, $x->ID);
 
-        $x = Canary::getByContext(Tag::class, 7, ['order'=>['ID'=>'DESC']]);
+        $x = Canary::getByContextObject($Tag, ['order'=>['ID'=>'DESC']]);
         $this->assertEquals(DB::oneValue("SELECT `id` FROM canaries ORDER BY ID DESC"), $x->ID);
     }
 
     /**
      * @covers Divergence\Models\ActiveRecord::getByContext
-     * @covers Divergence\Models\ActiveRecord::getByContextObject
      * @covers Divergence\Models\ActiveRecord::getRecordByWhere
      * @covers Divergence\Models\ActiveRecord::_getRecordClass
      * @covers Divergence\Models\ActiveRecord::fieldExists
@@ -519,23 +520,25 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getByContext
-     * @covers Divergence\Models\ActiveRecord::getByContextObject
+     * @covers Divergence\Models\ActiveRecord::getAllByContext
+     * @covers Divergence\Models\ActiveRecord::getAllByContextObject
      * @covers Divergence\Models\ActiveRecord::getRecordByWhere
      * @covers Divergence\Models\ActiveRecord::_getRecordClass
      * @covers Divergence\Models\ActiveRecord::fieldExists
      */
-    public function testGetAllByContext()
+    public function testGetAllByContextObject()
     {
         TestUtils::requireDB($this);
 
-        $x = Canary::getAllByContext(Tag::class, 7);
+        $Tag = Tag::getByID(7);
+
+        $x = Canary::getAllByContextObject($Tag);
+    
         $this->assertEquals(DB::oneValue("SELECT COUNT(*) FROM canaries"), count($x));
     }
 
     /**
      * @covers Divergence\Models\ActiveRecord::getByContext
-     * @covers Divergence\Models\ActiveRecord::getByContextObject
      * @covers Divergence\Models\ActiveRecord::getRecordByWhere
      * @covers Divergence\Models\ActiveRecord::_getRecordClass
      * @covers Divergence\Models\ActiveRecord::fieldExists

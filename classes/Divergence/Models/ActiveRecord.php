@@ -521,7 +521,7 @@ class ActiveRecord
     
     public static function getByContextObject(ActiveRecord $Record, $options = [])
     {
-        return static::getByContext($Record::$rootClass, $this->getPrimaryKey(), $options);
+        return static::getByContext($Record::$rootClass, $Record->getPrimaryKey(), $options);
     }
     
     public static function getByContext($contextClass, $contextID, $options = [])
@@ -627,7 +627,7 @@ class ActiveRecord
     
     public static function getAllByContextObject(ActiveRecord $Record, $options = [])
     {
-        return static::getAllByContext($Record::$rootClass, $Record->ID, $options);
+        return static::getAllByContext($Record::$rootClass, $Record->getPrimaryKey(), $options);
     }
 
     public static function getAllByContext($contextClass, $contextID, $options = [])
@@ -635,7 +635,7 @@ class ActiveRecord
         if (!static::fieldExists('ContextClass')) {
             throw new \Exception('getByContext requires the field ContextClass to be defined');
         }
-        
+
         $options = Util::prepareOptions($options, [
             'conditions' => [],
         ]);
