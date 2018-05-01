@@ -293,6 +293,46 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
+     * @covers Divergence\Models\ActiveRecord::mapFieldOrder
+     * @covers Divergence\Models\ActiveRecord::_mapFieldOrder
+     */
+    public function testMapFieldOrder()
+    {
+        $x = ActiveRecord::mapFieldOrder('some string');
+        $this->assertEquals(['some string'],$x);
+        
+        $x = Tag::mapFieldOrder([
+            'Tag' => 'DESC',
+            'Created' => 'ASC',
+            'ID' // should default to ASC when direction not provided
+        ]);
+        $this->assertEquals([
+            0 => "`Tag` DESC",
+            1 => "`Created` ASC",
+            2 => "`ID` ASC"
+        ],$x);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::mapFieldOrder
+     * @covers Divergence\Models\ActiveRecord::_mapFieldOrder
+     */
+    public function testMapFieldOrderNonExistantColumn()
+    {
+        $this->expectExceptionMessage('getColumnName called on nonexisting column: Divergence\Tests\MockSite\Models\Tag->some string');
+        $x = Tag::mapFieldOrder(['some string','bleh']);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::mapConditions
+     * @covers Divergence\Models\ActiveRecord::_mapConditions
+     */
+    /*public function testMapConditions()
+    {
+
+    }*/
+
+    /**
      * @covers Divergence\Models\ActiveRecord::getColumnName
      */
     public function testGetColumnName()
