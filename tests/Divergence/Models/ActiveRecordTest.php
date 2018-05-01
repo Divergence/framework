@@ -328,11 +328,11 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::mapConditions
      * @covers Divergence\Models\ActiveRecord::_mapConditions
      */
-    public function testMapConditions()
+    /*public function testMapConditions()
     {
         $Canary = Canary::create(Canary::avis());
         $Canary->save();
-    }
+    }*/
 
     /**
      * @covers Divergence\Models\ActiveRecord::getColumnName
