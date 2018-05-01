@@ -6,6 +6,7 @@ use Divergence\Models\Model;
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
 use Divergence\Models\ActiveRecord;
+use Divergence\IO\Database\MySQL as DB;
 
 use Divergence\Tests\MockSite\Models\Tag;
 
@@ -88,6 +89,7 @@ class ActiveRecordTest extends TestCase
             "Slug" => "linux",
         ], $A->getData());
         $this->assertEquals('linux', $A->Slug);
+        $this->assertEquals(null, $A->_fieldExists('fake'));
         $this->assertEquals(null, $A->fake);
         $this->assertEquals(null, $A->Handle);
     }
@@ -452,11 +454,91 @@ class ActiveRecordTest extends TestCase
         $search = Tag::getByWhere(['Slug'=>'deleteme'], ['order'=>['Tag'=>'DESC']]);
         $this->assertEquals($b->data, $search->data);
 
+        // by string in array
         $search = Tag::getByWhere(["Tag in ('first','second')"], [
             'order'=> [
                 'ID'=>'DESC',
             ],
         ]);
         $this->assertEquals($b->data, $search->data);
+
+        // by string
+        $search = Tag::getByWhere("Tag in ('first','second')", [
+            'order'=> [
+                'ID'=>'DESC',
+            ],
+        ]);
+        $this->assertEquals($b->data, $search->data);
+
+        $a->destroy();
+        $b->destroy();
     }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getByQuery
+     */
+    public function testGetByQuery()
+    {
+        $x = Tag::getByQuery("SELECT * FROM `tags` WHERE Tag in ('%s','%s') ORDER BY ID DESC LIMIT 1",[
+            'Linux','PHPUnit'
+        ]);
+        $this->assertEquals('PHPUnit', $x->Tag);
+
+        $x = Tag::getByQuery("SELECT * FROM `tags` WHERE Tag in ('%s','%s') ORDER BY ID ASC LIMIT 1",[
+            'Linux','PHPUnit'
+        ]);
+        $this->assertEquals('Linux', $x->Tag);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getAllByClass
+     * @covers Divergence\Models\ActiveRecord::getAllByField
+     */
+    public function testGetAllByClass()
+    {
+        $x = Tag::getAllByClass();
+        $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags'), count($x));
+        $y = Tag::getAllByClass(Tag::class);
+        $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags'), count($y));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getAllByField
+     * @covers Divergence\Models\ActiveRecord::getAllByWhere
+     * @covers Divergence\Models\ActiveRecord::getAllRecordsByWhere
+     */
+    public function testGetAllByField()
+    {
+        $x = Tag::getAllByField('CreatorID',1);
+        $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags WHERE CreatorID=1'), count($x));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getAllByWhere
+     * @covers Divergence\Models\ActiveRecord::getAllRecordsByWhere
+     * @covers Divergence\Models\ActiveRecord::instantiateRecords
+     */
+    public function testGetAllByWhere()
+    {
+        $x = Tag::getAllByWhere(['CreatorID'=>1]);
+        $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags WHERE CreatorID=1'), count($x));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getAll
+     * @covers Divergence\Models\ActiveRecord::getAllRecords
+     */
+    public function testGetAll()
+    {
+        $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags'), count(Tag::getAll()));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::instantiateRecords
+     * @covers Divergence\Models\ActiveRecord::getTableByQuery
+     */
+    /*public function testGetTableByQuery()
+    {
+
+    }*/
 }

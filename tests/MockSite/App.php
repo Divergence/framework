@@ -17,6 +17,8 @@ class App extends \Divergence\App
                 ['Tag'=>'OSX','Slug' => 'osx'],
                 ['Tag'=>'PHPUnit','Slug' => 'phpunit'],
                 ['Tag'=>'Unit Testing','Slug' => 'unit_testing'],
+                ['Tag'=>'Refactoring','Slug' => 'refactoring'],
+                ['Tag'=>'Encryption','Slug' => 'encryption'],
             ];
             
             foreach ($Tags as &$Tag) {
