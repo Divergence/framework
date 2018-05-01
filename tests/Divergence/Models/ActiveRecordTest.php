@@ -479,6 +479,7 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::save
      * @covers Divergence\Models\ActiveRecord::destroy
      * @covers Divergence\Models\ActiveRecord::delete
+     * @covers Divergence\Models\ActiveRecord::validate
      */
     public function testSave()
     {
