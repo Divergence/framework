@@ -108,6 +108,7 @@ class Canary extends \Divergence\Models\Model
         ],
         'ObservationCount' => [
             'type' => 'integer',
+            'notnull' => true,
         ],
         'DateOfBirth' => [
             'type' => 'date',

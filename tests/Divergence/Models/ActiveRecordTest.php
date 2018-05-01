@@ -345,6 +345,8 @@ class ActiveRecordTest extends TestCase
             1 => "`Created` ASC",
             2 => "`ID` ASC",
         ], $x);
+
+        $this->assertEquals(Tag::mapFieldOrder(new \stdClass()),null);
     }
 
     /**
@@ -725,6 +727,8 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::getAllByWhere
      * @covers Divergence\Models\ActiveRecord::getAllRecordsByWhere
      * @covers Divergence\Models\ActiveRecord::instantiateRecords
+     * @covers Divergence\Models\ActiveRecord::mapFieldOrder
+     * @covers Divergence\Models\ActiveRecord::_mapFieldOrder
      */
     public function testGetAllByWhere()
     {
@@ -755,15 +759,55 @@ class ActiveRecordTest extends TestCase
 
         // extraColumns as string
         $x = Canary::getAllByWhere(['Class'=>Canary::class],[
-            'extraColumns' => 'format(Height/2.54,2)',
+            'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
             'limit' => 3
         ]);
+        $RawRecord =$x[0]->getRecord();
 
         $this->assertEquals(3, count($x));
         $this->assertContainsOnlyInstancesOf(Canary::class,$x);
 
         $Expectation = number_format($RawRecord['Height']/2.54,2);
         $this->assertEquals($Expectation,$RawRecord['HeightInInches']);
+
+        // having
+        $x = Canary::getAllByWhere(['Class'=>Canary::class],[
+            'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
+            'having' => [
+                '`HeightInInches`>5.0'
+            ]
+        ]);
+        
+        $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
+
+        $this->assertEquals($expectedCount, count($x));
+        $this->assertContainsOnlyInstancesOf(Canary::class,$x);
+
+        // having
+        $x = Canary::getAllByWhere(['Class'=>Canary::class],[
+            'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
+            'having' => '`HeightInInches`>5.0',
+            /* getAllByWhere fires _mapConditions on having when it's passed like this but because the field value below is an alias the _mapConditions function won't work.
+            // It checks if the fieldExists and ignores it if it's not part of the model
+            'having' => [
+                [
+                    'field'=>'HeightInInches',
+                    'operator' => '>',
+                    'value' => '5.0',
+                ]
+            ]*/
+        ]);
+        
+        $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
+
+        $this->assertEquals($expectedCount, count($x));
+        $this->assertContainsOnlyInstancesOf(Canary::class,$x);
+
+        // order as string
+        $x = Canary::getAllByWhere(['Class'=>Canary::class], ['order'=> 'Name DESC']);
+        $firstNameZeroPosChar = ord($x[0]->Name[0]);
+        $lastNameZeroPosChar = ord($x[count($x)-1]->Name[0]);
+        $this->assertGreaterThan($lastNameZeroPosChar,$firstNameZeroPosChar);
     }
 
     /**
