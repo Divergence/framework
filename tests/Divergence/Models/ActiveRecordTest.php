@@ -32,6 +32,8 @@ class ActiveRecordTest extends TestCase
      */
     public function test__construct()
     {
+        TestUtils::requireDB($this);
+
         $A = new Tag([
             'Tag' => 'Linux',
             'Slug' => 'linux',
@@ -56,9 +58,7 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(false, fakeCanary::getProtected('_relationshipsDefined')[fakeCanary::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
         $this->assertEquals(false, fakeCanary::getProtected('_eventsDefined')[fakeCanary::class]);
 
-        $x = fakeCanary::create(fakeCanary::avis(),true);
-        $x->Name = 'Changed';
-        $x->save();
+        $x = fakeCanary::create(fakeCanary::avis(),false);
 
         $this->assertEquals(true, Tag::getProtected('_fieldsDefined')[Tag::class]);
         $this->assertEquals(false, Tag::getProtected('_relationshipsDefined')[Tag::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
@@ -480,6 +480,7 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::destroy
      * @covers Divergence\Models\ActiveRecord::delete
      * @covers Divergence\Models\ActiveRecord::validate
+     * 
      */
     public function testSave()
     {
@@ -498,6 +499,25 @@ class ActiveRecordTest extends TestCase
         $x->save();
         $this->assertEquals('changed', $x->Tag);
         $x->destroy();
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::save
+     * @covers Divergence\Models\ActiveRecord::destroy
+     * @covers Divergence\Models\ActiveRecord::delete
+     * @covers Divergence\Models\ActiveRecord::validate
+     * @covers Divergence\Models\ActiveRecord::_getFieldValue
+     * @covers Divergence\Models\ActiveRecord::_setFieldValue
+     * @covers Divergence\Models\ActiveRecord::_mapValuesToSet
+     * @covers Divergence\Models\ActiveRecord::_prepareRecordValues
+     */
+    public function testSaveCanary() {
+        $data = Canary::avis();
+        $data['DateOfBirth'] = date('Y-m-d',$data['DateOfBirth']);
+        $Canary = Canary::create($data);
+        $Canary->setFields($data);
+        
+        $this->assertArraySubset($data,$Canary->data);
     }
 
     /**
