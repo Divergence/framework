@@ -26,6 +26,9 @@ class ActiveRecordTest extends TestCase
     /**
      * @covers Divergence\Models\ActiveRecord::__construct
      * @covers Divergence\Models\ActiveRecord::init
+     * @covers Divergence\Models\ActiveRecord::_defineEvents
+     * @covers Divergence\Models\ActiveRecord::_defineFields
+     * @covers Divergence\Models\ActiveRecord::_initFields
      */
     public function test__construct()
     {
