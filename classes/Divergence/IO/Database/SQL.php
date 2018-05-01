@@ -7,9 +7,9 @@ class SQL
 
     public static function escape($str)
     {
-        /*  
+        /*
          * This is how MySQL escapes it's string under the hood.
-         * 
+         *
          * Keep it. We don't need a database connection to escape strings.
          */
         return str_replace(

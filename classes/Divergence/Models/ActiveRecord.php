@@ -526,6 +526,10 @@ class ActiveRecord
     
     public static function getByContext($contextClass, $contextID, $options = [])
     {
+        if (!static::fieldExists('ContextClass')) {
+            throw new \Exception('getByContext requires the field ContextClass to be defined');
+        }
+
         $options = Util::prepareOptions($options, [
             'conditions' => []
             ,'order' => false,
@@ -628,6 +632,10 @@ class ActiveRecord
 
     public static function getAllByContext($contextClass, $contextID, $options = [])
     {
+        if (!static::fieldExists('ContextClass')) {
+            throw new \Exception('getByContext requires the field ContextClass to be defined');
+        }
+        
         $options = Util::prepareOptions($options, [
             'conditions' => [],
         ]);
@@ -956,6 +964,8 @@ class ActiveRecord
         
         if (!isset($this->_validator)) {
             $this->_validator = new RecordValidator($this->_record);
+        } else {
+            $this->_validator->resetErrors();
         }
         
         if ($deep) {

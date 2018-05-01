@@ -45,6 +45,7 @@ class Canary extends \Divergence\Models\Model
         ],
         'Name' => [
             'type' => 'string',
+            'required' => true,
             'notnull' => true,
         ],
         'Handle' => [

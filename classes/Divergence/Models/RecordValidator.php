@@ -5,10 +5,9 @@ use Exception;
 
 class RecordValidator
 {
-
     // configurables
     public static $autoTrim = true;
-    
+
     // protected properties
     protected $_record;
     protected $_errors = [];
@@ -21,7 +20,7 @@ class RecordValidator
         if (!isset($autoTrim)) {
             $autoTrim = self::$autoTrim;
         }
-        
+
         // apply autotrim
         if ($autoTrim) {
             self::trimArray($record);
@@ -33,6 +32,11 @@ class RecordValidator
 
 
     // public instance methods
+    public function resetErrors()
+    {
+        $this->_errors = [];
+    }
+
     public function getErrors($id = false)
     {
         if ($id === false) {
@@ -44,7 +48,7 @@ class RecordValidator
         }
     }
 
-    
+
     public function hasErrors($id = false)
     {
         if ($id === false) {
@@ -74,9 +78,9 @@ class RecordValidator
 
         // check 'field'
         if (empty($options['field'])) {
-            die('FormValidator: required option "field" missing');
+            throw new Exception('FormValidator: required option "field" missing');
         }
-            
+
         // check 'id' and default to 'field'
         if (empty($options['id'])) {
             if (is_array($options['field'])) {
@@ -86,17 +90,25 @@ class RecordValidator
             }
         }
 
-        // check validator
-        if (!is_callable('Validators::'.$options['validator'])) {
-            die("Invalid form validator: $options[validator]");
+
+        // get validator
+        if (is_string($options['validator'])) {
+            $validator = ['Validators', $options['validator']];
+        } else {
+            $validator = $options['validator'];
         }
-        
+
+        // check validator
+        if (!is_callable($validator)) {
+            throw new Exception('Validator for field ' . $options['id'] . ' is not callable');
+        }
+
 
         // return false if any errors are already registered under 'id'
         if (array_key_exists($options['id'], $this->_errors)) {
             return false;
         }
-        
+
 
         // parse 'field' for multiple values and array paths
         if (is_array($options['field'])) {
@@ -120,21 +132,21 @@ class RecordValidator
 
 
         // call validator
-        $isValid = call_user_func(['validators',$options['validator']], $value, $options);
+        $isValid = call_user_func($validator, $value, $options);
 
         if ($isValid == false) {
             if (!empty($options['errorMessage'])) {
-                $this->_errors[$options['id']] = $options['errorMessage'];
+                $this->_errors[$options['id']] = gettext($options['errorMessage']);
             } else {
-                // default 'erroMessage' built from 'id'
-                $this->_errors[$options['id']] = Inflector::spacifyCaps($options['id']) . ' is ' . ($options['required'] && empty($value) ? 'missing' : 'invalid');
+                // default 'errorMessage' built from 'id'
+                $this->_errors[$options['id']] = sprintf($options['required'] && empty($value) ? _('%s is missing.') : _('%s is invalid.'), Inflector::spacifyCaps($options['id']));
             }
             return false;
         } else {
             return true;
         }
     }
-    
+
 
 
     // protected instance methods
@@ -156,15 +168,12 @@ class RecordValidator
         // return current value
         return $cur;
     }
-    
 
-    
+
+
     // protected static methods
     protected static function trimArray(&$array)
     {
-        if (!is_array($array)) {
-            debug_print_backtrace();
-        }
         foreach ($array as &$var) {
             if (is_string($var)) {
                 $var = trim($var);

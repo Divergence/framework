@@ -93,6 +93,24 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(null, $A->fieldExists('fake'));
         $this->assertEquals(null, $A->fake);
         $this->assertEquals(null, $A->Handle);
+
+        $A->addValidationErrors([
+            'Tag' => 'Empty',
+            'Slug' => 'Contains space',
+        ]);
+
+        $this->assertEquals([
+            "ID" => null,
+            "Class" => "Divergence\Tests\MockSite\Models\Tag",
+            "Created" => "CURRENT_TIMESTAMP",
+            "CreatorID" => null,
+            "Tag" => "Linux",
+            "Slug" => "linux",
+            'validationErrors' => [
+                'Tag' => 'Empty',
+                'Slug' => 'Contains space',
+            ],
+        ], $A->getData());
     }
 
     /**
@@ -103,6 +121,7 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::setValue
      * @covers Divergence\Models\ActiveRecord::_cn
      * @covers Divergence\Models\ActiveRecord::fieldExists
+     * @covers Divergence\Models\ActiveRecord::getData
      */
     public function test__set()
     {
@@ -471,16 +490,62 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::getByContextObject
      * @covers Divergence\Models\ActiveRecord::getRecordByWhere
      * @covers Divergence\Models\ActiveRecord::_getRecordClass
+     * @covers Divergence\Models\ActiveRecord::fieldExists
      */
     public function testGetByContext()
     {
         TestUtils::requireDB($this);
 
         $x = Canary::getByContext(Tag::class, 7);
-        $this->assertEquals(1,$x->ID);
+        $this->assertEquals(1, $x->ID);
 
         $x = Canary::getByContext(Tag::class, 7, ['order'=>['ID'=>'DESC']]);
-        $this->assertEquals(10,$x->ID);
+        $this->assertEquals(DB::oneValue("SELECT `id` FROM canaries ORDER BY ID DESC"), $x->ID);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getByContext
+     * @covers Divergence\Models\ActiveRecord::getByContextObject
+     * @covers Divergence\Models\ActiveRecord::getRecordByWhere
+     * @covers Divergence\Models\ActiveRecord::_getRecordClass
+     * @covers Divergence\Models\ActiveRecord::fieldExists
+     */
+    public function testGetByContextException()
+    {
+        TestUtils::requireDB($this);
+
+        $this->expectExceptionMessage('getByContext requires the field ContextClass to be defined');
+        Tag::getByContext(Tag::class, 7);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getByContext
+     * @covers Divergence\Models\ActiveRecord::getByContextObject
+     * @covers Divergence\Models\ActiveRecord::getRecordByWhere
+     * @covers Divergence\Models\ActiveRecord::_getRecordClass
+     * @covers Divergence\Models\ActiveRecord::fieldExists
+     */
+    public function testGetAllByContext()
+    {
+        TestUtils::requireDB($this);
+
+        $x = Canary::getAllByContext(Tag::class, 7);
+        $this->assertEquals(DB::oneValue("SELECT COUNT(*) FROM canaries"), count($x));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getByContext
+     * @covers Divergence\Models\ActiveRecord::getByContextObject
+     * @covers Divergence\Models\ActiveRecord::getRecordByWhere
+     * @covers Divergence\Models\ActiveRecord::_getRecordClass
+     * @covers Divergence\Models\ActiveRecord::fieldExists
+     */
+    public function testGetAllByContextException()
+    {
+        TestUtils::requireDB($this);
+
+        $this->expectExceptionMessage('getByContext requires the field ContextClass to be defined');
+        Tag::getAllByContext(Tag::class, 7);
     }
 
     /**

@@ -10,12 +10,12 @@ class App extends \Divergence\App
 {
     public static function setUp()
     {
+        ini_set('error_reporting', E_ALL ^ E_NOTICE ^ E_WARNING); // or error_reporting(E_ALL);
+        ini_set('display_errors', '1');
+        ini_set('display_startup_errors', '1');
+
         if (static::isDatabaseTestingEnabled()) {
             static::clean();
-
-            ini_set('error_reporting', E_ALL ^ E_NOTICE ^ E_WARNING); // or error_reporting(E_ALL);
-            ini_set('display_errors', '1');
-            ini_set('display_startup_errors', '1');
 
             $Tags = [
                 ['Tag'=>'Linux','Slug' => 'linux'],
