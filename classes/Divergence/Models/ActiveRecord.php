@@ -871,11 +871,8 @@ class ActiveRecord
     
     public static function fieldExists($field)
     {
-        if (is_array(static::$_classFields[get_called_class()])) {
-            return array_key_exists($field, static::$_classFields[get_called_class()]);
-        } else {
-            return false;
-        }
+        static::init();
+        return array_key_exists($field, static::$_classFields[get_called_class()]);
     }
     
     

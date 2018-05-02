@@ -586,7 +586,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getByContext
+     * @covers Divergence\Models\ActiveRecord::getAllByContext
      * @covers Divergence\Models\ActiveRecord::getRecordByWhere
      * @covers Divergence\Models\ActiveRecord::_getRecordClass
      * @covers Divergence\Models\ActiveRecord::fieldExists
@@ -813,12 +813,37 @@ class ActiveRecordTest extends TestCase
     /**
      * @covers Divergence\Models\ActiveRecord::getAll
      * @covers Divergence\Models\ActiveRecord::getAllRecords
+     * @covers Divergence\Models\ActiveRecord::instantiateRecords
      */
     public function testGetAll()
     {
         TestUtils::requireDB($this);
 
         $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags'), count(Tag::getAll()));
+
+        // order
+        $x = Canary::getAll(['order'=> 'Name DESC']);
+        $firstNameZeroPosChar = ord($x[0]->Name[0]);
+        $lastNameZeroPosChar = ord($x[count($x)-1]->Name[0]);
+        $this->assertGreaterThan($lastNameZeroPosChar,$firstNameZeroPosChar);
+
+        // limit
+        $x = Canary::getAll(['limit'=>5]);
+        $this->assertEquals(5, count($x));
+
+        // indexField
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getAllByQuery
+     * @covers Divergence\Models\ActiveRecord::instantiateRecords
+     */
+    public function testGetAllByQuery()
+    {
+        TestUtils::requireDB($this);
+
+        $x = Canary::getAllByQuery('SELECT * FROM canaries LIMIT 4');
+        $this->assertEquals(4, count($x));
     }
 
     /**
@@ -829,4 +854,38 @@ class ActiveRecordTest extends TestCase
     {
 
     }*/
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::getUniqueHandle
+     
+     */
+    public function testGetUniqueHandle()
+    {
+        TestUtils::requireDB($this);
+
+        $x = Canary::getByID(1);
+        
+        $newHandle = Canary::getUniqueHandle($x->Handle);
+
+        $this->assertEquals($x->Handle.':2', $newHandle);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::generateRandomHandle
+     
+     */
+    public function testGenerateRandomHandle()
+    {
+        TestUtils::requireDB($this);
+        
+        $x = Canary::generateRandomHandle(1);
+        //$y = Canary::generateRandomHandle(100);
+        $z = Canary::generateRandomHandle();
+
+
+
+        $this->assertEquals(1, strlen($x));
+        //$this->assertEquals(100, strlen($y));
+        $this->assertEquals(32, strlen($z));
+    }
 }
