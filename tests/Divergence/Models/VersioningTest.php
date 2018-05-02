@@ -53,8 +53,7 @@ class VersioningTest extends TestCase
     public function testGetRevisions()
     {
         TestUtils::requireDB($this);
-        $Canary = Canary::getByField('Name', 'Version2');
-        $versions = Canary::getRevisions($Canary->ID);
+        $versions = Canary::getRevisions();
 
         $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM '.Canary::getHistoryTable()), count($versions));
         $this->assertInstanceOf(Canary::class, $versions[0]);
@@ -62,14 +61,29 @@ class VersioningTest extends TestCase
 
     /**
      * @covers Divergence\Models\Versioning::getRevisionRecords
+     * @covers Divergence\Models\Versioning::getRevisions
      */
     public function testGetRevisionRecords()
     {
         TestUtils::requireDB($this);
 
-        $Canary = Canary::getByField('Name', 'Version2');
-        $versions = Canary::getRevisionRecords($Canary->ID);
+        $versions = Canary::getRevisionRecords();
 
-        $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM '.Canary::getHistoryTable()), count($versions));
+        $count = DB::oneValue('SELECT COUNT(*) FROM '.Canary::getHistoryTable());
+
+        $this->assertCount($count, $versions);
+
+        // order as string
+        $x = Canary::getRevisions(['order'=> ['Name'=>'DESC']]);
+        $firstNameZeroPosChar = ord($x[0]->Name[0]);
+        $lastNameZeroPosChar = ord($x[count($x)-1]->Name[0]);
+        $this->assertGreaterThan($lastNameZeroPosChar, $firstNameZeroPosChar);
+        $this->assertCount($count, $versions);
+
+        // limit
+        $x = Canary::getRevisions(['limit'=> 2]);
+        $this->assertCount(2, $x);
+
+        // indexField
     }
 }
