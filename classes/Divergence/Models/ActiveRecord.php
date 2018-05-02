@@ -1334,7 +1334,12 @@ class ActiveRecord
                     $value = date('Y-m-d H:i:s', $value);
                 } elseif (is_string($value)) {
                     // trim any extra crap, or leave as-is if it doesn't fit the pattern
-                    $value = preg_replace('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/', '$1-$2-$3 $4:$5:$6', $value);
+                    if(preg_match('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/')) {
+                        $value = preg_replace('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/', '$1-$2-$3 $4:$5:$6', $value);
+                    }
+                    else {
+                        $value = date('Y-m-d H:i:s',strtotime($value));
+                    }
                 }
                 break;
             }
@@ -1360,7 +1365,11 @@ class ActiveRecord
                         is_numeric($value['dd']) ? $value['dd'] : 0
                     );
                 } else {
-                    $value = null;
+                    if($value = strtotime($value)) {
+                        $value = date('Y-m-d',$value)?:null;
+                    } else {
+                        $value = null;
+                    }
                 }
                 break;
             }
@@ -1389,7 +1398,6 @@ class ActiveRecord
                 $forceDirty = true;
                 break;
             }
-
         }
         
         if ($forceDirty || ($this->_record[$field] !== $value)) {
@@ -1441,8 +1449,8 @@ class ActiveRecord
             if (($options['type'] == 'timestamp')) {
                 if (is_numeric($value)) {
                     $value = date('Y-m-d H:i:s', $value);
-                } elseif ($value == '0000-00-00 00:00:00') {
-                    //$value = null;
+                } elseif ($value == null && !$options['notnull']) {
+                    $value = null;
                 }
             }
 

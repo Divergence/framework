@@ -54,6 +54,7 @@ class Canary extends \Divergence\Models\Model
         'Handle' => [
             'type' => 'string',
             'blankisnull' => true,
+            'notnull' => false,
         ],
         'isAlive' => [
             'type' => 'boolean',
@@ -102,6 +103,7 @@ class Canary extends \Divergence\Models\Model
         ],
         'LongestFlightTime' => [
             'type' => 'int',
+            'notnull' => false,
         ],
         'HighestRecordedAltitude' => [
             'type' => 'uint',

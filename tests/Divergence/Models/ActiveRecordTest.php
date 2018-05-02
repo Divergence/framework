@@ -529,8 +529,70 @@ class ActiveRecordTest extends TestCase
         //$Canary->save();
         //$ID = $Canary->ID;
         
+        
         //$Canary = Canary::getByID($ID);
         //$this->assertArraySubset($data,$Canary->data);
+
+        // ignore set when
+        // $fieldOptions['autoincrement'] = true
+        $x = Canary::getByID(1);
+        $x->ID = 5;
+        $this->assertEquals(1,$x->ID);
+
+        // null value instead of empty string when
+        // $fieldOptions['notnull'] = false
+        // $fieldOptions['blankisnull] = true
+        $x->Handle = null;
+        $this->assertNull($x->Handle);
+        
+
+        // null value for int when
+        // $fieldOptions['notnull'] = false
+        $x->LongestFlightTime = null;
+        $this->assertNull($x->LongestFlightTime);
+
+        $x->Created = '2018-05-02 03:48:07';
+        $this->assertEquals($x->Created,strtotime('2018-05-02 03:48:07'));
+
+        $x->StatusCheckedLast = 1;
+        $this->assertEquals(date("Y-m-d H:i:s",$x->StatusCheckedLast),date("Y-m-d H:i:s",1));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::save
+     * @covers Divergence\Models\ActiveRecord::destroy
+     * @covers Divergence\Models\ActiveRecord::delete
+     * @covers Divergence\Models\ActiveRecord::validate
+     * @covers Divergence\Models\ActiveRecord::_getFieldValue
+     * @covers Divergence\Models\ActiveRecord::_setFieldValue
+     * @covers Divergence\Models\ActiveRecord::_mapValuesToSet
+     * @covers Divergence\Models\ActiveRecord::_prepareRecordValues
+     */
+    public function testSaveCanaryTimestamps() {
+        $x = Canary::getByID(1);
+        $x->StatusCheckedLast = 'last Monday';
+        $this->assertEquals(date("Y-m-d H:i:s",$x->StatusCheckedLast),date("Y-m-d H:i:s",strtotime('last monday')));
+
+        // dates
+        $x = Canary::getByID(1);
+        $x->DateOfBirth = time();
+        $this->assertEquals($x->DateOfBirth,date('Y-m-d'));
+
+        $x->DateOfBirth = date('m/d/Y',strtotime('last week'));
+        $this->assertEquals($x->DateOfBirth,date('Y-m-d',strtotime('last week')));
+
+        $x->DateOfBirth = date('Y-m-d',strtotime('last Monday'));
+        $this->assertEquals($x->DateOfBirth,date('Y-m-d',strtotime('last Monday')));
+
+        $x->DateOfBirth = [
+            'yyyy' => date('Y'),
+            'mm' => date('m'),
+            'dd' => date('d'),
+        ];
+        $this->assertEquals($x->DateOfBirth,date('Y-m-d'));
+
+        $x->DateOfBirth = null;
+        $this->assertNull($x->DateOfBirth);
     }
 
     /**
@@ -888,4 +950,6 @@ class ActiveRecordTest extends TestCase
         //$this->assertEquals(100, strlen($y));
         $this->assertEquals(32, strlen($z));
     }
+
+
 }
