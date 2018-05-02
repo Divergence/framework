@@ -12,7 +12,9 @@ use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 
-class fakeCanary extends Canary { /* so we can test init on a brand new class */ }
+class fakeCanary extends Canary
+{ /* so we can test init on a brand new class */
+}
 
 class ActiveRecordTest extends TestCase
 {
@@ -58,7 +60,7 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(false, fakeCanary::getProtected('_relationshipsDefined')[fakeCanary::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
         $this->assertEquals(false, fakeCanary::getProtected('_eventsDefined')[fakeCanary::class]);
 
-        $x = fakeCanary::create(fakeCanary::avis(),false);
+        $x = fakeCanary::create(fakeCanary::avis(), false);
 
         $this->assertEquals(true, Tag::getProtected('_fieldsDefined')[Tag::class]);
         $this->assertEquals(false, Tag::getProtected('_relationshipsDefined')[Tag::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
@@ -346,7 +348,7 @@ class ActiveRecordTest extends TestCase
             2 => "`ID` ASC",
         ], $x);
 
-        $this->assertEquals(Tag::mapFieldOrder(new \stdClass()),null);
+        $this->assertEquals(Tag::mapFieldOrder(new \stdClass()), null);
     }
 
     /**
@@ -482,8 +484,9 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::destroy
      * @covers Divergence\Models\ActiveRecord::delete
      * @covers Divergence\Models\ActiveRecord::validate
+     * @covers Divergence\Models\ActiveRecord::finishValidation
      * @covers Divergence\Models\ActiveRecord::_prepareRecordValues
-     * 
+     *
      */
     public function testSave()
     {
@@ -517,39 +520,40 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::_mapValuesToSet
      * @covers Divergence\Models\ActiveRecord::_prepareRecordValues
      */
-    public function testSaveCanary() {
+    public function testSaveCanary()
+    {
         $data = Canary::avis();
-        $data['DateOfBirth'] = date('Y-m-d',$data['DateOfBirth']);
+        $data['DateOfBirth'] = date('Y-m-d', $data['DateOfBirth']);
         $Canary = Canary::create($data);
         $Canary->setFields($data);
         
         $returnData = $Canary->data;
         
-        // fix this later 
+        // fix this later
         unset($data['Colors']);
         unset($returnData['Colors']);
 
-        $this->assertArraySubset($data,$returnData);
+        $this->assertArraySubset($data, $returnData);
         
         $data = Canary::avis();
-        $data['DateOfBirth'] = date('Y-m-d',$data['DateOfBirth']);
+        $data['DateOfBirth'] = date('Y-m-d', $data['DateOfBirth']);
         $Canary = new Canary();
         $Canary->setFields($data);
         
         $Canary->save();
         $returnData = $Canary->data;
         
-        // fix this later 
+        // fix this later
         unset($data['Colors']);
         unset($returnData['Colors']);
 
-        $this->assertArraySubset($data,$returnData);
+        $this->assertArraySubset($data, $returnData);
 
         // ignore set when
         // $fieldOptions['autoincrement'] = true
         $x = Canary::getByID(1);
         $x->ID = 5;
-        $this->assertEquals(1,$x->ID);
+        $this->assertEquals(1, $x->ID);
 
         // null value instead of empty string when
         // $fieldOptions['notnull'] = false
@@ -564,10 +568,10 @@ class ActiveRecordTest extends TestCase
         $this->assertNull($x->LongestFlightTime);
 
         $x->Created = '2018-05-02 03:48:07';
-        $this->assertEquals($x->Created,strtotime('2018-05-02 03:48:07'));
+        $this->assertEquals($x->Created, strtotime('2018-05-02 03:48:07'));
 
         $x->StatusCheckedLast = 1;
-        $this->assertEquals(date("Y-m-d H:i:s",$x->StatusCheckedLast),date("Y-m-d H:i:s",1));
+        $this->assertEquals(date("Y-m-d H:i:s", $x->StatusCheckedLast), date("Y-m-d H:i:s", 1));
     }
 
     /**
@@ -575,33 +579,35 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::destroy
      * @covers Divergence\Models\ActiveRecord::delete
      * @covers Divergence\Models\ActiveRecord::validate
+     * @covers Divergence\Models\ActiveRecord::finishValidation
      * @covers Divergence\Models\ActiveRecord::_getFieldValue
      * @covers Divergence\Models\ActiveRecord::_setFieldValue
      * @covers Divergence\Models\ActiveRecord::_mapValuesToSet
      * @covers Divergence\Models\ActiveRecord::_prepareRecordValues
      */
-    public function testSaveCanaryTimestamps() {
+    public function testSaveCanaryTimestamps()
+    {
         $x = Canary::getByID(1);
         $x->StatusCheckedLast = 'last Monday';
-        $this->assertEquals(date("Y-m-d H:i:s",$x->StatusCheckedLast),date("Y-m-d H:i:s",strtotime('last monday')));
+        $this->assertEquals(date("Y-m-d H:i:s", $x->StatusCheckedLast), date("Y-m-d H:i:s", strtotime('last monday')));
 
         // dates
         $x = Canary::getByID(1);
         $x->DateOfBirth = time();
-        $this->assertEquals($x->DateOfBirth,date('Y-m-d'));
+        $this->assertEquals($x->DateOfBirth, date('Y-m-d'));
 
-        $x->DateOfBirth = date('m/d/Y',strtotime('last week'));
-        $this->assertEquals($x->DateOfBirth,date('Y-m-d',strtotime('last week')));
+        $x->DateOfBirth = date('m/d/Y', strtotime('last week'));
+        $this->assertEquals($x->DateOfBirth, date('Y-m-d', strtotime('last week')));
 
-        $x->DateOfBirth = date('Y-m-d',strtotime('last Monday'));
-        $this->assertEquals($x->DateOfBirth,date('Y-m-d',strtotime('last Monday')));
+        $x->DateOfBirth = date('Y-m-d', strtotime('last Monday'));
+        $this->assertEquals($x->DateOfBirth, date('Y-m-d', strtotime('last Monday')));
 
         $x->DateOfBirth = [
             'yyyy' => date('Y'),
             'mm' => date('m'),
             'dd' => date('d'),
         ];
-        $this->assertEquals($x->DateOfBirth,date('Y-m-d'));
+        $this->assertEquals($x->DateOfBirth, date('Y-m-d'));
 
         $x->DateOfBirth = null;
         $this->assertNull($x->DateOfBirth);
@@ -817,48 +823,48 @@ class ActiveRecordTest extends TestCase
 
         // extraColumns as array
         
-        $x = Canary::getAllByWhere(['Class'=>Canary::class],[
-            'extraColumns' =>[ 
-                'HeightInInches'=>'format(`Height`/2.54,2)'
+        $x = Canary::getAllByWhere(['Class'=>Canary::class], [
+            'extraColumns' =>[
+                'HeightInInches'=>'format(`Height`/2.54,2)',
             ],
-            'limit' => 2
+            'limit' => 2,
         ]);
         $RawRecord =$x[0]->getRecord();
 
         $this->assertEquals(2, count($x));
-        $this->assertContainsOnlyInstancesOf(Canary::class,$x);
+        $this->assertContainsOnlyInstancesOf(Canary::class, $x);
 
-        $Expectation = number_format($RawRecord['Height']/2.54,2);
-        $this->assertEquals($Expectation,$RawRecord['HeightInInches']);
+        $Expectation = number_format($RawRecord['Height']/2.54, 2);
+        $this->assertEquals($Expectation, $RawRecord['HeightInInches']);
 
         // extraColumns as string
-        $x = Canary::getAllByWhere(['Class'=>Canary::class],[
+        $x = Canary::getAllByWhere(['Class'=>Canary::class], [
             'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
-            'limit' => 3
+            'limit' => 3,
         ]);
         $RawRecord =$x[0]->getRecord();
 
         $this->assertEquals(3, count($x));
-        $this->assertContainsOnlyInstancesOf(Canary::class,$x);
+        $this->assertContainsOnlyInstancesOf(Canary::class, $x);
 
-        $Expectation = number_format($RawRecord['Height']/2.54,2);
-        $this->assertEquals($Expectation,$RawRecord['HeightInInches']);
+        $Expectation = number_format($RawRecord['Height']/2.54, 2);
+        $this->assertEquals($Expectation, $RawRecord['HeightInInches']);
 
         // having
-        $x = Canary::getAllByWhere(['Class'=>Canary::class],[
+        $x = Canary::getAllByWhere(['Class'=>Canary::class], [
             'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
             'having' => [
-                '`HeightInInches`>5.0'
-            ]
+                '`HeightInInches`>5.0',
+            ],
         ]);
         
         $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
 
         $this->assertEquals($expectedCount, count($x));
-        $this->assertContainsOnlyInstancesOf(Canary::class,$x);
+        $this->assertContainsOnlyInstancesOf(Canary::class, $x);
 
         // having
-        $x = Canary::getAllByWhere(['Class'=>Canary::class],[
+        $x = Canary::getAllByWhere(['Class'=>Canary::class], [
             'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
             'having' => '`HeightInInches`>5.0',
             /* getAllByWhere fires _mapConditions on having when it's passed like this but because the field value below is an alias the _mapConditions function won't work.
@@ -875,13 +881,13 @@ class ActiveRecordTest extends TestCase
         $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
 
         $this->assertEquals($expectedCount, count($x));
-        $this->assertContainsOnlyInstancesOf(Canary::class,$x);
+        $this->assertContainsOnlyInstancesOf(Canary::class, $x);
 
         // order as string
         $x = Canary::getAllByWhere(['Class'=>Canary::class], ['order'=> 'Name DESC']);
         $firstNameZeroPosChar = ord($x[0]->Name[0]);
         $lastNameZeroPosChar = ord($x[count($x)-1]->Name[0]);
-        $this->assertGreaterThan($lastNameZeroPosChar,$firstNameZeroPosChar);
+        $this->assertGreaterThan($lastNameZeroPosChar, $firstNameZeroPosChar);
     }
 
     /**
@@ -899,7 +905,7 @@ class ActiveRecordTest extends TestCase
         $x = Canary::getAll(['order'=> 'Name DESC']);
         $firstNameZeroPosChar = ord($x[0]->Name[0]);
         $lastNameZeroPosChar = ord($x[count($x)-1]->Name[0]);
-        $this->assertGreaterThan($lastNameZeroPosChar,$firstNameZeroPosChar);
+        $this->assertGreaterThan($lastNameZeroPosChar, $firstNameZeroPosChar);
 
         // limit
         $x = Canary::getAll(['limit'=>5]);
@@ -931,7 +937,7 @@ class ActiveRecordTest extends TestCase
 
     /**
      * @covers Divergence\Models\ActiveRecord::getUniqueHandle
-     
+
      */
     public function testGetUniqueHandle()
     {
@@ -946,7 +952,7 @@ class ActiveRecordTest extends TestCase
 
     /**
      * @covers Divergence\Models\ActiveRecord::generateRandomHandle
-     
+
      */
     public function testGenerateRandomHandle()
     {
@@ -963,5 +969,21 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(32, strlen($z));
     }
 
+    /**
+     * @covers Divergence\Models\ActiveRecord::validate
+     * @covers Divergence\Models\ActiveRecord::finishValidation
+     */
+    // needs work
+    /*public function testValidate()
+    {
+        TestUtils::requireDB($this);
 
+        $A = new Tag([
+            'Tag' => 'Li nux',
+            'Slug' => 'linux',
+        ]);
+
+        $A->addValidationError('Tag','Has a space in it');
+        $A->save();
+    }*/
 }

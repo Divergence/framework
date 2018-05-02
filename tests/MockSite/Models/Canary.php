@@ -28,9 +28,9 @@ class Canary extends \Divergence\Models\Model
     public static $pluralNoun = 'canaries';
     
     // versioning
-    static public $historyTable = 'canaries_history';
-    static public $createRevisionOnDestroy = true;
-    static public $createRevisionOnSave = true;
+    public static $historyTable = 'canaries_history';
+    public static $createRevisionOnDestroy = true;
+    public static $createRevisionOnSave = true;
 
     public static $fields = [
         'ContextID' => [
@@ -128,7 +128,8 @@ class Canary extends \Divergence\Models\Model
         return static::_getRecordClass($record);
     }
 
-    public function getRecord() {
+    public function getRecord()
+    {
         return $this->_record;
     }
 

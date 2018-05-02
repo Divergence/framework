@@ -965,6 +965,8 @@ class ActiveRecord
             $this->_validator->resetErrors();
         }
         
+        $this->finishValidation();
+
         if ($deep) {
             // validate relationship objects
             foreach (static::$_classRelationships[get_called_class()] as $relationship => $options) {
@@ -1334,11 +1336,10 @@ class ActiveRecord
                     $value = date('Y-m-d H:i:s', $value);
                 } elseif (is_string($value)) {
                     // trim any extra crap, or leave as-is if it doesn't fit the pattern
-                    if(preg_match('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/')) {
+                    if (preg_match('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/')) {
                         $value = preg_replace('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/', '$1-$2-$3 $4:$5:$6', $value);
-                    }
-                    else {
-                        $value = date('Y-m-d H:i:s',strtotime($value));
+                    } else {
+                        $value = date('Y-m-d H:i:s', strtotime($value));
                     }
                 }
                 break;
@@ -1365,8 +1366,8 @@ class ActiveRecord
                         is_numeric($value['dd']) ? $value['dd'] : 0
                     );
                 } else {
-                    if($value = strtotime($value)) {
-                        $value = date('Y-m-d',$value)?:null;
+                    if ($value = strtotime($value)) {
+                        $value = date('Y-m-d', $value) ?: null;
                     } else {
                         $value = null;
                     }
@@ -1375,7 +1376,7 @@ class ActiveRecord
             }
             
             // these types are converted to strings from another PHP type on save
-            case 'serialized':
+            case 'serialized' :
             {
                 $this->_convertedValues[$field] = $value;
                 $value = serialize($value);

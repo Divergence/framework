@@ -41,6 +41,14 @@ class App extends \Divergence\App
                 $Canary->save();
                 array_push($Canaries, $Canary);
             }
+
+            $data = Canary::avis();
+            $data['Name'] = 'Versioned';
+            $data['Handle'] = 'Versioned';
+            $Canary = Canary::create($data, true);
+            $Canary->Name = 'Version2';
+            $Canary->Handle = 'Version2';
+            $Canary->save();
         }
     }
     public static function isDatabaseTestingEnabled()

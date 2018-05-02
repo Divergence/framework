@@ -3,6 +3,7 @@ namespace Divergence\Models;
 
 use Exception;
 
+use Divergence\Helpers\Util;
 use Divergence\IO\Database\MySQL as DB;
 
 trait Versioning
@@ -38,7 +39,7 @@ trait Versioning
      */
     public static function getRevisionsByID($ID, $options = [])
     {
-        $options['conditions'][static::$primaryKey] = $ID;
+        $options['conditions'][static::$primaryKey ? static::$primaryKey : 'ID'] = $ID;
         
         return static::getRevisions($options);
     }
