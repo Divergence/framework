@@ -482,6 +482,7 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::destroy
      * @covers Divergence\Models\ActiveRecord::delete
      * @covers Divergence\Models\ActiveRecord::validate
+     * @covers Divergence\Models\ActiveRecord::_prepareRecordValues
      * 
      */
     public function testSave()
@@ -508,6 +509,9 @@ class ActiveRecordTest extends TestCase
      * @covers Divergence\Models\ActiveRecord::destroy
      * @covers Divergence\Models\ActiveRecord::delete
      * @covers Divergence\Models\ActiveRecord::validate
+     * @covers Divergence\Models\ActiveRecord::create
+     * @covers Divergence\Models\ActiveRecord::setFields
+     * @covers Divergence\Models\ActiveRecord::__construct
      * @covers Divergence\Models\ActiveRecord::_getFieldValue
      * @covers Divergence\Models\ActiveRecord::_setFieldValue
      * @covers Divergence\Models\ActiveRecord::_mapValuesToSet
@@ -526,12 +530,20 @@ class ActiveRecordTest extends TestCase
         unset($returnData['Colors']);
 
         $this->assertArraySubset($data,$returnData);
-        //$Canary->save();
-        //$ID = $Canary->ID;
         
+        $data = Canary::avis();
+        $data['DateOfBirth'] = date('Y-m-d',$data['DateOfBirth']);
+        $Canary = new Canary();
+        $Canary->setFields($data);
         
-        //$Canary = Canary::getByID($ID);
-        //$this->assertArraySubset($data,$Canary->data);
+        $Canary->save();
+        $returnData = $Canary->data;
+        
+        // fix this later 
+        unset($data['Colors']);
+        unset($returnData['Colors']);
+
+        $this->assertArraySubset($data,$returnData);
 
         // ignore set when
         // $fieldOptions['autoincrement'] = true
