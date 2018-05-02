@@ -403,6 +403,8 @@ class MySQL
             \Divergence\App::$whoops->pushHandler($Handler);
             
             throw new \RuntimeException("Database error!");
+        } else {
+            throw new \RuntimeException("Database error!");
         }
     }
     

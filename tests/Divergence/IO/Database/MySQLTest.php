@@ -179,8 +179,8 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         // bad queries!
-        DB::query('SELECT malformed query'); // literally nothing should happen.. fail gracefully
-        $this->expectOutputString('');
+        $this->expectException(\RunTimeException::class);
+        DB::query('SELECT malformed query');
     }
 
     /**

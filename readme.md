@@ -4,7 +4,7 @@
 Divergence is a PHP framework designed for rapid development and modern practices without becoming an over abstracted mess.
 
 ## Purpose
-This collection of classes contains my favorite building blocks for developing websites with PHP and they have an impressive track record with hundreds of currently active websites using one version or another of the classes this framework. While they were originally written years ago they are all PSR compatible and support modern practices out of the box.
+This collection of classes contains my favorite building blocks for developing websites with PHP and they have an impressive track record with hundreds of currently active websites using one version or another of the classes in this framework. While they were originally written years ago they are all PSR compatible and support modern practices out of the box.
 
 Unit testing the code base and providing code coverage is a primary goal of this project.
 

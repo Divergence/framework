@@ -426,7 +426,7 @@ class ActiveRecord
                         static::$tableName
                         , join(',', $set),
                     ],
-                    [static::$rootClass,'handleError']
+                    [static::class,'handleError']
                 );
                 
                 $this->_record[static::$primaryKey ? static::$primaryKey : 'ID'] = DB::insertID();
@@ -441,7 +441,7 @@ class ActiveRecord
                         , static::_cn(static::$primaryKey ? static::$primaryKey : 'ID')
                         , $this->getPrimaryKey(),
                     ],
-                    [static::$rootClass,'handleError']
+                    [static::class,'handleError']
                 );
                 
                 $this->_isUpdated = true;
@@ -514,7 +514,7 @@ class ActiveRecord
             static::$tableName
             ,static::_cn(static::$primaryKey ? static::$primaryKey : 'ID')
             ,$id,
-        ], [static::$rootClass,'handleError']);
+        ], [static::class,'handleError']);
         
         return DB::affectedRows() > 0;
     }
@@ -575,9 +575,9 @@ class ActiveRecord
     
         if ($cacheIndex) {
             $key = sprintf('%s/%s:%s', static::$tableName, $field, $value);
-            return DB::oneRecordCached($key, $query, $params, [static::$rootClass,'handleError']);
+            return DB::oneRecordCached($key, $query, $params, [static::class,'handleError']);
         } else {
-            return DB::oneRecord($query, $params, [static::$rootClass,'handleError']);
+            return DB::oneRecord($query, $params, [static::class,'handleError']);
         }
     }
     
@@ -611,13 +611,13 @@ class ActiveRecord
                 , $order ? 'ORDER BY '.join(',', $order) : '',
             ],
         
-            [static::$rootClass,'handleError']
+            [static::class,'handleError']
         );
     }
     
     public static function getByQuery($query, $params = [])
     {
-        return static::instantiateRecord(DB::oneRecord($query, $params, [static::$rootClass,'handleError']));
+        return static::instantiateRecord(DB::oneRecord($query, $params, [static::class,'handleError']));
     }
 
     public static function getAllByClass($className = false, $options = [])
@@ -749,9 +749,9 @@ class ActiveRecord
         }
         
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $query, $params, [static::$rootClass,'handleError']);
+            return DB::table(static::_cn($options['indexField']), $query, $params, [static::class,'handleError']);
         } else {
-            return DB::allRecords($query, $params, [static::$rootClass,'handleError']);
+            return DB::allRecords($query, $params, [static::class,'handleError']);
         }
     }
     
@@ -784,20 +784,20 @@ class ActiveRecord
         }
 
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $query, $params, [static::$rootClass,'handleError']);
+            return DB::table(static::_cn($options['indexField']), $query, $params, [static::class,'handleError']);
         } else {
-            return DB::allRecords($query, $params, [static::$rootClass,'handleError']);
+            return DB::allRecords($query, $params, [static::class,'handleError']);
         }
     }
     
     public static function getAllByQuery($query, $params = [])
     {
-        return static::instantiateRecords(DB::allRecords($query, $params, [static::$rootClass,'handleError']));
+        return static::instantiateRecords(DB::allRecords($query, $params, [static::class,'handleError']));
     }
 
     public static function getTableByQuery($keyField, $query, $params)
     {
-        return static::instantiateRecords(DB::table($keyField, $query, $params, [static::$rootClass,'handleError']));
+        return static::instantiateRecords(DB::table($keyField, $query, $params, [static::class,'handleError']));
     }
 
     
