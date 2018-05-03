@@ -63,7 +63,7 @@ class MySQLTest extends TestCase
         
         $this->assertEquals($safeLittleBobbyTables, DB::escape($littleBobbyTables));
         $this->assertEquals($safeArrayOfBobbies, DB::escape($arrayOfBobbies));
-        $this->assertEquals(new \stdClass(), new \stdClass());
+        $this->assertEquals(new \stdClass(), DB::escape(new \stdClass()));
     }
 
     /**
@@ -94,7 +94,11 @@ class MySQLTest extends TestCase
         $tagsCount = DB::oneValue('SELECT COUNT(*) as `Count` FROM `tags`');
         
         $this->assertEquals($tagsCount, $foundRows);
-        $this->assertEquals(count($tags), 1);
+        $this->assertCount(1, $tags);
+
+        $tags = Tag::getAll(['limit'=>1,'calcFoundRows'=>true]);
+        $this->assertEquals($tagsCount,DB::foundRows());
+
     }
     
     /**
@@ -248,5 +252,30 @@ class MySQLTest extends TestCase
             $Context->assertEquals($a, $args[0]);
             $Context->assertEquals(0, $args[1]);
         });
+    }
+
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::allRecords
+     *
+     */
+    public function testAllRecords()
+    {
+        $tables = DB::allRecords('SHOW TABLES');
+        
+        $this->assertCount(3,$tables);
+        $this->assertNotEmpty($tables[0]['Tables_in_test']);
+        $this->assertNotEmpty($tables[1]['Tables_in_test']);
+        $this->assertNotEmpty($tables[2]['Tables_in_test']);
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::allValues
+     *
+     */
+    public function testAllValues()
+    {
+        $tables = DB::allValues('Tables_in_test','SHOW TABLES');
+        $this->assertEquals(['canaries','canaries_history','tags'],$tables);
     }
 }

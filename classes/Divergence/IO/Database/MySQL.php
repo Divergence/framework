@@ -241,12 +241,9 @@ class MySQL
         $result = self::query($query, $parameters, $errorHandler);
         
         $records = [];
-        while ($record = $result->fetch_assoc()) {
+        while ($record = $result->fetch(PDO::FETCH_ASSOC)) {
             $records[] = $record[$valueKey];
         }
-        
-        // free result
-        $result->free();
         
         return $records;
     }
