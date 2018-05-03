@@ -961,7 +961,15 @@ class ActiveRecordTest extends TestCase
         
         $newHandle = Canary::getUniqueHandle($x->Handle);
 
-        $this->assertEquals($x->Handle.':2', $newHandle);
+
+        $lastChar = substr($x->Handle, -1);
+        if(is_numeric($lastChar)) {
+            $expectedHandle = $x->Handle.':'.(intval($lastChar)+1);
+        } else {
+            $expectedHandle = $x->Handle.':2';
+        }
+
+        $this->assertEquals($expectedHandle, $newHandle);
     }
 
     /**

@@ -421,6 +421,7 @@ class MySQLTest extends TestCase
     {
         $this->assertEquals('test',testableDB::_preprocessQuery('%s','test'));
         $this->assertEquals(2,testableDB::_preprocessQuery('%s',2));
+        $this->assertEquals('nothing',testableDB::_preprocessQuery('nothing',null));
     }
 
     /**
