@@ -254,6 +254,19 @@ class MySQLTest extends TestCase
     }
 
     /**
+     * @covers Divergence\IO\Database\MySQL::table
+     *
+     */
+    public function testTable()
+    {
+        $y = DB::allRecords('SHOW TABLES');
+        $x = DB::table('Tables_in_test','SHOW TABLES');
+        foreach($y as $a) {
+            $this->assertEquals($a,$x[$a['Tables_in_test']]);
+        }
+    }
+
+    /**
      * @covers Divergence\IO\Database\MySQL::nonQuery
      * @covers Divergence\IO\Database\MySQL::handleError
      *

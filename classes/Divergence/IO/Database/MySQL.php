@@ -166,57 +166,19 @@ class MySQL
         return $Statement;
     }
     
-    
+    /* 
+     *  Uses $tableKey instead of primaryKey (usually ID) as the PHP array index
+     *      Only do this with unique indexed fields. This is a helper method for that exact situation.
+     */
     public static function table($tableKey, $query, $parameters = [], $nullKey = '', $errorHandler = null)
     {
         // execute query
         $result = self::query($query, $parameters, $errorHandler);
         
         $records = [];
-        while ($record = $result->fetch_assoc()) {
+        while ($record = $result->fetch(PDO::FETCH_ASSOC)) {
             $records[$record[$tableKey] ? $record[$tableKey] : $nullKey] = $record;
         }
-        
-        // free result
-        $result->free();
-        
-        return $records;
-    }
-    
-
-    public static function arrayTable($tableKey, $query, $parameters = [], $errorHandler = null)
-    {
-        // execute query
-        $result = self::query($query, $parameters, $errorHandler);
-        
-        $records = [];
-        while ($record = $result->fetch_assoc()) {
-            if (!array_key_exists($record[$tableKey], $records)) {
-                $records[$record[$tableKey]] = [];
-            }
-            
-            $records[$record[$tableKey]][] = $record;
-        }
-        
-        // free result
-        $result->free();
-        
-        return $records;
-    }
-    
-    
-    public static function valuesTable($tableKey, $valueKey, $query, $parameters = [], $errorHandler = null)
-    {
-        // execute query
-        $result = self::query($query, $parameters, $errorHandler);
-        
-        $records = [];
-        while ($record = $result->fetch_assoc()) {
-            $records[$record[$tableKey]] = $record[$valueKey];
-        }
-        
-        // free result
-        $result->free();
         
         return $records;
     }
