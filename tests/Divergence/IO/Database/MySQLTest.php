@@ -237,6 +237,19 @@ class MySQLTest extends TestCase
      * @covers Divergence\IO\Database\MySQL::handleError
      *
      */
+    public function testQueryExceptionExistingPrimaryKey()
+    {
+        // should trigger error
+        $Query = "INSERT INTO `tags` (`ID`, `Class`, `CreatorID`, `Tag`, `Slug`) VALUES (1, 'Divergence\\Tests\\MockSite\\Models\\Tag', 1, 'Linux', 'linux')";
+        $this->expectException(\RunTimeException::class);
+        DB::query($Query);
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::query
+     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     */
     public function testQueryExceptionHandled()
     {
         TestUtils::requireDB($this);
@@ -245,12 +258,20 @@ class MySQLTest extends TestCase
         // bad queries!
         DB::query('SELECT malformed query', null, function () use ($Context) {
             $args = func_get_args();
-
-        
-
             $Context->assertEquals('SELECT malformed query', $args[0]);
             $Context->assertEquals(0, $args[1]);
         });
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::query
+     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     */
+    public function testPDOStatementError()
+    {
+        $this->expectExceptionMessage('Database error!');
+        $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
     }
 
     /**
@@ -376,6 +397,12 @@ class MySQLTest extends TestCase
         $record = testableDB::oneRecordCached($key, $query, $params);
         $cache = testableDB::getProtected('_record_cache');
         $this->assertEquals($cache[$key],$record);
+        $record = testableDB::oneRecordCached($key, $query, $params);
+        $this->assertEquals($cache[$key],$record);
+
+        // forced error
+        $this->expectExceptionMessage('Database error!');
+        $record = testableDB::oneRecordCached('something', 'SELECT FROM NOTHING');
     }
 
     /**
@@ -452,5 +479,8 @@ class MySQLTest extends TestCase
         $this->assertEquals(testableDB::$defaultProductionLabel,testableDB::_getDefaultLabel());
         App::$Config['environment'] = 'dev';
         $this->assertEquals(testableDB::$defaultDevLabel,testableDB::_getDefaultLabel());
+        App::$Config['environment'] = 'nothing';
+        $this->assertNull(testableDB::_getDefaultLabel());
+        App::$Config['environment'] = 'production';
     }
 }

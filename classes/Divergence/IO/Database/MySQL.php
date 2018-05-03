@@ -285,16 +285,9 @@ class MySQL
         }
         
         // get error message
-        if ($query == 'connect') {
-            $message = mysqli_connect_error();
-        } elseif (self::getConnection()->errorCode() == 1062) {
-            throw new Exception(static::getConnection()->errorInfo());
-        } else {
-            $error = static::getConnection()->errorInfo();
-            $message = $error[2];
-        }
+        $error = static::getConnection()->errorInfo();
+        $message = $error[2];
         
-        // respond
         if (App::$Config['environment']=='dev') {
             $Handler = \Divergence\App::$whoops->popHandler();
             
