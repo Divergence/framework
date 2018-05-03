@@ -90,8 +90,10 @@ class RequestHandlerTest extends TestCase
     public function testSetPath()
     {
         $_SERVER['REQUEST_URI'] = '/blogs/edit/1';
-        
+
+        testableRequestHandler::clear();
         testableRequestHandler::testSetPath();
+        
         $this->assertEquals([0=>'blogs',1=>'edit',2=>'1'], testableRequestHandler::$pathStack);
         $this->assertEquals([0=>'blogs',1=>'edit',2=>'1'], testableRequestHandler::testGetPath());
 

@@ -299,11 +299,12 @@ class MySQLTest extends TestCase
     {
         TestUtils::requireDB($this);
 
-        App::$Config['environment']='dev';
+        App::$Config['environment'] = 'dev';
         DB::$defaultDevLabel = 'tests-mysql';
 
         $this->expectException(\RunTimeException::class);
         $this->expectExceptionMessage('Database error!');
+        App::$Config['environment'] = 'production';
         DB::nonQuery('SELECT malformed query');
     }
 
@@ -343,6 +344,8 @@ class MySQLTest extends TestCase
      */
     public function testAllRecords()
     {
+        TestUtils::requireDB($this);
+
         $tables = DB::allRecords('SHOW TABLES');
         
         $this->assertCount(3, $tables);
@@ -357,6 +360,8 @@ class MySQLTest extends TestCase
      */
     public function testAllValues()
     {
+        TestUtils::requireDB($this);
+
         $tables = DB::allValues('Tables_in_test', 'SHOW TABLES');
         $this->assertEquals(['canaries','canaries_history','tags'], $tables);
     }
@@ -367,6 +372,8 @@ class MySQLTest extends TestCase
      */
     public function testClearCachedRecord()
     {
+        TestUtils::requireDB($this);
+
         $query = 'SELECT * FROM `%s` WHERE `%s` = "%s" LIMIT 1';
         $params = [
             Tag::$tableName,
@@ -389,6 +396,8 @@ class MySQLTest extends TestCase
      */
     public function testOneRecordCached()
     {
+        TestUtils::requireDB($this);
+
         $query = 'SELECT * FROM `%s` WHERE `%s` = "%s" LIMIT 1';
         $params = [
             Tag::$tableName,
@@ -411,6 +420,8 @@ class MySQLTest extends TestCase
      */
     public function testOneRecordCachedError()
     {
+        TestUtils::requireDB($this);
+
         // forced error
         $this->expectExceptionMessage('Database error!');
         $record = testableDB::oneRecordCached('something', 'SELECT FROM NOTHING');
@@ -422,6 +433,8 @@ class MySQLTest extends TestCase
      */
     public function testPreprocessQuery()
     {
+        TestUtils::requireDB($this);
+
         $this->assertEquals('test', testableDB::_preprocessQuery('%s', 'test'));
         $this->assertEquals(2, testableDB::_preprocessQuery('%s', 2));
         $this->assertEquals('nothing', testableDB::_preprocessQuery('nothing', null));
@@ -433,6 +446,8 @@ class MySQLTest extends TestCase
      */
     public function testStartQueryLog()
     {
+        TestUtils::requireDB($this);
+
         $this->assertFalse(testableDB::_startQueryLog(null));
         App::$Config['environment'] = 'dev';
         $x = testableDB::_startQueryLog('SELECT corgies');
@@ -440,6 +455,7 @@ class MySQLTest extends TestCase
 
         $s = explode('.', $x['time_start']);
         $this->assertLessThan(2, $s[0] - time());
+        App::$Config['environment'] = 'production';
     }
 
     /**
@@ -448,6 +464,8 @@ class MySQLTest extends TestCase
      */
     public function testFinishQueryLog()
     {
+        TestUtils::requireDB($this);
+
         App::$Config['environment'] = 'dev';
         $x = testableDB::_startQueryLog('SELECT corgies');
         usleep(5000);
@@ -466,6 +484,7 @@ class MySQLTest extends TestCase
         $this->assertEquals($expected_time_duration_ms, $x['time_duration_ms']);
         $fake = false;
         $this->assertFalse(testableDB::_finishQueryLog($fake));
+        App::$Config['environment'] = 'production';
     }
 
     /**
@@ -474,6 +493,8 @@ class MySQLTest extends TestCase
      */
     public function testConfig()
     {
+        TestUtils::requireDB($this);
+
         $config = testableDB::_config();
         $this->assertEquals(testableDB::getProtected('Config'), $config);
         testableDB::clearConfig();
@@ -488,6 +509,8 @@ class MySQLTest extends TestCase
      */
     public function testGetDefaultLabel()
     {
+        TestUtils::requireDB($this);
+        
         $this->assertEquals(testableDB::$defaultProductionLabel, testableDB::_getDefaultLabel());
         App::$Config['environment'] = 'dev';
         $this->assertEquals(testableDB::$defaultDevLabel, testableDB::_getDefaultLabel());
