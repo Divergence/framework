@@ -399,11 +399,19 @@ class MySQLTest extends TestCase
         $this->assertEquals($cache[$key],$record);
         $record = testableDB::oneRecordCached($key, $query, $params);
         $this->assertEquals($cache[$key],$record);
+    }
 
+    /**
+     * @covers Divergence\IO\Database\MySQL::oneRecordCached
+     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     */
+    public function testOneRecordCachedError()
+    {
         // forced error
         $this->expectExceptionMessage('Database error!');
         $record = testableDB::oneRecordCached('something', 'SELECT FROM NOTHING');
-    }
+    }   
 
     /**
      * @covers Divergence\IO\Database\MySQL::preprocessQuery

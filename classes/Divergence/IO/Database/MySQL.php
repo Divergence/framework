@@ -228,11 +228,6 @@ class MySQL
         // preprocess and execute query
         $result = self::query($query, $parameters, $errorHandler);
         
-        // handle query error
-        if ($result === false) {
-            self::handleError($query);
-        }
-        
         // get record
         $record = $result->fetch(PDO::FETCH_ASSOC);
         
@@ -310,10 +305,12 @@ class MySQL
     {
         if (is_array($parameters) && count($parameters)) {
             return vsprintf($query, $parameters);
-        } elseif (isset($parameters)) {
-            return sprintf($query, $parameters);
         } else {
-            return $query;
+            if (isset($parameters)) {
+                return sprintf($query, $parameters);
+            } else {
+                return $query;
+            }
         }
     }
     
