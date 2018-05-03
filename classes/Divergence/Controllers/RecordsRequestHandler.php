@@ -24,7 +24,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     public static $searchConditions = false;
     
     public static $calledClass = __CLASS__;
-    public static $responseMode = 'html';
+    public static $responseMode = 'dwoo';
     
     public static function handleRequest()
     {
