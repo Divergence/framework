@@ -324,6 +324,46 @@ class MySQLTest extends TestCase
         $this->assertEquals(['canaries','canaries_history','tags'],$tables);
     }
 
+    /**
+     * @covers Divergence\IO\Database\MySQL::clearCachedRecord
+     *
+     */
+    public function testClearCachedRecord()
+    {
+        $query = 'SELECT * FROM `%s` WHERE `%s` = "%s" LIMIT 1';
+        $params = [
+            Tag::$tableName,
+            'Tag',
+            'Linux',
+        ];
+        
+        $key = sprintf('%s/%s:%s', Tag::$tableName, 'Tag', 'Linux');
+        $record = testableDB::oneRecordCached($key, $query, $params);
+        $cache = testableDB::getProtected('_record_cache');
+        $this->assertEquals($cache[$key],$record);
+        testableDB::clearCachedRecord($key);
+        $cache = testableDB::getProtected('_record_cache');
+        $this->assertNull($cache[$key]);
+    }
+    
+    /**
+     * @covers Divergence\IO\Database\MySQL::oneRecordCached
+     *
+     */
+    public function testOneRecordCached()
+    {
+        $query = 'SELECT * FROM `%s` WHERE `%s` = "%s" LIMIT 1';
+        $params = [
+            Tag::$tableName,
+            'Tag',
+            'Linux',
+        ];
+        
+        $key = sprintf('%s/%s:%s', Tag::$tableName, 'Tag', 'Linux');
+        $record = testableDB::oneRecordCached($key, $query, $params);
+        $cache = testableDB::getProtected('_record_cache');
+        $this->assertEquals($cache[$key],$record);
+    }
 
     /**
      * @covers Divergence\IO\Database\MySQL::preprocessQuery
