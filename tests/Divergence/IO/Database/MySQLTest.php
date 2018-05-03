@@ -332,6 +332,7 @@ class MySQLTest extends TestCase
     public function testPreprocessQuery()
     {
         $this->assertEquals('test',testableDB::_preprocessQuery('%s','test'));
+        $this->assertEquals(2,testableDB::_preprocessQuery('%s',2));
     }
 
     /**
@@ -371,6 +372,8 @@ class MySQLTest extends TestCase
         $this->assertEquals(5,$x['result_fields']);
         $this->assertEquals(5,$x['result_rows']);
         $this->assertEquals($expected_time_duration_ms,$x['time_duration_ms']);
+        $fake = false;
+        $this->assertFalse(testableDB::_finishQueryLog($fake));
     }
 
     /**
@@ -388,7 +391,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::config
+     * @covers Divergence\IO\Database\MySQL::getDefaultLabel
      *
      */
     public function testGetDefaultLabel()
