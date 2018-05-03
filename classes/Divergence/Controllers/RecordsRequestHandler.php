@@ -59,7 +59,6 @@ abstract class RecordsRequestHandler extends RequestHandler
             }
             
             case '':
-            case false:
             {
                 return static::handleBrowseRequest();
             }
@@ -642,6 +641,19 @@ abstract class RecordsRequestHandler extends RequestHandler
                 ,'failed' => [
                     'errors'	=>	'Login required.',
                 ],
+            ]);
+        }
+    }
+
+    public static function throwNotFoundError()
+    {
+        if(static::$responseMode == 'json')
+        {
+            return static::respond('notfound', [
+                'success' => false
+                ,'failed' => [
+                    'errors'	=>	'Record not found.',
+                ], 
             ]);
         }
     }

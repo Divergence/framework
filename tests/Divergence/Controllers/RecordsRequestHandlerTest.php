@@ -83,4 +83,61 @@ class RecordsRequestHandlerTest extends TestCase
         CanaryRequestHandler::handleRequest();
         $this->expectOutputString($expected);
     }
+
+    public function testHandleRequestOneValidRecordByHandleWithNoHandleField()
+    {
+        $expected = [
+            'success'=>false,
+            'failed'=>[
+                'errors'=> 'Record not found.'
+            ]
+        ];
+        $expected = json_encode($expected);
+
+        TagRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/Linux';
+        TagRequestHandler::handleRequest();
+        $this->expectOutputString($expected);
+    }
+
+    public function testHandleRequestNoRecordFound()
+    {
+        $expected = [
+            'success'=>false,
+            'failed'=>[
+                'errors'=> 'Record not found.'
+            ]
+        ];
+        $expected = json_encode($expected);
+
+        TagRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/999';
+        TagRequestHandler::handleRequest();
+        $this->expectOutputString($expected);
+    }
+
+    /*public function testHandleRecordsRequestFalse()
+    {
+        $expected = [
+            // order matters because we are comparing json in string form
+            'success'=>true,
+            'data'=>[],
+            'conditions'=>[],
+            'total'=>0,
+            'limit'=>false,
+            'offset'=>false
+        ];
+        $Records = Tag::getAll();
+        foreach($Records as $Record) {
+            $expected['data'][] = $Record->data;
+        }
+        $expected['total'] = count($Records)."";
+        $expected = json_encode($expected);
+
+        TagRequestHandler::clear();
+        //$_SERVER['REQUEST_URI'] = '/json';
+        TagRequestHandler::$responseMode = 'json';
+        TagRequestHandler::handleRecordsRequest(false);
+        $this->expectOutputString($expected);
+    }*/
 }
