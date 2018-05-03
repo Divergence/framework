@@ -8,12 +8,14 @@ use Divergence\IO\Database\MySQL as DB;
 
 use Divergence\Tests\MockSite\Models\Tag;
 
-class fakeResult  {
+class fakeResult
+{
     public $field_count;
     public $num_rows;
 }
 
-class testableDB extends DB {
+class testableDB extends DB
+{
     public static function _preprocessQuery($query, $parameters = [])
     {
         return static::preprocessQuery($query, $parameters);
@@ -25,7 +27,7 @@ class testableDB extends DB {
     }
     public static function _finishQueryLog(&$queryLog, $result = false)
     {
-        return static::finishQueryLog($queryLog,$result);
+        return static::finishQueryLog($queryLog, $result);
     }
 
     public static function _config()
@@ -43,7 +45,8 @@ class testableDB extends DB {
         return static::$$field;
     }
 
-    public static function clearConfig() {
+    public static function clearConfig()
+    {
         static::$Config = null;
     }
 }
@@ -137,7 +140,7 @@ class MySQLTest extends TestCase
         $this->assertCount(1, $tags);
 
         $tags = Tag::getAll(['limit'=>1,'calcFoundRows'=>true]);
-        $this->assertEquals($tagsCount,DB::foundRows());
+        $this->assertEquals($tagsCount, DB::foundRows());
 
         // valid query. no records found
         $this->assertFalse(DB::oneValue('SELECT * FROM `tags` WHERE 1=0'));
@@ -194,7 +197,7 @@ class MySQLTest extends TestCase
         $data = DB::prepareQuery($query);
         $this->assertEquals($query, $data);
 
-        $this->assertEquals('test',DB::prepareQuery('%s','test'));
+        $this->assertEquals('test', DB::prepareQuery('%s', 'test'));
     }
 
     /**
@@ -281,9 +284,9 @@ class MySQLTest extends TestCase
     public function testTable()
     {
         $y = DB::allRecords('SHOW TABLES');
-        $x = DB::table('Tables_in_test','SHOW TABLES');
-        foreach($y as $a) {
-            $this->assertEquals($a,$x[$a['Tables_in_test']]);
+        $x = DB::table('Tables_in_test', 'SHOW TABLES');
+        foreach ($y as $a) {
+            $this->assertEquals($a, $x[$a['Tables_in_test']]);
         }
     }
 
@@ -342,7 +345,7 @@ class MySQLTest extends TestCase
     {
         $tables = DB::allRecords('SHOW TABLES');
         
-        $this->assertCount(3,$tables);
+        $this->assertCount(3, $tables);
         $this->assertNotEmpty($tables[0]['Tables_in_test']);
         $this->assertNotEmpty($tables[1]['Tables_in_test']);
         $this->assertNotEmpty($tables[2]['Tables_in_test']);
@@ -354,8 +357,8 @@ class MySQLTest extends TestCase
      */
     public function testAllValues()
     {
-        $tables = DB::allValues('Tables_in_test','SHOW TABLES');
-        $this->assertEquals(['canaries','canaries_history','tags'],$tables);
+        $tables = DB::allValues('Tables_in_test', 'SHOW TABLES');
+        $this->assertEquals(['canaries','canaries_history','tags'], $tables);
     }
 
     /**
@@ -374,7 +377,7 @@ class MySQLTest extends TestCase
         $key = sprintf('%s/%s:%s', Tag::$tableName, 'Tag', 'Linux');
         $record = testableDB::oneRecordCached($key, $query, $params);
         $cache = testableDB::getProtected('_record_cache');
-        $this->assertEquals($cache[$key],$record);
+        $this->assertEquals($cache[$key], $record);
         testableDB::clearCachedRecord($key);
         $cache = testableDB::getProtected('_record_cache');
         $this->assertNull($cache[$key]);
@@ -396,9 +399,9 @@ class MySQLTest extends TestCase
         $key = sprintf('%s/%s:%s', Tag::$tableName, 'Tag', 'Linux');
         $record = testableDB::oneRecordCached($key, $query, $params);
         $cache = testableDB::getProtected('_record_cache');
-        $this->assertEquals($cache[$key],$record);
+        $this->assertEquals($cache[$key], $record);
         $record = testableDB::oneRecordCached($key, $query, $params);
-        $this->assertEquals($cache[$key],$record);
+        $this->assertEquals($cache[$key], $record);
     }
 
     /**
@@ -411,7 +414,7 @@ class MySQLTest extends TestCase
         // forced error
         $this->expectExceptionMessage('Database error!');
         $record = testableDB::oneRecordCached('something', 'SELECT FROM NOTHING');
-    }   
+    }
 
     /**
      * @covers Divergence\IO\Database\MySQL::preprocessQuery
@@ -419,9 +422,9 @@ class MySQLTest extends TestCase
      */
     public function testPreprocessQuery()
     {
-        $this->assertEquals('test',testableDB::_preprocessQuery('%s','test'));
-        $this->assertEquals(2,testableDB::_preprocessQuery('%s',2));
-        $this->assertEquals('nothing',testableDB::_preprocessQuery('nothing',null));
+        $this->assertEquals('test', testableDB::_preprocessQuery('%s', 'test'));
+        $this->assertEquals(2, testableDB::_preprocessQuery('%s', 2));
+        $this->assertEquals('nothing', testableDB::_preprocessQuery('nothing', null));
     }
 
     /**
@@ -435,8 +438,8 @@ class MySQLTest extends TestCase
         $x = testableDB::_startQueryLog('SELECT corgies');
         $this->assertEquals('SELECT corgies', $x['query']);
 
-        $s = explode('.',$x['time_start']);
-        $this->assertLessThan(2,$s[0] - time());
+        $s = explode('.', $x['time_start']);
+        $this->assertLessThan(2, $s[0] - time());
     }
 
     /**
@@ -453,14 +456,14 @@ class MySQLTest extends TestCase
         $result->field_count = 5;
         $result->num_rows = 5;
 
-        testableDB::_finishQueryLog($x,$result);
+        testableDB::_finishQueryLog($x, $result);
         
         $expected_time_duration_ms = ($x['time_finish'] - $x['time_start']) * 1000;
 
-        $this->assertEquals('SELECT corgies',$x['query']);
-        $this->assertEquals(5,$x['result_fields']);
-        $this->assertEquals(5,$x['result_rows']);
-        $this->assertEquals($expected_time_duration_ms,$x['time_duration_ms']);
+        $this->assertEquals('SELECT corgies', $x['query']);
+        $this->assertEquals(5, $x['result_fields']);
+        $this->assertEquals(5, $x['result_rows']);
+        $this->assertEquals($expected_time_duration_ms, $x['time_duration_ms']);
         $fake = false;
         $this->assertFalse(testableDB::_finishQueryLog($fake));
     }
@@ -472,11 +475,11 @@ class MySQLTest extends TestCase
     public function testConfig()
     {
         $config = testableDB::_config();
-        $this->assertEquals(testableDB::getProtected('Config'),$config);
+        $this->assertEquals(testableDB::getProtected('Config'), $config);
         testableDB::clearConfig();
         $this->assertNull(testableDB::getProtected('Config'));
         $config = testableDB::_config();
-        $this->assertEquals(testableDB::getProtected('Config'),$config);
+        $this->assertEquals(testableDB::getProtected('Config'), $config);
     }
 
     /**
@@ -485,9 +488,9 @@ class MySQLTest extends TestCase
      */
     public function testGetDefaultLabel()
     {
-        $this->assertEquals(testableDB::$defaultProductionLabel,testableDB::_getDefaultLabel());
+        $this->assertEquals(testableDB::$defaultProductionLabel, testableDB::_getDefaultLabel());
         App::$Config['environment'] = 'dev';
-        $this->assertEquals(testableDB::$defaultDevLabel,testableDB::_getDefaultLabel());
+        $this->assertEquals(testableDB::$defaultDevLabel, testableDB::_getDefaultLabel());
         App::$Config['environment'] = 'nothing';
         $this->assertNull(testableDB::_getDefaultLabel());
         App::$Config['environment'] = 'production';

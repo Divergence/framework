@@ -1376,7 +1376,7 @@ class ActiveRecord
             }
             
             // these types are converted to strings from another PHP type on save
-            case 'serialized' :
+            case 'serialized':
             {
                 $this->_convertedValues[$field] = $value;
                 $value = serialize($value);

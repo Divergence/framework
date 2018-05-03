@@ -166,7 +166,7 @@ class MySQL
         return $Statement;
     }
     
-    /* 
+    /*
      *  Uses $tableKey instead of primaryKey (usually ID) as the PHP array index
      *      Only do this with unique indexed fields. This is a helper method for that exact situation.
      */

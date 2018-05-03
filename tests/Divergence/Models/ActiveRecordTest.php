@@ -5,27 +5,29 @@ use Divergence\Models\Model;
 
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
+use Divergence\Models\Versioning;
 use Divergence\Models\ActiveRecord;
+
+
 use Divergence\IO\Database\MySQL as DB;
-
-
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
-use Divergence\Models\Versioning;
 
 class fakeCanary extends Canary
 { /* so we can test init on a brand new class */
     use Versioning;
-    public static function handleError($query = null, $queryLog = null, $parameters = null) {
-        if(static::$nextErrorAsException) {
+
+    public static $nextErrorAsException = false;
+    public static function handleError($query = null, $queryLog = null, $parameters = null)
+    {
+        if (static::$nextErrorAsException) {
             static::$nextErrorAsException = false;
             throw new \Exception('fakeCanary handlError exception');
         }
         return parent::handleError($query, $queryLog = null, $parameters = null);
     }
-
-    public static $nextErrorAsException = false;
-    public static function throwExceptionNextError() {
+    public static function throwExceptionNextError()
+    {
         static::$nextErrorAsException = true;
     }
 }
@@ -963,7 +965,7 @@ class ActiveRecordTest extends TestCase
 
 
         $lastChar = substr($x->Handle, -1);
-        if(is_numeric($lastChar)) {
+        if (is_numeric($lastChar)) {
             $expectedHandle = $x->Handle.':'.(intval($lastChar)+1);
         } else {
             $expectedHandle = $x->Handle.':2';
@@ -1019,8 +1021,6 @@ class ActiveRecordTest extends TestCase
 
         $this->expectException(\RunTimeException::class);
         Canary::getAllByQuery('SELECT nothing(*)');
-
-        
     }
 
     /**
@@ -1051,12 +1051,12 @@ class ActiveRecordTest extends TestCase
         fakeCanary::$tableName = 'fake';
         fakeCanary::$historyTable = 'history_fake';
         
-        $x = fakeCanary::create(fakeCanary::avis(),true);
+        $x = fakeCanary::create(fakeCanary::avis(), true);
         
-        $this->assertCount(2,DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
+        $this->assertCount(2, DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
         fakeCanary::$tableName = $a;
         fakeCanary::$historyTable = $b;
         DB::nonQuery('DROP TABLE `fake`,`history_fake`');
-        $this->assertCount(0,DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
+        $this->assertCount(0, DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
     }
 }
