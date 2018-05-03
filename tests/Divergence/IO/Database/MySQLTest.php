@@ -148,7 +148,8 @@ class MySQLTest extends TestCase
         $data = DB::prepareQuery('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d', 3);
         $this->assertEquals(sprintf('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d', 3), $data);
 
-        $data = DB::prepareQuery($query = 'UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=3');
+        $query = 'UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=3';
+        $data = DB::prepareQuery($query);
         $this->assertEquals($query, $data);
     }
 

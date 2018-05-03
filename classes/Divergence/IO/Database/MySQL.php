@@ -327,9 +327,6 @@ class MySQL
     
     public static function handleError($query = '', $queryLog = false, $errorHandler = null)
     {
-        if (is_string($errorHandler)) {
-            $errorHandler = explode('::', $errorHandler);
-        }
         if (is_callable($errorHandler, false, $callable)) {
             return call_user_func($errorHandler, $query, $queryLog);
         }
@@ -388,23 +385,11 @@ class MySQL
             return false;
         }
         
-        // create a new query log structure
         return [
-            'query' => $query
-            ,'time_start' => sprintf('%f', microtime(true)),
+            'query' => $query,
+            'time_start' => sprintf('%f', microtime(true)),
         ];
     }
-    
-    
-    protected static function extendQueryLog(&$queryLog, $key, $value)
-    {
-        if ($queryLog == false) {
-            return false;
-        }
-        
-        $queryLog[$key] = $value;
-    }
-    
     
     protected static function finishQueryLog(&$queryLog, $result = false)
     {
@@ -415,7 +400,6 @@ class MySQL
         // save finish time and number of affected rows
         $queryLog['time_finish'] = sprintf('%f', microtime(true));
         $queryLog['time_duration_ms'] = ($queryLog['time_finish'] - $queryLog['time_start']) * 1000;
-        //$queryLog['affected_rows'] = self::getConnection()->rowCount();
         
         // save result information
         if ($result) {
@@ -427,7 +411,6 @@ class MySQL
         $queryLog['method'] = '';
         $backtrace = debug_backtrace();
         while ($backtick = array_shift($backtrace)) {
-            // skip the log routine itself
             if ($backtick['function'] == __FUNCTION__) {
                 continue;
             }
@@ -436,12 +419,13 @@ class MySQL
                 break;
             }
         
-            // append function
             if ($queryLog['method'] != '') {
                 $queryLog['method'] .= '/';
             }
             $queryLog['method'] .= $backtick['function'];
         }
+
+        // monolog here
     }
     
     private static function config()
