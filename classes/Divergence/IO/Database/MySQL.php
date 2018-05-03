@@ -309,22 +309,6 @@ class MySQL
         }
     }
     
-    public static function makeOrderString($order = [])
-    {
-        $s = '';
-        
-        foreach ($order as $field => $dir) {
-            if ($s!='') {
-                $s .= ',';
-            }
-            
-            $s .= '`'.$field.'` '.$dir;
-        }
-        
-        return $s;
-    }
-    
-    
     public static function handleError($query = '', $queryLog = false, $errorHandler = null)
     {
         if (is_callable($errorHandler, false, $callable)) {
@@ -408,27 +392,13 @@ class MySQL
         }
         
         // build backtrace string
-        $queryLog['method'] = '';
-        $backtrace = debug_backtrace();
-        while ($backtick = array_shift($backtrace)) {
-            if ($backtick['function'] == __FUNCTION__) {
-                continue;
-            }
-            
-            if ($backtick['class'] != __CLASS__) {
-                break;
-            }
+        // TODO: figure out a nice toString option that isn't too bulky
+        //$queryLog['backtrace'] = debug_backtrace();
         
-            if ($queryLog['method'] != '') {
-                $queryLog['method'] .= '/';
-            }
-            $queryLog['method'] .= $backtick['function'];
-        }
-
         // monolog here
     }
     
-    private static function config()
+    protected static function config()
     {
         if (!static::$Config) {
             static::$Config = App::config('db');
@@ -437,7 +407,7 @@ class MySQL
         return static::$Config;
     }
     
-    private static function getDefaultLabel()
+    protected static function getDefaultLabel()
     {
         if (App::$Config['environment'] == 'production') {
             return static::$defaultProductionLabel;

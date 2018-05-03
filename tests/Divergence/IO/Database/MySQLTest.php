@@ -8,6 +8,46 @@ use Divergence\IO\Database\MySQL as DB;
 
 use Divergence\Tests\MockSite\Models\Tag;
 
+class fakeResult  {
+    public $field_count;
+    public $num_rows;
+}
+
+class testableDB extends DB {
+    public static function _preprocessQuery($query, $parameters = [])
+    {
+        return static::preprocessQuery($query, $parameters);
+    }
+
+    public static function _startQueryLog($query)
+    {
+        return static::startQueryLog($query);
+    }
+    public static function _finishQueryLog(&$queryLog, $result = false)
+    {
+        return static::finishQueryLog($queryLog,$result);
+    }
+
+    public static function _config()
+    {
+        return static::config();
+    }
+
+    public static function _getDefaultLabel()
+    {
+        return static::getDefaultLabel();
+    }
+
+    public static function getProtected($field)
+    {
+        return static::$$field;
+    }
+
+    public static function clearConfig() {
+        static::$Config = null;
+    }
+}
+
 class MySQLTest extends TestCase
 {
     public $ApplicationPath;
@@ -99,6 +139,8 @@ class MySQLTest extends TestCase
         $tags = Tag::getAll(['limit'=>1,'calcFoundRows'=>true]);
         $this->assertEquals($tagsCount,DB::foundRows());
 
+        // valid query. no records found
+        $this->assertFalse(DB::oneValue('SELECT * FROM TAGS WHERE 1=0'));
     }
     
     /**
@@ -151,6 +193,8 @@ class MySQLTest extends TestCase
         $query = 'UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=3';
         $data = DB::prepareQuery($query);
         $this->assertEquals($query, $data);
+
+        $this->assertEquals('test',DB::prepareQuery('%s','test'));
     }
 
     /**
@@ -278,5 +322,79 @@ class MySQLTest extends TestCase
     {
         $tables = DB::allValues('Tables_in_test','SHOW TABLES');
         $this->assertEquals(['canaries','canaries_history','tags'],$tables);
+    }
+
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::preprocessQuery
+     *
+     */
+    public function testPreprocessQuery()
+    {
+        $this->assertEquals('test',testableDB::_preprocessQuery('%s','test'));
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::startQueryLog
+     *
+     */
+    public function testStartQueryLog()
+    {
+        $this->assertFalse(testableDB::_startQueryLog(null));
+        App::$Config['environment'] = 'dev';
+        $x = testableDB::_startQueryLog('SELECT corgies');
+        $this->assertEquals('SELECT corgies', $x['query']);
+
+        $s = explode('.',$x['time_start']);
+        $this->assertLessThan(2,$s[0] - time());
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::finishQueryLog
+     *
+     */
+    public function testFinishQueryLog()
+    {
+        App::$Config['environment'] = 'dev';
+        $x = testableDB::_startQueryLog('SELECT corgies');
+        usleep(5000);
+
+        $result = new fakeResult();
+        $result->field_count = 5;
+        $result->num_rows = 5;
+
+        testableDB::_finishQueryLog($x,$result);
+        
+        $expected_time_duration_ms = ($x['time_finish'] - $x['time_start']) * 1000;
+
+        $this->assertEquals('SELECT corgies',$x['query']);
+        $this->assertEquals(5,$x['result_fields']);
+        $this->assertEquals(5,$x['result_rows']);
+        $this->assertEquals($expected_time_duration_ms,$x['time_duration_ms']);
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::config
+     *
+     */
+    public function testConfig()
+    {
+        $config = testableDB::_config();
+        $this->assertEquals(testableDB::getProtected('Config'),$config);
+        testableDB::clearConfig();
+        $this->assertNull(testableDB::getProtected('Config'));
+        $config = testableDB::_config();
+        $this->assertEquals(testableDB::getProtected('Config'),$config);
+    }
+
+    /**
+     * @covers Divergence\IO\Database\MySQL::config
+     *
+     */
+    public function testGetDefaultLabel()
+    {
+        $this->assertEquals(testableDB::$defaultProductionLabel,testableDB::_getDefaultLabel());
+        App::$Config['environment'] = 'dev';
+        $this->assertEquals(testableDB::$defaultDevLabel,testableDB::_getDefaultLabel());
     }
 }
