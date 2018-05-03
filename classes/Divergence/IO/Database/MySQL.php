@@ -220,42 +220,6 @@ class MySQL
         
         return $records;
     }
-
-    public static function allRecordsWithInstantiation($query, $classMapping, $parameters = [], $errorHandler = null)
-    {
-        // execute query
-        $result = self::query($query, $parameters, $errorHandler);
-        
-        $records = [];
-        while ($record = $result->fetch_assoc()) {
-            foreach ($classMapping as $key => $class) {
-                $record[$key] = new $class($record[$key]);
-            }
-            
-            $records[] = $record;
-        }
-        
-        // free result
-        $result->free();
-        
-        return $records;
-    }
-
-    public static function allInstances($className, $query, $parameters = [], $errorHandler = null)
-    {
-        // execute query
-        $result = self::query($query, $parameters, $errorHandler);
-        
-        $records = [];
-        while ($record = $result->fetch_assoc()) {
-            $records[] = new $className($record);
-        }
-        
-        // free result
-        $result->free();
-        
-        return $records;
-    }
     
     public static function allRecords($query, $parameters = [], $errorHandler = null)
     {
