@@ -34,9 +34,6 @@ Unit testing the code base and providing code coverage is a primary goal of this
     * Respond with a Template instantly `RequestHandler::respond('/path/to/tpl')` 
 
 
-## Background
-ActiveRecord, RequestHandler, RecordsRequestHandler, and the DB class were originally written by Chris Alfano for MICS, a predecessor of the current [Emergence](https://github.com/JarvusInnovations/Emergence-Skeleton) framework. Various versions of these classes have since been used to build hundreds of websites by him and others at his company [Jarvus Innovations](https://github.com/JarvusInnovations). I have also used these files to build dozens of websites both personally and professionally. Many of these sites are still very much alive. There are minor differences between our versions. For example I let you set a primary key when defining a model where as his version doesn't allow for that.
-
 
 ### Contributing To Divergence
 
