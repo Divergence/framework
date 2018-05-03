@@ -140,7 +140,7 @@ class MySQLTest extends TestCase
         $this->assertEquals($tagsCount,DB::foundRows());
 
         // valid query. no records found
-        $this->assertFalse(DB::oneValue('SELECT * FROM TAGS WHERE 1=0'));
+        $this->assertFalse(DB::oneValue('SELECT * FROM `tags` WHERE 1=0'));
     }
     
     /**
