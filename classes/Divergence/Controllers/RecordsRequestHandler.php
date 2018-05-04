@@ -572,8 +572,6 @@ abstract class RecordsRequestHandler extends RequestHandler
         switch (static::$accountLevelRead) {
             case 'Staff':
             {
-                
-            
                 return true;
             }
             case 'Guest':
@@ -590,13 +588,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         switch (static::$accountLevelWrite) {
             case 'Staff':
-            {
-            
-            
-                if (empty($_SESSION['username'])) {
-                    return false;
-                }
-                
+            {    
                 return true;
             }
             
@@ -615,11 +607,6 @@ abstract class RecordsRequestHandler extends RequestHandler
         switch (static::$accountLevelAPI) {
             case 'Staff':
             {
-                
-            
-                if (empty($_SESSION['username'])) {
-                    return false;
-                }
                 return true;
             }
             

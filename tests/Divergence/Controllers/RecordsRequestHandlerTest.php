@@ -11,8 +11,24 @@ use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\MockSite\Controllers\TagRequestHandler;
 use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 
-// for the test we assume that handleRequest() is invoked at the root path
-// on a real site /tags/ but here just /
+/*
+ * About Unit Testing Divergence Controllers
+ * 
+ *   - These unit tests will attempt to simulate real HTTP requests.
+ *   - That means setting $_POST, and $_SERVER['REQUEST_URI']
+ *   - If it's a regular web call and not a helper function it should still be
+ *     invoked with ControllerClassName::handleRequest()
+ *   - All the tests should assume the Controller that is being used lives at /
+ *     ie: $_SERVER['REQUEST_URI'] = '/'
+ *   - When you want to test the "create" page simply set
+ *      $_SERVER['REQUEST_URI'] = '/create'
+ *          It will assume a $_GET request and attempt to show you the
+ *          create template for that model.
+ *   - When you're ready to test submitting data to the create page simply set
+ *      $_SERVER['REQUEST_METHOD'] = 'POST';
+ *      $_POST =  [ /.. record data ../];
+ *      Create/Update also support PUT where the input data is a JSON string.
+ */
 
 class RecordsRequestHandlerTest extends TestCase
 {
