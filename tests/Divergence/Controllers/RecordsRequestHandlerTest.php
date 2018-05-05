@@ -132,28 +132,55 @@ class RecordsRequestHandlerTest extends TestCase
         $this->expectOutputString($expected);
     }
 
-    /*public function testHandleRecordsRequestFalse()
+    public function testCreateEditDeleteRecord()
     {
-        $expected = [
-            // order matters because we are comparing json in string form
-            'success'=>true,
-            'data'=>[],
-            'conditions'=>[],
-            'total'=>0,
-            'limit'=>false,
-            'offset'=>false
-        ];
-        $Records = Tag::getAll();
-        foreach($Records as $Record) {
-            $expected['data'][] = $Record->data;
+        // create
+        $MockData = Canary::avis();
+        $_POST = $MockData;
+        $MockData['DateOfBirth'] = date('Y-m-d',$MockData['DateOfBirth']);
+        if(is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
         }
-        $expected['total'] = count($Records)."";
-        $expected = json_encode($expected);
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        CanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/create';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(),true);
+        $this->assertTrue($x['success']);
+        $this->assertArraySubset($MockData,$x['data']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
 
-        TagRequestHandler::clear();
-        //$_SERVER['REQUEST_URI'] = '/json';
-        TagRequestHandler::$responseMode = 'json';
-        TagRequestHandler::handleRecordsRequest(false);
-        $this->expectOutputString($expected);
-    }*/
+        // edit
+        $ID = $x['data']['ID'];
+        $MockData = Canary::avis();
+        $_POST = $MockData;
+        $MockData['DateOfBirth'] = date('Y-m-d',$MockData['DateOfBirth']);
+        if(is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
+        }
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        CanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(),true);
+        $this->assertTrue($x['success']);
+        $this->assertArraySubset($MockData,$x['data']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        // delete
+        $_POST['ID'] = $ID;
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        CanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(),true);
+        $this->assertTrue($x['success']);
+        unset($MockData['EyeColors']);
+        unset($MockData['Colors']);
+        $this->assertArraySubset($MockData,$x['data']); // delete should return the record
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
 }
