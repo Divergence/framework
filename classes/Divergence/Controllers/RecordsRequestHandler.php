@@ -210,22 +210,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             }
 
             foreach ($filter as $field) {
-                if ($_GET['anyMatch']) {
-                    $conditions[$field['property']] = [
-                        'value'	=>	'%' . $field['value'] . '%'
-                        ,'operator' => 'LIKE',
-                    ];
-                } else {
-                    $conditions[$field['property']] = $field['value'];
-                }
-            }
-            
-            if ($_GET['anyMatch']) {
-                foreach ($conditions as $key=>$condition) {
-                    $where[] = '`' . $key . "` LIKE '" . $condition['value'] . "'";
-                }
-                
-                $conditions = [implode(' OR ', $where)];
+                $conditions[$field['property']] = $field['value'];
             }
         }
         
