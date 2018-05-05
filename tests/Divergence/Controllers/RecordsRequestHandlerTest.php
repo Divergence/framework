@@ -207,7 +207,6 @@ class RecordsRequestHandlerTest extends TestCase
             $expected['data'][] = $Record->data;
         }
         $expected['total'] = count($Records)."";
-        //$expected = json_encode($expected);
 
         TagRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/json/';
@@ -215,6 +214,39 @@ class RecordsRequestHandlerTest extends TestCase
             [
                 'property' => 'Tag',
                 'direction' => 'DESC'
+            ]
+        ]);
+        ob_start();
+        TagRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(),true);
+        $this->assertEquals($expected,$x);
+    }
+
+    public function testHandleBrowseRequestFiltered()
+    {
+        $expected = [
+            // order matters because we are comparing json in string form
+            'success'=>true,
+            'data'=>[],
+            'conditions'=>[
+                'Tag'=>'Linux'
+            ],
+            'total'=>0,
+            'limit'=>false,
+            'offset'=>false
+        ];
+        $Records = Tag::getAllByField('Tag','Linux');
+        foreach($Records as $Record) {
+            $expected['data'][] = $Record->data;
+        }
+        $expected['total'] = count($Records)."";
+
+        TagRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/';
+        $_REQUEST['filter'] = json_encode([
+            [
+                'property' => 'Tag',
+                'value' => 'Linux'
             ]
         ]);
         ob_start();
