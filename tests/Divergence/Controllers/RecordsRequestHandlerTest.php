@@ -180,8 +180,6 @@ class RecordsRequestHandlerTest extends TestCase
     {
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
         $Canary = Canary::getByID($ID);
-
-        
         $_SERVER['REQUEST_METHOD'] = 'POST';
         CanaryRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
@@ -191,5 +189,37 @@ class RecordsRequestHandlerTest extends TestCase
         $this->assertTrue($x['success']);
         $this->assertArraySubset($Canary->data,$x['data']); // delete should return the record
         $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testHandleBrowseRequestSorted()
+    {
+        $expected = [
+            // order matters because we are comparing json in string form
+            'success'=>true,
+            'data'=>[],
+            'conditions'=>[],
+            'total'=>0,
+            'limit'=>false,
+            'offset'=>false
+        ];
+        $Records = Tag::getAll(['order'=>'Tag DESC']);
+        foreach($Records as $Record) {
+            $expected['data'][] = $Record->data;
+        }
+        $expected['total'] = count($Records)."";
+        //$expected = json_encode($expected);
+
+        TagRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/';
+        $_REQUEST['sort'] = json_encode([
+            [
+                'property' => 'Tag',
+                'direction' => 'DESC'
+            ]
+        ]);
+        ob_start();
+        TagRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(),true);
+        $this->assertEquals($expected,$x);
     }
 }

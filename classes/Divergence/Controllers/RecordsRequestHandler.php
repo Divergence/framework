@@ -86,75 +86,6 @@ abstract class RecordsRequestHandler extends RequestHandler
             return $className::getByHandle($handle);
         }
     }
-    
-    public static function handleQueryRequest($query, $conditions = [], $options = [], $responseID = null, $responseData = [])
-    {
-        $terms = preg_split('/\s+/', $query);
-        
-        $options = Util::prepareOptions($options, [
-            'limit' =>  !empty($_REQUEST['limit']) && is_numeric($_REQUEST['limit']) ? $_REQUEST['limit'] : static::$browseLimitDefault
-            ,'offset' => !empty($_REQUEST['offset']) && is_numeric($_REQUEST['offset']) ? $_REQUEST['offset'] : false
-            ,'order' => [],
-        ]);
-
-        $select = ['*'];
-        $having = [];
-        $matchers = [];
-
-        foreach ($terms as $term) {
-            $n = 0;
-            $qualifier = 'any';
-            $split = explode(':', $term, 2);
-            
-            if (count($split) == 2) {
-                $qualifier = strtolower($split[0]);
-                $term = $split[1];
-            }
-            
-            foreach (static::$searchConditions as $k => $condition) {
-                if (!in_array($qualifier, $condition['qualifiers'])) {
-                    continue;
-                }
-
-                $matchers[] = [
-                    'condition' => sprintf($condition['sql'], DB::escape($term))
-                    ,'points' => $condition['points'],
-                ];
-                
-                $n++;
-            }
-            
-            if ($n == 0) {
-                throw new Exception('Unknown search qualifier: '.$qualifier);
-            }
-        }
-    
-        $className = static::$recordClass;
-
-        return static::respond(
-            isset($responseID) ? $responseID : static::getTemplateName($className::$pluralNoun),
-            array_merge($responseData, [
-                'success' => true
-                ,'data' => $className::getAllByQuery(
-                    'SELECT %s FROM `%s` WHERE (%s) %s %s %s',
-                    [
-                        join(',', $select)
-                        ,$className::$tableName
-                        ,$conditions ? join(') AND (', $className::mapConditions($conditions)) : '1'
-                        ,count($having) ? 'HAVING ('.join(') AND (', $having).')' : ''
-                        ,count($options['order']) ? 'ORDER BY '.join(',', $options['order']) : ''
-                        ,$options['limit'] ? sprintf('LIMIT %u,%u', $options['offset'], $options['limit']) : '',
-                    ]
-                )
-                ,'query' => $query
-                ,'conditions' => $conditions
-                ,'total' => DB::foundRows()
-                ,'limit' => $options['limit']
-                ,'offset' => $options['offset'],
-            ])
-        );
-    }
-
 
     public static function handleBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = [])
     {
@@ -206,12 +137,6 @@ abstract class RecordsRequestHandler extends RequestHandler
             foreach ($filter as $field) {
                 $conditions[$field['property']] = $field['value'];
             }
-        }
-        
-
-        // handle query search
-        if (!empty($_REQUEST['q']) && static::$searchConditions) {
-            return static::handleQueryRequest($_REQUEST['q'], $conditions, ['limit' => $limit, 'offset' => $offset], $responseID, $responseData);
         }
 
         $className = static::$recordClass;
