@@ -94,7 +94,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         $options = Util::prepareOptions($options, [
             'limit' =>  !empty($_REQUEST['limit']) && is_numeric($_REQUEST['limit']) ? $_REQUEST['limit'] : static::$browseLimitDefault
             ,'offset' => !empty($_REQUEST['offset']) && is_numeric($_REQUEST['offset']) ? $_REQUEST['offset'] : false
-            ,'order' => ['searchScore DESC'],
+            ,'order' => [],
         ]);
 
         $select = ['*'];
@@ -128,12 +128,6 @@ abstract class RecordsRequestHandler extends RequestHandler
                 throw new Exception('Unknown search qualifier: '.$qualifier);
             }
         }
-        
-        $select[] = join('+', array_map(function ($c) {
-            return sprintf('IF(%s, %u, 0)', $c['condition'], $c['points']);
-        }, $matchers)) . ' AS searchScore';
-        
-        $having[] = 'searchScore > 1';
     
         $className = static::$recordClass;
 
