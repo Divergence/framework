@@ -2,10 +2,10 @@
 namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
-use Divergence\IO\Database\MySQL as DB;
 use ReflectionClass;
-
 use PHPUnit\Framework\TestCase;
+
+use Divergence\IO\Database\MySQL as DB;
 
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
@@ -14,7 +14,7 @@ use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 
 /*
  * About Unit Testing Divergence Controllers
- * 
+ *
  *   - These unit tests will attempt to simulate real HTTP requests.
  *   - That means setting $_POST, and $_SERVER['REQUEST_URI']
  *   - If it's a regular web call and not a helper function it should still be
@@ -47,10 +47,10 @@ class RecordsRequestHandlerTest extends TestCase
             'conditions'=>[],
             'total'=>0,
             'limit'=>false,
-            'offset'=>false
+            'offset'=>false,
         ];
         $Records = Tag::getAll();
-        foreach($Records as $Record) {
+        foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
         $expected['total'] = count($Records)."";
@@ -106,8 +106,8 @@ class RecordsRequestHandlerTest extends TestCase
         $expected = [
             'success'=>false,
             'failed'=>[
-                'errors'=> 'Record not found.'
-            ]
+                'errors'=> 'Record not found.',
+            ],
         ];
         $expected = json_encode($expected);
 
@@ -122,8 +122,8 @@ class RecordsRequestHandlerTest extends TestCase
         $expected = [
             'success'=>false,
             'failed'=>[
-                'errors'=> 'Record not found.'
-            ]
+                'errors'=> 'Record not found.',
+            ],
         ];
         $expected = json_encode($expected);
 
@@ -138,8 +138,8 @@ class RecordsRequestHandlerTest extends TestCase
         // create
         $MockData = Canary::avis();
         $_POST = $MockData;
-        $MockData['DateOfBirth'] = date('Y-m-d',$MockData['DateOfBirth']);
-        if(is_integer($MockData['Colors'])) {
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -147,11 +147,10 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_URI'] = '/json/create';
         ob_start();
         CanaryRequestHandler::handleRequest();
-        $x = json_decode(ob_get_clean(),true);
+        $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
-        $this->assertArraySubset($MockData,$x['data']);
+        $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
-
     }
 
     public function testEdit()
@@ -160,8 +159,8 @@ class RecordsRequestHandlerTest extends TestCase
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
         $MockData = Canary::avis();
         $_POST = $MockData;
-        $MockData['DateOfBirth'] = date('Y-m-d',$MockData['DateOfBirth']);
-        if(is_integer($MockData['Colors'])) {
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -169,9 +168,9 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
         ob_start();
         CanaryRequestHandler::handleRequest();
-        $x = json_decode(ob_get_clean(),true);
+        $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
-        $this->assertArraySubset($MockData,$x['data']);
+        $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
     
@@ -185,9 +184,9 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
         ob_start();
         CanaryRequestHandler::handleRequest();
-        $x = json_decode(ob_get_clean(),true);
+        $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
-        $this->assertArraySubset($Canary->data,$x['data']); // delete should return the record
+        $this->assertArraySubset($Canary->data, $x['data']); // delete should return the record
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
@@ -200,10 +199,10 @@ class RecordsRequestHandlerTest extends TestCase
             'conditions'=>[],
             'total'=>0,
             'limit'=>false,
-            'offset'=>false
+            'offset'=>false,
         ];
         $Records = Tag::getAll(['order'=>'Tag DESC']);
-        foreach($Records as $Record) {
+        foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
         $expected['total'] = count($Records)."";
@@ -213,13 +212,13 @@ class RecordsRequestHandlerTest extends TestCase
         $_REQUEST['sort'] = json_encode([
             [
                 'property' => 'Tag',
-                'direction' => 'DESC'
-            ]
+                'direction' => 'DESC',
+            ],
         ]);
         ob_start();
         TagRequestHandler::handleRequest();
-        $x = json_decode(ob_get_clean(),true);
-        $this->assertEquals($expected,$x);
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertEquals($expected, $x);
     }
 
     public function testHandleBrowseRequestFiltered()
@@ -229,14 +228,14 @@ class RecordsRequestHandlerTest extends TestCase
             'success'=>true,
             'data'=>[],
             'conditions'=>[
-                'Tag'=>'Linux'
+                'Tag'=>'Linux',
             ],
             'total'=>0,
             'limit'=>false,
-            'offset'=>false
+            'offset'=>false,
         ];
-        $Records = Tag::getAllByField('Tag','Linux');
-        foreach($Records as $Record) {
+        $Records = Tag::getAllByField('Tag', 'Linux');
+        foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
         $expected['total'] = count($Records)."";
@@ -246,12 +245,12 @@ class RecordsRequestHandlerTest extends TestCase
         $_REQUEST['filter'] = json_encode([
             [
                 'property' => 'Tag',
-                'value' => 'Linux'
-            ]
+                'value' => 'Linux',
+            ],
         ]);
         ob_start();
         TagRequestHandler::handleRequest();
-        $x = json_decode(ob_get_clean(),true);
-        $this->assertEquals($expected,$x);
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertEquals($expected, $x);
     }
 }

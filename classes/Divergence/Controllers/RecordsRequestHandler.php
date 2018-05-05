@@ -490,7 +490,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         switch (static::$accountLevelWrite) {
             case 'Staff':
-            {    
+            {
                 return true;
             }
             
@@ -536,13 +536,12 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public static function throwNotFoundError()
     {
-        if(static::$responseMode == 'json')
-        {
+        if (static::$responseMode == 'json') {
             return static::respond('notfound', [
                 'success' => false
                 ,'failed' => [
                     'errors'	=>	'Record not found.',
-                ], 
+                ],
             ]);
         }
     }

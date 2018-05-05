@@ -547,8 +547,8 @@ class ActiveRecord
     
     public static function getByHandle($handle)
     {
-        if(static::fieldExists('Handle')) {
-            if($Record = static::getByField('Handle',$handle)) {
+        if (static::fieldExists('Handle')) {
+            if ($Record = static::getByField('Handle', $handle)) {
                 return $Record;
             }
         }
