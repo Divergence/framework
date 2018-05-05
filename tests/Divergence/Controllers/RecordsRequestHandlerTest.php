@@ -2,6 +2,7 @@
 namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
+use Divergence\IO\Database\MySQL as DB;
 use ReflectionClass;
 
 use PHPUnit\Framework\TestCase;
@@ -132,7 +133,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->expectOutputString($expected);
     }
 
-    public function testCreateEditDeleteRecord()
+    public function testCreate()
     {
         // create
         $MockData = Canary::avis();
@@ -151,8 +152,12 @@ class RecordsRequestHandlerTest extends TestCase
         $this->assertArraySubset($MockData,$x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
+    }
+
+    public function testEdit()
+    {
         // edit
-        $ID = $x['data']['ID'];
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
         $MockData = Canary::avis();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d',$MockData['DateOfBirth']);
@@ -168,9 +173,15 @@ class RecordsRequestHandlerTest extends TestCase
         $this->assertTrue($x['success']);
         $this->assertArraySubset($MockData,$x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+    
+    // delete
+    public function testDelete()
+    {
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $Canary = Canary::getByID($ID);
 
-        // delete
-        $_POST['ID'] = $ID;
+        
         $_SERVER['REQUEST_METHOD'] = 'POST';
         CanaryRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
@@ -178,9 +189,7 @@ class RecordsRequestHandlerTest extends TestCase
         CanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(),true);
         $this->assertTrue($x['success']);
-        unset($MockData['EyeColors']);
-        unset($MockData['Colors']);
-        $this->assertArraySubset($MockData,$x['data']); // delete should return the record
+        $this->assertArraySubset($Canary->data,$x['data']); // delete should return the record
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 }
