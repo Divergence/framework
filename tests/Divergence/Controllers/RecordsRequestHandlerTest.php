@@ -570,10 +570,66 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
-    public function testThrowUnauthorizedError() {
+    public function testMultiSaveRequestWithTwoEditsOneNotFound()
+    {
+        $Existing = Canary::getAll([
+            'order' => [
+                'ID' => 'DESC',
+            ],
+            'limit' => 3,
+        ]);
+
+        $Existing[0]->setFields(Canary::avis());
+        $Existing[2]->setFields(Canary::avis());
+
+        $MockData = [
+            $Existing[0]->data,
+            $Existing[1]->data,
+            $Existing[2]->data,
+        ];
+
+        $Existing[1]->destroy();
+        
+        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        CanaryRequestHandler::clear();
+        $_PUT = ['data'=>$MockData];
+        $_SERVER['REQUEST_URI'] = '/json/save';
+        vfsStream::setup('input', null, ['data' => json_encode($_PUT)]);
+        JSON::$inputStream = 'vfs://input/data';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        JSON::$inputStream = 'php://input';
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertTrue($x['success']);
+        $this->assertArraySubset($MockData[0],$x['data'][0]);
+        $this->assertArraySubset($MockData[2],$x['data'][1]);
+        $this->assertArraySubset($MockData[1],$x['failed'][0]['record']);
+        $this->assertEquals('Record not found',$x['failed'][0]['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testThrowUnauthorizedError()
+    {
         ob_start();
         CanaryRequestHandler::throwUnauthorizedError();
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals(['success'=>false,'failed'=>['errors'=>'Login required.']],$x);
+    }
+
+    public function testGetTemplate()
+    {
+        $this->assertEquals('someString',CanaryRequestHandler::getTemplateName('some string'));
+        $this->assertEquals('somestring',CanaryRequestHandler::getTemplateName('somestring'));
+    }
+
+    public function testApplyRecordDelta()
+    {
+        CanaryRequestHandler::$editableFields = ['Name'];
+        $data = Canary::avis();
+        $Canary = new Canary();
+        CanaryRequestHandler::applyRecordDelta($Canary,$data);
+        $this->assertEquals($data['Name'],$Canary->Name);
+        $this->assertNotEquals($data['Handle'],$Canary->Handle);
+        CanaryRequestHandler::$editableFields = null;
     }
 }

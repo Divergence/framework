@@ -513,7 +513,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         ]);
     }
     
-    protected static function onRecordRequestNotHandled(ActiveRecord $Record, $action)
+    public static function onRecordRequestNotHandled(ActiveRecord $Record, $action)
     {
         return static::respond('error', [
             'success' => false,
@@ -525,14 +525,14 @@ abstract class RecordsRequestHandler extends RequestHandler
     
 
 
-    protected static function getTemplateName($noun)
+    public static function getTemplateName($noun)
     {
         return preg_replace_callback('/\s+([a-zA-Z])/', function ($matches) {
             return strtoupper($matches[1]);
         }, $noun);
     }
     
-    protected static function applyRecordDelta(ActiveRecord $Record, $data)
+    public static function applyRecordDelta(ActiveRecord $Record, $data)
     {
         if (static::$editableFields) {
             $Record->setFields(array_intersect_key($data, array_flip(static::$editableFields)));
