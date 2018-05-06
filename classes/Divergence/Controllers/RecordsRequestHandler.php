@@ -58,7 +58,7 @@ abstract class RecordsRequestHandler extends RequestHandler
                 return static::handleCreateRequest();
             }
             
-            case '':
+            case false:
             {
                 return static::handleBrowseRequest();
             }
@@ -168,7 +168,6 @@ abstract class RecordsRequestHandler extends RequestHandler
     public static function handleRecordRequest(ActiveRecord $Record, $action = false)
     {
         switch ($action ? $action : $action = static::shiftPath()) {
-            case '':
             case false:
             {
                 $className = static::$recordClass;
@@ -556,7 +555,14 @@ abstract class RecordsRequestHandler extends RequestHandler
     
     protected static function onRecordRequestNotHandled(ActiveRecord $Record, $action)
     {
-        return static::throwNotFoundError();
+        if (static::$responseMode == 'json') {
+            return static::respond('malformed', [
+                'success' => false,
+                'failed' => [
+                    'errors'	=>	'Malformed request.',
+                ],
+            ]);
+        }
     }
     
 

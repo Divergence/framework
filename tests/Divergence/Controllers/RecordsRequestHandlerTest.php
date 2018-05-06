@@ -138,6 +138,23 @@ class RecordsRequestHandlerTest extends TestCase
         $this->expectOutputString($expected);
     }
 
+    public function testHandleRequestOneValidRecordUnhandled()
+    {
+        
+        $expected = [
+            'success'=>false,
+            'failed' => [
+                'errors' => 'Malformed request.'
+            ],
+        ];
+        $expected = json_encode($expected);
+
+        TagRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/1/notvalid';
+        TagRequestHandler::handleRequest();
+        $this->expectOutputString($expected);
+    }
+
     public function testCreate()
     {
         // create
