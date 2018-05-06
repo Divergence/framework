@@ -207,12 +207,12 @@ abstract class RecordsRequestHandler extends RequestHandler
             
         if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT'])) {
             $JSONData = JSON::getRequestData();
-            if(is_array($JSONData)) {
+            if (is_array($JSONData)) {
                 $_REQUEST = $JSONData;
             }
         }
         
-        if($className::fieldExists(key($_REQUEST['data']))) {
+        if ($className::fieldExists(key($_REQUEST['data']))) {
             $_REQUEST['data'] = [$_REQUEST['data']];
         }
 
@@ -289,15 +289,33 @@ abstract class RecordsRequestHandler extends RequestHandler
     
     public static function handleMultiDestroyRequest()
     {
+        $className = static::$recordClass;
+
+        $PrimaryKey = $className::$primaryKey ? $className::$primaryKey : 'ID';
+            
         if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT','DELETE'])) {
-            $_REQUEST = JSON::getRequestData();
-        }
-                
-        if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
-            return static::throwInvalidRequestError('Handler expects "data" field as array');
+            $JSONData = JSON::getRequestData();
+            if (is_array($JSONData)) {
+                $_REQUEST = $JSONData;
+            }
         }
         
-        $className = static::$recordClass;
+        if ($className::fieldExists(key($_REQUEST['data']))) {
+            $_REQUEST['data'] = [$_REQUEST['data']];
+        }
+
+        if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
+            if (static::$responseMode == 'json') {
+                return static::respond('error', [
+                    'success' => false,
+                    'failed' => [
+                        'errors'	=>	'Save expects "data" field as array of records.',
+                    ],
+                ]);
+            }
+        }
+
+
         $results = [];
         $failed = [];
         
@@ -305,20 +323,20 @@ abstract class RecordsRequestHandler extends RequestHandler
             // get record
             if (is_numeric($datum)) {
                 $recordID = $datum;
-            } elseif (!empty($datum['ID']) && is_numeric($datum['ID'])) {
-                $recordID = $datum['ID'];
+            } elseif (!empty($datum[$PrimaryKey]) && is_numeric($datum[$PrimaryKey])) {
+                $recordID = $datum[$PrimaryKey];
             } else {
                 $failed[] = [
                     'record' => $datum,
-                    'errors' => 'ID missing',
+                    'errors' => $PrimaryKey.' missing',
                 ];
                 continue;
             }
 
-            if (!$Record = $className::getByID($recordID)) {
+            if (!$Record = $className::getByField($PrimaryKey, $recordID)) {
                 $failed[] = [
                     'record' => $datum,
-                    'errors' => 'ID not found',
+                    'errors' => $PrimaryKey.' not found',
                 ];
                 continue;
             }
@@ -363,7 +381,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     }
 
     public static function handleEditRequest(ActiveRecord $Record)
-    {    
+    {
         $className = static::$recordClass;
 
         if (!static::checkWriteAccess($Record)) {

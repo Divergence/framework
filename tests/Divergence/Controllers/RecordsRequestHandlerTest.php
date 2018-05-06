@@ -3,10 +3,10 @@ namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
 use ReflectionClass;
-use PHPUnit\Framework\TestCase;
 use Divergence\Helpers\JSON;
-
 use org\bovigo\vfs\vfsStream;
+
+use PHPUnit\Framework\TestCase;
 use org\bovigo\vfs\vfsStreamWrapper;
 
 
@@ -150,7 +150,7 @@ class RecordsRequestHandlerTest extends TestCase
         $expected = [
             'success'=>false,
             'failed' => [
-                'errors' => 'Malformed request.'
+                'errors' => 'Malformed request.',
             ],
         ];
         $expected = json_encode($expected);
@@ -218,7 +218,7 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
-    // delete 
+    // delete
     // as a method GET not supposed to do anything other than throw a confirm dialog style message
     public function testDeleteGET()
     {
@@ -230,10 +230,9 @@ class RecordsRequestHandlerTest extends TestCase
         ob_start();
         CanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
-        $this->assertEquals('Are you sure you want to delete this '.Canary::$singularNoun.'?',$x['question']);
+        $this->assertEquals('Are you sure you want to delete this '.Canary::$singularNoun.'?', $x['question']);
         $this->assertArraySubset($Canary->data, $x['data']); // delete should return the record
         $_SERVER['REQUEST_METHOD'] = 'GET';
-
     }
 
     public function testCreateFromJSON()
@@ -257,7 +256,6 @@ class RecordsRequestHandlerTest extends TestCase
         $this->assertTrue($x['success']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        
     }
     
     public function testEditFromJSON()
@@ -499,14 +497,14 @@ class RecordsRequestHandlerTest extends TestCase
         CanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
-        $this->assertArraySubset($MockData,$x['data'][0]);
+        $this->assertArraySubset($MockData, $x['data'][0]);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
     public function testMultiSaveRequestWithThreeNew()
     {
         $x = 0;
-        while($x < 3) {
+        while ($x < 3) {
             $MockData[$x] = Canary::avis();
             $MockData[$x]['DateOfBirth'] = date('Y-m-d', $MockData[$x]['DateOfBirth']);
             if (is_integer($MockData[$x]['Colors'])) {
@@ -522,9 +520,9 @@ class RecordsRequestHandlerTest extends TestCase
         CanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
-        $this->assertArraySubset($MockData[0],$x['data'][0]);
-        $this->assertArraySubset($MockData[1],$x['data'][1]);
-        $this->assertArraySubset($MockData[2],$x['data'][2]);
+        $this->assertArraySubset($MockData[0], $x['data'][0]);
+        $this->assertArraySubset($MockData[1], $x['data'][1]);
+        $this->assertArraySubset($MockData[2], $x['data'][2]);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
@@ -538,14 +536,14 @@ class RecordsRequestHandlerTest extends TestCase
         CanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertEquals('Save expects "data" field as array of records.',$x['failed']['errors']);
+        $this->assertEquals('Save expects "data" field as array of records.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
     public function testMultiSaveRequestWithThreeNewAsJSON()
     {
         $x = 0;
-        while($x < 3) {
+        while ($x < 3) {
             $MockData[$x] = Canary::avis();
             $MockData[$x]['DateOfBirth'] = date('Y-m-d', $MockData[$x]['DateOfBirth']);
             if (is_integer($MockData[$x]['Colors'])) {
@@ -564,9 +562,9 @@ class RecordsRequestHandlerTest extends TestCase
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
-        $this->assertArraySubset($MockData[0],$x['data'][0]);
-        $this->assertArraySubset($MockData[1],$x['data'][1]);
-        $this->assertArraySubset($MockData[2],$x['data'][2]);
+        $this->assertArraySubset($MockData[0], $x['data'][0]);
+        $this->assertArraySubset($MockData[1], $x['data'][1]);
+        $this->assertArraySubset($MockData[2], $x['data'][2]);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
@@ -601,10 +599,60 @@ class RecordsRequestHandlerTest extends TestCase
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
-        $this->assertArraySubset($MockData[0],$x['data'][0]);
-        $this->assertArraySubset($MockData[2],$x['data'][1]);
-        $this->assertArraySubset($MockData[1],$x['failed'][0]['record']);
-        $this->assertEquals('Record not found',$x['failed'][0]['errors']);
+
+        // ignore created field cause sometimes save take second or two and the values change
+        $MockData[0]['Created'] = $x['data'][0]['Created'];
+        $MockData[2]['Created'] = $x['data'][1]['Created'];
+        $MockData[1]['Created'] = $x['failed'][0]['record']['Created'];
+
+
+        $this->assertArraySubset($MockData[0], $x['data'][0]);
+        $this->assertArraySubset($MockData[2], $x['data'][1]);
+        $this->assertArraySubset($MockData[1], $x['failed'][0]['record']);
+        $this->assertEquals('Record not found', $x['failed'][0]['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testHandleMultiDestroyRequestByPUT()
+    {
+        $Existing = Canary::getAll([
+            'order' => [
+                'ID' => 'DESC',
+            ],
+            'limit' => 3,
+        ]);
+
+        $expect = [$Existing[0]->data,$Existing[2]->data];
+
+        $MockData = [
+            $Existing[0]->ID,
+            $Existing[1]->ID,
+            $Existing[2]->ID,
+        ];
+
+        $Existing[1]->destroy();
+        
+        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        CanaryRequestHandler::clear();
+        $_PUT = ['data'=>$MockData];
+        $_SERVER['REQUEST_URI'] = '/json/destroy';
+        vfsStream::setup('input', null, ['data' => json_encode($_PUT)]);
+        JSON::$inputStream = 'vfs://input/data';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        JSON::$inputStream = 'php://input';
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertTrue($x['success']);
+    
+
+
+        $expect[0]['Created'] = $x['data'][0]['Created'];
+        $expect[1]['Created'] = $x['data'][1]['Created'];
+
+        $this->assertArraySubset($expect[0], $x['data'][0]);
+        $this->assertArraySubset($expect[1], $x['data'][1]);
+        $this->assertEquals($MockData[1], $x['failed'][0]['record']);
+        $this->assertEquals('ID not found', $x['failed'][0]['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
@@ -613,13 +661,13 @@ class RecordsRequestHandlerTest extends TestCase
         ob_start();
         CanaryRequestHandler::throwUnauthorizedError();
         $x = json_decode(ob_get_clean(), true);
-        $this->assertEquals(['success'=>false,'failed'=>['errors'=>'Login required.']],$x);
+        $this->assertEquals(['success'=>false,'failed'=>['errors'=>'Login required.']], $x);
     }
 
     public function testGetTemplate()
     {
-        $this->assertEquals('someString',CanaryRequestHandler::getTemplateName('some string'));
-        $this->assertEquals('somestring',CanaryRequestHandler::getTemplateName('somestring'));
+        $this->assertEquals('someString', CanaryRequestHandler::getTemplateName('some string'));
+        $this->assertEquals('somestring', CanaryRequestHandler::getTemplateName('somestring'));
     }
 
     public function testApplyRecordDelta()
@@ -627,9 +675,9 @@ class RecordsRequestHandlerTest extends TestCase
         CanaryRequestHandler::$editableFields = ['Name'];
         $data = Canary::avis();
         $Canary = new Canary();
-        CanaryRequestHandler::applyRecordDelta($Canary,$data);
-        $this->assertEquals($data['Name'],$Canary->Name);
-        $this->assertNotEquals($data['Handle'],$Canary->Handle);
+        CanaryRequestHandler::applyRecordDelta($Canary, $data);
+        $this->assertEquals($data['Name'], $Canary->Name);
+        $this->assertNotEquals($data['Handle'], $Canary->Handle);
         CanaryRequestHandler::$editableFields = null;
     }
 }
