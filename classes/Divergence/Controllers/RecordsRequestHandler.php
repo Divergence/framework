@@ -117,7 +117,12 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (!empty($_REQUEST['sort'])) {
             $sort = json_decode($_REQUEST['sort'], true);
             if (!$sort || !is_array($sort)) {
-                //throw new Exception('Invalid sorter');
+                return static::respond('error', [
+                    'success' => false
+                    ,'failed' => [
+                        'errors'	=>	'Invalid sorter.',
+                    ],
+                ]);
             }
 
             if (is_array($sort)) {
@@ -131,7 +136,12 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (!empty($_REQUEST['filter'])) {
             $filter = json_decode($_REQUEST['filter'], true);
             if (!$filter || !is_array($filter)) {
-                throw new Exception('Invalid filter');
+                return static::respond('error', [
+                    'success' => false
+                    ,'failed' => [
+                        'errors'	=>	'Invalid filter.',
+                    ],
+                ]);
             }
 
             foreach ($filter as $field) {

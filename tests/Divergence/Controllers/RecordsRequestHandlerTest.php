@@ -301,6 +301,65 @@ class RecordsRequestHandlerTest extends TestCase
         TagRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals($expected, $x);
-        
+    }
+
+    public function testHandleBrowseRequestBuiltInConditionsAsString()
+    {
+        $expected = [
+            'success'=>true,
+            'data'=>[],
+            'conditions'=>[
+                "Tag NOT IN ('Linux','OSX')"
+            ],
+            'total'=>0,
+            'limit'=>false,
+            'offset'=>false,
+        ];
+        $Records = Tag::getAllByWhere($expected['conditions'],['calcFoundRows'=>true]);
+        $expected['total'] = DB::foundRows();
+        foreach ($Records as $Record) {
+            $expected['data'][] = $Record->data;
+        }
+        TagRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/';
+        TagRequestHandler::$browseConditions = $expected['conditions'][0];
+        ob_start();
+        TagRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertEquals($expected, $x);
+    }
+
+    public function testHandleBrowseRequestInvalidFilter()
+    {
+        $expected = [
+            'success' => false
+            ,'failed' => [
+                'errors'	=>	'Invalid filter.',
+            ],
+        ];
+        TagRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/';
+        $_REQUEST['filter'] = 'fail';
+        ob_start();
+        TagRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertEquals($expected, $x);
+    }
+
+    public function testHandleBrowseRequestInvalidSorter()
+    {
+        $expected = [
+            'success' => false
+            ,'failed' => [
+                'errors'	=>	'Invalid sorter.',
+            ],
+        ];
+        TagRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/';
+        $_REQUEST['sort'] = 'fail';
+        ob_start();
+        TagRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertEquals($expected, $x);
     }
 }
