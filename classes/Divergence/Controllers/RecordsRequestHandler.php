@@ -237,7 +237,11 @@ abstract class RecordsRequestHandler extends RequestHandler
                 static::onRecordCreated($Record, $datum);
             } else {
                 if (!$Record = $className::getByID($datum[$PrimaryKey])) {
-                    return static::throwRecordNotFoundError($datum[$PrimaryKey]);
+                    $failed[] = [
+                        'record' => $datum,
+                        'errors' => 'Record not found',
+                    ];
+                    continue;
                 }
             }
             

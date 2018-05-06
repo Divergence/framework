@@ -69,6 +69,13 @@ class RecordsRequestHandlerTest extends TestCase
         TagRequestHandler::handleRequest();
     }
 
+    public function testGetByHandleWithNoHandleFieldOnObject()
+    {
+        TagRequestHandler::$recordClass = \StdObject::class;
+        $this->assertNull(TagRequestHandler::getRecordByHandle('nada'));
+        TagRequestHandler::$recordClass = Tag::class;
+    }
+
     public function testHandleRequest()
     {
         $this->expectException('Dwoo\\Exception');
@@ -140,7 +147,6 @@ class RecordsRequestHandlerTest extends TestCase
 
     public function testHandleRequestOneValidRecordUnhandled()
     {
-        
         $expected = [
             'success'=>false,
             'failed' => [
@@ -496,6 +502,48 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_URI'] = '/json/save';
         ob_start();
         CanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertTrue($x['success']);
+        $this->assertArraySubset($MockData[0],$x['data'][0]);
+        $this->assertArraySubset($MockData[1],$x['data'][1]);
+        $this->assertArraySubset($MockData[2],$x['data'][2]);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testMultiSaveRequestWithBadData()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        CanaryRequestHandler::clear();
+        $_REQUEST = ['nothing'=>'whatever','someweirdstuff'];
+        $_SERVER['REQUEST_URI'] = '/json/save';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('Save expects "data" field as array of records.',$x['failed']['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testMultiSaveRequestWithThreeNewAsJSON()
+    {
+        $x = 0;
+        while($x < 3) {
+            $MockData[$x] = Canary::avis();
+            $MockData[$x]['DateOfBirth'] = date('Y-m-d', $MockData[$x]['DateOfBirth']);
+            if (is_integer($MockData[$x]['Colors'])) {
+                $MockData[$x]['Colors'] = [$MockData[$x]['Colors']];
+            }
+            $x++;
+        }
+        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        CanaryRequestHandler::clear();
+        $_PUT = ['data'=>$MockData];
+        $_SERVER['REQUEST_URI'] = '/json/save';
+        vfsStream::setup('input', null, ['data' => json_encode($_PUT)]);
+        JSON::$inputStream = 'vfs://input/data';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
         $this->assertArraySubset($MockData[0],$x['data'][0]);
