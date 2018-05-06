@@ -475,109 +475,52 @@ abstract class RecordsRequestHandler extends RequestHandler
     // access control template functions
     public static function checkBrowseAccess($arguments)
     {
-        switch (static::$accountLevelBrowse) {
-            
-            case 'Staff':
-            {
-                return true;
-            }
-            case 'Guest':
-                return true;
-            
-            default:
-                return false;
-        }
-        
         return true;
     }
 
     public static function checkReadAccess(ActiveRecord $Record)
     {
-        switch (static::$accountLevelRead) {
-            case 'Staff':
-            {
-                return true;
-            }
-            case 'Guest':
-                return true;
-            
-            default:
-                return true;
-        }
-        
         return true;
     }
     
     public static function checkWriteAccess(ActiveRecord $Record)
     {
-        switch (static::$accountLevelWrite) {
-            case 'Staff':
-            {
-                return true;
-            }
-            
-            case 'Guest':
-                return true;
-            
-            default:
-                return false;
-        }
-        
         return true;
     }
     
     public static function checkAPIAccess($responseID, $responseData, $responseMode)
     {
-        switch (static::$accountLevelAPI) {
-            case 'Staff':
-            {
-                return true;
-            }
-            
-            case 'Guest':
-                return true;
-            
-            default:
-                return true;
-        }
-        
         return true;
     }
     
     public static function throwUnauthorizedError()
     {
-        if (static::$responseMode == 'json') {
-            return static::respond('Unauthorized', [
-                'success' => false,
-                'failed' => [
-                    'errors'	=>	'Login required.',
-                ],
-            ]);
-        }
+        return static::respond('Unauthorized', [
+            'success' => false,
+            'failed' => [
+                'errors'	=>	'Login required.',
+            ],
+        ]);
     }
 
     public static function throwNotFoundError()
     {
-        if (static::$responseMode == 'json') {
-            return static::respond('error', [
-                'success' => false,
-                'failed' => [
-                    'errors'	=>	'Record not found.',
-                ],
-            ]);
-        }
+        return static::respond('error', [
+            'success' => false,
+            'failed' => [
+                'errors'	=>	'Record not found.',
+            ],
+        ]);
     }
     
     protected static function onRecordRequestNotHandled(ActiveRecord $Record, $action)
     {
-        if (static::$responseMode == 'json') {
-            return static::respond('error', [
-                'success' => false,
-                'failed' => [
-                    'errors'	=>	'Malformed request.',
-                ],
-            ]);
-        }
+        return static::respond('error', [
+            'success' => false,
+            'failed' => [
+                'errors'	=>	'Malformed request.',
+            ],
+        ]);
     }
     
 

@@ -218,6 +218,24 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
+    // delete 
+    // as a method GET not supposed to do anything other than throw a confirm dialog style message
+    public function testDeleteGET()
+    {
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $Canary = Canary::getByID($ID);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        CanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertEquals('Are you sure you want to delete this '.Canary::$singularNoun.'?',$x['question']);
+        $this->assertArraySubset($Canary->data, $x['data']); // delete should return the record
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+    }
+
     public function testCreateFromJSON()
     {
         // create
@@ -550,5 +568,12 @@ class RecordsRequestHandlerTest extends TestCase
         $this->assertArraySubset($MockData[1],$x['data'][1]);
         $this->assertArraySubset($MockData[2],$x['data'][2]);
         $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testThrowUnauthorizedError() {
+        ob_start();
+        CanaryRequestHandler::throwUnauthorizedError();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertEquals(['success'=>false,'failed'=>['errors'=>'Login required.']],$x);
     }
 }
