@@ -58,6 +58,7 @@ abstract class RecordsRequestHandler extends RequestHandler
                 return static::handleCreateRequest();
             }
             
+            case '':
             case false:
             {
                 return static::handleBrowseRequest();
@@ -168,6 +169,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     public static function handleRecordRequest(ActiveRecord $Record, $action = false)
     {
         switch ($action ? $action : $action = static::shiftPath()) {
+            case '':
             case false:
             {
                 $className = static::$recordClass;
@@ -202,19 +204,28 @@ abstract class RecordsRequestHandler extends RequestHandler
         $className = static::$recordClass;
     
         $PrimaryKey = $className::$primaryKey ? $className::$primaryKey : 'ID';
-        
-        if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT'])) {
-            $_REQUEST = JSON::getRequestData();
             
-            if ($_REQUEST['data'][$PrimaryKey]) {
-                $_REQUEST['data'] = [$_REQUEST['data']];
+        if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT'])) {
+            $JSONData = JSON::getRequestData();
+            if(is_array($JSONData)) {
+                $_REQUEST = $JSONData;
             }
         }
-                
-        if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
-            return static::throwInvalidRequestError('Save expects "data" field as array of record deltas');
-        }
         
+        if($className::fieldExists(key($_REQUEST['data']))) {
+            $_REQUEST['data'] = [$_REQUEST['data']];
+        }
+
+        if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
+            if (static::$responseMode == 'json') {
+                return static::respond('error', [
+                    'success' => false,
+                    'failed' => [
+                        'errors'	=>	'Save expects "data" field as array of records.',
+                    ],
+                ]);
+            }
+        }
         
         $results = [];
         $failed = [];
@@ -544,7 +555,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     public static function throwNotFoundError()
     {
         if (static::$responseMode == 'json') {
-            return static::respond('notfound', [
+            return static::respond('error', [
                 'success' => false,
                 'failed' => [
                     'errors'	=>	'Record not found.',
@@ -556,7 +567,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     protected static function onRecordRequestNotHandled(ActiveRecord $Record, $action)
     {
         if (static::$responseMode == 'json') {
-            return static::respond('malformed', [
+            return static::respond('error', [
                 'success' => false,
                 'failed' => [
                     'errors'	=>	'Malformed request.',
