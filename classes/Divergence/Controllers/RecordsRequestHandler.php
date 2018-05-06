@@ -33,7 +33,13 @@ abstract class RecordsRequestHandler extends RequestHandler
     
         // handle JSON requests
         if (static::peekPath() == 'json') {
+            // check access for API response modes
             static::$responseMode = static::shiftPath();
+            if (in_array(static::$responseMode,['json','jsonp'])) {
+                if (!static::checkAPIAccess()) {
+                    return static::throwAPIUnAuthorizedError();
+                }
+            }
         }
         
         return static::handleRecordsRequest();
@@ -479,13 +485,6 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (!$responseMode) {
             $responseMode = static::$responseMode;
         }
-        
-        // check access for API response modes
-        if ($responseMode != 'html' && $responseMode != 'return') {
-            if (!static::checkAPIAccess($responseID, $responseData, $responseMode)) {
-                return static::throwAPIUnauthorizedError();
-            }
-        }
     
         return parent::respond($responseID, $responseData, $responseMode);
     }
@@ -506,7 +505,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         return true;
     }
     
-    public static function checkAPIAccess($responseID, $responseData, $responseMode)
+    public static function checkAPIAccess()
     {
         return true;
     }
@@ -517,6 +516,16 @@ abstract class RecordsRequestHandler extends RequestHandler
             'success' => false,
             'failed' => [
                 'errors'	=>	'Login required.',
+            ],
+        ]);
+    }
+
+    public static function throwAPIUnAuthorizedError()
+    {
+        return static::respond('Unauthorized', [
+            'success' => false,
+            'failed' => [
+                'errors'	=>	'API access required.',
             ],
         ]);
     }

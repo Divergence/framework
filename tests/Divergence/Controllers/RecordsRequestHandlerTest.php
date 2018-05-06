@@ -16,6 +16,8 @@ use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\MockSite\Controllers\TagRequestHandler;
 use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
+use Divergence\Tests\MockSite\Controllers\SecureCanaryRequestHandler;
+use Divergence\Tests\MockSite\Controllers\ParanoidCanaryRequestHandler;
 
 /*
  * About Unit Testing Divergence Controllers
@@ -213,8 +215,10 @@ class RecordsRequestHandlerTest extends TestCase
         ob_start();
         CanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
+        $expected = $Canary->data;
+        $expected['Created'] = $x['data']['Created'];
         $this->assertTrue($x['success']);
-        $this->assertArraySubset($Canary->data, $x['data']); // delete should return the record
+        $this->assertArraySubset($expected, $x['data']); // delete should return the record
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
@@ -679,5 +683,120 @@ class RecordsRequestHandlerTest extends TestCase
         $this->assertEquals($data['Name'], $Canary->Name);
         $this->assertNotEquals($data['Handle'], $Canary->Handle);
         CanaryRequestHandler::$editableFields = null;
+    }
+
+
+    public function testAccessDeniedCreate()
+    {
+        // create
+        $MockData = Canary::avis();
+        $_POST = $MockData;
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
+        }
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        SecureCanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/create';
+        ob_start();
+        SecureCanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('Login required.',$x['failed']['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testAccessDeniedEdit()
+    {
+        // edit
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $MockData = Canary::avis();
+        $_POST = $MockData;
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
+        }
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        SecureCanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
+        ob_start();
+        SecureCanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('Login required.',$x['failed']['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+    
+    // delete
+    public function testAccessDeniedDelete()
+    {
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $Canary = Canary::getByID($ID);
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        SecureCanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
+        ob_start();
+        SecureCanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('Login required.',$x['failed']['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testAPIAccessDeniedCreate()
+    {
+        // create
+        $MockData = Canary::avis();
+        $_POST = $MockData;
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
+        }
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        ParanoidCanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/create';
+        ob_start();
+        ParanoidCanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('API access required.',$x['failed']['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testAPIAccessDeniedEdit()
+    {
+        // edit
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $MockData = Canary::avis();
+        $_POST = $MockData;
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
+        }
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        ParanoidCanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
+        ob_start();
+        ParanoidCanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('API access required.',$x['failed']['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+    
+    // delete
+    public function testAPIAccessDeniedDelete()
+    {
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $Canary = Canary::getByID($ID);
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        ParanoidCanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
+        ob_start();
+        ParanoidCanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('API access required.',$x['failed']['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 }
