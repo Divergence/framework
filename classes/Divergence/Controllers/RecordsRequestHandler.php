@@ -108,9 +108,9 @@ abstract class RecordsRequestHandler extends RequestHandler
         $offset = !empty($_REQUEST['offset']) && is_numeric($_REQUEST['offset']) ? $_REQUEST['offset'] : false;
         
         $options = Util::prepareOptions($options, [
-            'limit' =>  $limit
-            ,'offset' => $offset
-            ,'order' => static::$browseOrder,
+            'limit' =>  $limit,
+            'offset' => $offset,
+            'order' => static::$browseOrder,
         ]);
         
         // process sorter
@@ -118,8 +118,8 @@ abstract class RecordsRequestHandler extends RequestHandler
             $sort = json_decode($_REQUEST['sort'], true);
             if (!$sort || !is_array($sort)) {
                 return static::respond('error', [
-                    'success' => false
-                    ,'failed' => [
+                    'success' => false,
+                    'failed' => [
                         'errors'	=>	'Invalid sorter.',
                     ],
                 ]);
@@ -137,8 +137,8 @@ abstract class RecordsRequestHandler extends RequestHandler
             $filter = json_decode($_REQUEST['filter'], true);
             if (!$filter || !is_array($filter)) {
                 return static::respond('error', [
-                    'success' => false
-                    ,'failed' => [
+                    'success' => false,
+                    'failed' => [
                         'errors'	=>	'Invalid filter.',
                     ],
                 ]);
@@ -154,12 +154,12 @@ abstract class RecordsRequestHandler extends RequestHandler
         return static::respond(
             isset($responseID) ? $responseID : static::getTemplateName($className::$pluralNoun),
             array_merge($responseData, [
-                'success' => true
-                ,'data' => $className::getAllByWhere($conditions, $options)
-                ,'conditions' => $conditions
-                ,'total' => DB::foundRows()
-                ,'limit' => $options['limit']
-                ,'offset' => $options['offset'],
+                'success' => true,
+                'data' => $className::getAllByWhere($conditions, $options),
+                'conditions' => $conditions,
+                'total' => DB::foundRows(),
+                'limit' => $options['limit'],
+                'offset' => $options['offset'],
             ])
         );
     }
@@ -174,8 +174,8 @@ abstract class RecordsRequestHandler extends RequestHandler
                 $className = static::$recordClass;
                 
                 return static::respond(static::getTemplateName($className::$singularNoun), [
-                    'success' => true
-                    ,'data' => $Record,
+                    'success' => true,
+                    'data' => $Record,
                 ]);
             }
             
@@ -234,8 +234,8 @@ abstract class RecordsRequestHandler extends RequestHandler
             // check write access
             if (!static::checkWriteAccess($Record)) {
                 $failed[] = [
-                    'record' => $datum
-                    ,'errors' => 'Write access denied',
+                    'record' => $datum,
+                    'errors' => 'Write access denied',
                 ];
                 continue;
             }
@@ -258,17 +258,17 @@ abstract class RecordsRequestHandler extends RequestHandler
                 static::onRecordSaved($Record, $datum);
             } catch (RecordValidationException $e) {
                 $failed[] = [
-                    'record' => $Record->data
-                    ,'validationErrors' => $Record->validationErrors,
+                    'record' => $Record->data,
+                    'validationErrors' => $Record->validationErrors,
                 ];
             }
         }
         
         
         return static::respond(static::getTemplateName($className::$pluralNoun).'Saved', [
-            'success' => count($results) || !count($failed)
-            ,'data' => $results
-            ,'failed' => $failed,
+            'success' => count($results) || !count($failed),
+            'data' => $results,
+            'failed' => $failed,
         ]);
     }
     
@@ -295,16 +295,16 @@ abstract class RecordsRequestHandler extends RequestHandler
                 $recordID = $datum['ID'];
             } else {
                 $failed[] = [
-                    'record' => $datum
-                    ,'errors' => 'ID missing',
+                    'record' => $datum,
+                    'errors' => 'ID missing',
                 ];
                 continue;
             }
 
             if (!$Record = $className::getByID($recordID)) {
                 $failed[] = [
-                    'record' => $datum
-                    ,'errors' => 'ID not found',
+                    'record' => $datum,
+                    'errors' => 'ID not found',
                 ];
                 continue;
             }
@@ -312,8 +312,8 @@ abstract class RecordsRequestHandler extends RequestHandler
             // check write access
             if (!static::checkWriteAccess($Record)) {
                 $failed[] = [
-                    'record' => $datum
-                    ,'errors' => 'Write access denied',
+                    'record' => $datum,
+                    'errors' => 'Write access denied',
                 ];
                 continue;
             }
@@ -325,9 +325,9 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
         
         return static::respond(static::getTemplateName($className::$pluralNoun).'Destroyed', [
-            'success' => count($results) || !count($failed)
-            ,'data' => $results
-            ,'failed' => $failed,
+            'success' => count($results) || !count($failed),
+            'data' => $results,
+            'failed' => $failed,
         ]);
     }
 
@@ -349,21 +349,20 @@ abstract class RecordsRequestHandler extends RequestHandler
     }
 
     public static function handleEditRequest(ActiveRecord $Record)
-    {
-        if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT'])) {
-            $_REQUEST = JSON::getRequestData();
-            if (is_array($_REQUEST['data'])) {
-                $_REQUEST = $_REQUEST['data'];
-            }
-        }
-    
+    {    
         $className = static::$recordClass;
 
         if (!static::checkWriteAccess($Record)) {
             return static::throwUnauthorizedError();
         }
 
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        if (in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT'])) {
+            if (static::$responseMode == 'json') {
+                $_REQUEST = JSON::getRequestData();
+                if (is_array($_REQUEST['data'])) {
+                    $_REQUEST = $_REQUEST['data'];
+                }
+            }
             $_REQUEST = $_REQUEST ? $_REQUEST : $_POST;
         
             // apply delta
@@ -382,8 +381,8 @@ abstract class RecordsRequestHandler extends RequestHandler
                     $Record->save();
                 } catch (Exception $e) {
                     return static::respond('Error', [
-                        'success' => false
-                        ,'failed' => [
+                        'success' => false,
+                        'failed' => [
                             'errors'	=>	$e->getMessage(),
                         ],
                     ]);
@@ -395,8 +394,8 @@ abstract class RecordsRequestHandler extends RequestHandler
                 // fire created response
                 $responseID = static::getTemplateName($className::$singularNoun).'Saved';
                 $responseData = static::getEditResponse($responseID, [
-                    'success' => true
-                    ,'data' => $Record,
+                    'success' => true,
+                    'data' => $Record,
                 ]);
                 return static::respond($responseID, $responseData);
             }
@@ -406,8 +405,8 @@ abstract class RecordsRequestHandler extends RequestHandler
         
         $responseID = static::getTemplateName($className::$singularNoun).'Edit';
         $responseData = static::getEditResponse($responseID, [
-            'success' => false
-            ,'data' => $Record,
+            'success' => false,
+            'data' => $Record,
         ]);
     
         return static::respond($responseID, $responseData);
@@ -426,19 +425,18 @@ abstract class RecordsRequestHandler extends RequestHandler
             $Record->destroy();
                     
             // call cleanup function after delete
-            $data = ['Context' => 'Product', 'id' => $Record->id];
             static::onRecordDeleted($Record, $data);
             
             // fire created response
             return static::respond(static::getTemplateName($className::$singularNoun).'Deleted', [
-                'success' => true
-                ,'data' => $Record,
+                'success' => true,
+                'data' => $Record,
             ]);
         }
     
         return static::respond('confirm', [
-            'question' => 'Are you sure you want to delete this '.$className::$singularNoun.'?'
-            ,'data' => $Record,
+            'question' => 'Are you sure you want to delete this '.$className::$singularNoun.'?',
+            'data' => $Record,
         ]);
     }
     
@@ -536,8 +534,8 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         if (static::$responseMode == 'json') {
             return static::respond('Unauthorized', [
-                'success' => false
-                ,'failed' => [
+                'success' => false,
+                'failed' => [
                     'errors'	=>	'Login required.',
                 ],
             ]);
@@ -548,8 +546,8 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         if (static::$responseMode == 'json') {
             return static::respond('notfound', [
-                'success' => false
-                ,'failed' => [
+                'success' => false,
+                'failed' => [
                     'errors'	=>	'Record not found.',
                 ],
             ]);

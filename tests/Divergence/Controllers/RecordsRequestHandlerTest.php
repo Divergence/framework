@@ -4,6 +4,11 @@ namespace Divergence\Tests\Controllers;
 use Divergence\App;
 use ReflectionClass;
 use PHPUnit\Framework\TestCase;
+use Divergence\Helpers\JSON;
+
+use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamWrapper;
+
 
 use Divergence\IO\Database\MySQL as DB;
 
@@ -190,6 +195,51 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
+    public function testCreateFromJSON()
+    {
+        // create
+        $MockData = Canary::avis();
+        $PUT = ['data'=>$MockData];
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
+        }
+        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        CanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/create';
+        vfsStream::setup('input', null, ['data' => json_encode($PUT)]);
+        JSON::$inputStream = 'vfs://input/data';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertTrue($x['success']);
+        $this->assertArraySubset($MockData, $x['data']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+    
+    public function testEditFromJSON()
+    {
+        // edit
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $MockData = Canary::avis();
+        $PUT = ['data'=>$MockData];
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
+        }
+        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        CanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
+        vfsStream::setup('input', null, ['data' => json_encode($PUT)]);
+        JSON::$inputStream = 'vfs://input/data';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertTrue($x['success']);
+        $this->assertArraySubset($MockData, $x['data']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
     public function testHandleBrowseRequestSorted()
     {
         $expected = [
@@ -277,19 +327,44 @@ class RecordsRequestHandlerTest extends TestCase
         $this->assertEquals($expected, $x);
     }
 
+    public function testHandleBrowseRequestPaginationWithStart()
+    {
+        $expected = [
+            'success'=>true,
+            'data'=>[],
+            'conditions'=>[],
+            'total'=>0,
+            'limit'=>2,
+            'offset'=>4,
+        ];
+        $Records = Tag::getAll(['limit'=>$expected['limit'],'offset'=>$expected['offset'],'calcFoundRows'=>true]);
+        $expected['total'] = DB::foundRows();
+        foreach ($Records as $Record) {
+            $expected['data'][] = $Record->data;
+        }
+        TagRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/';
+        $_REQUEST['limit'] = $expected['limit'];
+        $_REQUEST['start'] = $expected['offset'];
+        ob_start();
+        TagRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertEquals($expected, $x);
+    }
+
     public function testHandleBrowseRequestBuiltInConditions()
     {
         $expected = [
             'success'=>true,
             'data'=>[],
             'conditions'=>[
-                "Tag NOT IN ('Linux','OSX')"
+                "Tag NOT IN ('Linux','OSX')",
             ],
             'total'=>0,
             'limit'=>false,
             'offset'=>false,
         ];
-        $Records = Tag::getAllByWhere($expected['conditions'],['calcFoundRows'=>true]);
+        $Records = Tag::getAllByWhere($expected['conditions'], ['calcFoundRows'=>true]);
         $expected['total'] = DB::foundRows();
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
@@ -309,13 +384,13 @@ class RecordsRequestHandlerTest extends TestCase
             'success'=>true,
             'data'=>[],
             'conditions'=>[
-                "Tag NOT IN ('Linux','OSX')"
+                "Tag NOT IN ('Linux','OSX')",
             ],
             'total'=>0,
             'limit'=>false,
             'offset'=>false,
         ];
-        $Records = Tag::getAllByWhere($expected['conditions'],['calcFoundRows'=>true]);
+        $Records = Tag::getAllByWhere($expected['conditions'], ['calcFoundRows'=>true]);
         $expected['total'] = DB::foundRows();
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;

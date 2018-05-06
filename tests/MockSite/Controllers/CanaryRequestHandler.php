@@ -14,5 +14,7 @@ class CanaryRequestHandler extends RecordsRequestHandler
         static::$pathStack = null;
         static::$_path = null;
         static::$responseMode = 'dwoo';
+        static::$browseConditions = [];
+        $_REQUEST = [];
     }
 }
