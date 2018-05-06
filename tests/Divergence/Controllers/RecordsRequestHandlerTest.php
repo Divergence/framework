@@ -660,6 +660,64 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
+    public function testHandleMultiDestroyRequestByDELETE()
+    {
+        $Existing = Canary::getAll([
+            'order' => [
+                'ID' => 'DESC',
+            ],
+            'limit' => 3,
+        ]);
+
+        $expect = [$Existing[0]->data,$Existing[2]->data];
+
+        $MockData = [
+            ['ID' => $Existing[0]->ID],
+            ['ID' => $Existing[1]->ID],
+            ['ID' => $Existing[2]->ID],
+        ];
+
+        $Existing[1]->destroy();
+        
+        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        CanaryRequestHandler::clear();
+        $_PUT = ['data'=>$MockData];
+        $_SERVER['REQUEST_URI'] = '/json/destroy';
+        vfsStream::setup('input', null, ['data' => json_encode($_PUT)]);
+        JSON::$inputStream = 'vfs://input/data';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        JSON::$inputStream = 'php://input';
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertTrue($x['success']);
+    
+
+
+        $expect[0]['Created'] = $x['data'][0]['Created'];
+        $expect[1]['Created'] = $x['data'][1]['Created'];
+
+        $this->assertArraySubset($expect[0], $x['data'][0]);
+        $this->assertArraySubset($expect[1], $x['data'][1]);
+        $this->assertEquals($MockData[1], $x['failed'][0]['record']);
+        $this->assertEquals('ID not found', $x['failed'][0]['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testHandleMultiDestroyRequestWithError()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        CanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/destroy';
+        ob_start();
+        CanaryRequestHandler::handleRequest();
+        JSON::$inputStream = 'php://input';
+        $x = json_decode(ob_get_clean(), true);
+        
+        $this->assertEquals(['success'=>false,'failed'=>['errors'=>'Save expects "data" field as array of records.']],$x);
+        
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
     public function testThrowUnauthorizedError()
     {
         ob_start();
