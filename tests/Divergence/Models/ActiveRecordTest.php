@@ -965,7 +965,7 @@ class ActiveRecordTest extends TestCase
 
 
         $lastChar = substr($x->Handle, -1);
-        if (is_numeric($lastChar)) {
+        if (intval($lastChar)) {
             $expectedHandle = $x->Handle.':'.(intval($lastChar)+1);
         } else {
             $expectedHandle = $x->Handle.':2';
