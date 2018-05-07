@@ -14,28 +14,6 @@ trait Relations
         }
     }
     
-    public function appendRelated($relationship, $values)
-    {
-        $rel = static::$_classRelationships[get_called_class()][$relationship];
-        
-        if ($rel['type'] != 'one-many') {
-            throw new Exception('Can only append to one-many relationship');
-        }
-        
-        if (!is_array($values)) {
-            $values = [$values];
-        }
-        
-        foreach ($values as $relatedObject) {
-            if (!$relatedObject || !is_a($relatedObject, 'ActiveRecord')) {
-                continue;
-            }
-            
-            $relatedObject->_setFieldValue($rel['foreign'], $this->_getFieldValue($rel['local']));
-            $this->_relatedObjects[$relationship][] = $relatedObject;
-            $this->_isDirty = true;
-        }
-    }
     /**
      * Called when anything relationships related is used for the first time to define relationships before _initRelationships
      */
