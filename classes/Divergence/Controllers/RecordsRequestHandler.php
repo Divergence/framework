@@ -35,7 +35,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (static::peekPath() == 'json') {
             // check access for API response modes
             static::$responseMode = static::shiftPath();
-            if (in_array(static::$responseMode,['json','jsonp'])) {
+            if (in_array(static::$responseMode, ['json','jsonp'])) {
                 if (!static::checkAPIAccess()) {
                     return static::throwAPIUnAuthorizedError();
                 }

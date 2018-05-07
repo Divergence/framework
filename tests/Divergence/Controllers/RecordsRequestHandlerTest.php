@@ -713,7 +713,7 @@ class RecordsRequestHandlerTest extends TestCase
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         
-        $this->assertEquals(['success'=>false,'failed'=>['errors'=>'Save expects "data" field as array of records.']],$x);
+        $this->assertEquals(['success'=>false,'failed'=>['errors'=>'Save expects "data" field as array of records.']], $x);
         
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -760,7 +760,7 @@ class RecordsRequestHandlerTest extends TestCase
         SecureCanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertEquals('Login required.',$x['failed']['errors']);
+        $this->assertEquals('Login required.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
@@ -781,7 +781,7 @@ class RecordsRequestHandlerTest extends TestCase
         SecureCanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertEquals('Login required.',$x['failed']['errors']);
+        $this->assertEquals('Login required.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
     
@@ -797,7 +797,7 @@ class RecordsRequestHandlerTest extends TestCase
         SecureCanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertEquals('Login required.',$x['failed']['errors']);
+        $this->assertEquals('Login required.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
@@ -817,7 +817,7 @@ class RecordsRequestHandlerTest extends TestCase
         ParanoidCanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertEquals('API access required.',$x['failed']['errors']);
+        $this->assertEquals('API access required.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
@@ -838,7 +838,7 @@ class RecordsRequestHandlerTest extends TestCase
         ParanoidCanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertEquals('API access required.',$x['failed']['errors']);
+        $this->assertEquals('API access required.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
     
@@ -854,7 +854,7 @@ class RecordsRequestHandlerTest extends TestCase
         ParanoidCanaryRequestHandler::handleRequest();
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertEquals('API access required.',$x['failed']['errors']);
+        $this->assertEquals('API access required.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 }

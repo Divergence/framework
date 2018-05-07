@@ -1,14 +1,13 @@
 <?php
 namespace Divergence\Tests\MockSite\Controllers;
 
-use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Models\ActiveRecord;
+use Divergence\Tests\MockSite\Models\Canary;
 
 use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 
 class ParanoidCanaryRequestHandler extends SecureCanaryRequestHandler
 {
-
     public static function checkBrowseAccess($arguments)
     {
         return false;

@@ -3,6 +3,8 @@ namespace Divergence\Models;
 
 use Exception;
 
+use Divergence\Helpers\Validate;
+
 class RecordValidator
 {
     // configurables
@@ -93,7 +95,7 @@ class RecordValidator
 
         // get validator
         if (is_string($options['validator'])) {
-            $validator = ['Validators', $options['validator']];
+            $validator = [Validate::class, $options['validator']];
         } else {
             $validator = $options['validator'];
         }

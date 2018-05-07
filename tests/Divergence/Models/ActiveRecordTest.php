@@ -963,10 +963,9 @@ class ActiveRecordTest extends TestCase
         
         $newHandle = Canary::getUniqueHandle($x->Handle);
 
-
         $lastChar = substr($x->Handle, -1);
         if (intval($lastChar)) {
-            $expectedHandle = $x->Handle.':'.(intval($lastChar)+1);
+            $expectedHandle = str_replace(substr($x->Handle, -1), (intval($lastChar)+1), $x->Handle);
         } else {
             $expectedHandle = $x->Handle.':2';
         }

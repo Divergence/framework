@@ -63,6 +63,12 @@ class ActiveRecord
     
     
     /**
+    * Validation checks
+    * @var array
+    */
+    public static $validators = [];
+
+    /**
      * Relationship definitions
      * @var array
      */
@@ -963,11 +969,15 @@ class ActiveRecord
     {
         $this->_isValid = true;
         $this->_validationErrors = [];
-        
+
         if (!isset($this->_validator)) {
             $this->_validator = new RecordValidator($this->_record);
         } else {
             $this->_validator->resetErrors();
+        }
+
+        foreach (static::$validators as $validator) {
+            $this->_validator->validate($validator);
         }
         
         $this->finishValidation();
