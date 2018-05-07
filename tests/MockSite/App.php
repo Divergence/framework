@@ -5,6 +5,9 @@ use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
+use Divergence\Tests\MockSite\Models\Forum\Category;
+use Divergence\Tests\MockSite\Models\Forum\Thread;
+use Divergence\Tests\MockSite\Models\Forum\Post;
 
 class App extends \Divergence\App
 {
@@ -49,6 +52,45 @@ class App extends \Divergence\App
             $Canary->Name = 'Version2';
             $Canary->Handle = 'Version2';
             $Canary->save();
+
+
+            // forum data
+            $Categories = [
+                'General' => [
+                    'Hey guys',
+                    'found this stuff',
+                    'meme dump',
+                    'sticky! check this first!!!',
+                ],
+                'Entertainment' => [
+                    'Top movies this year',
+                    'leaked album',
+                    'Checkout this stream',
+                    'Ratings info', 
+                ],
+                'Technology' => [
+                    'New prices drop for next gen phones! Still no aux plug',
+                    'Bluetooth headphones compared',
+                    'ipv6 adoption rate picking up',
+                ],
+                'Support' => [
+                    'Seeing a design bug in my browser',
+                    'help!',
+                    'can i haz human???',
+                ],
+            ];
+            foreach($Categories as $Category=>$Threads) {
+                $Category = Category::create([
+                    'Name' => $Category
+                ],true);
+
+                foreach($Threads as $Thread) {
+                    $Thread = Thread::create([
+                        'Title' => $Thread,
+                        'CategoryID' => $Category->ID
+                    ],true);
+                }
+            }
         }
     }
     public static function isDatabaseTestingEnabled()
