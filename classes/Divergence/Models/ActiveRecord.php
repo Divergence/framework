@@ -248,16 +248,6 @@ class ActiveRecord
                 elseif ($name == 'Handle') {
                     return $this->ID;
                 }
-                // handle a dot-path to related record field
-                elseif (count($path = explode('.', $name)) >= 2 && static::_relationshipExists($path[0])) {
-                    $related = $this->_getRelationshipValue(array_shift($path));
-
-                    while (is_array($related)) {
-                        $related = $related[array_shift($path)];
-                    }
-
-                    return is_object($related) ? $related->getValue(implode('.', $path)) : $related;
-                }
                 // undefined
                 else {
                     return null;
