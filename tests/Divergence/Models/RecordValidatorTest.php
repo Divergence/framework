@@ -294,6 +294,11 @@ class RecordValidatorTest extends TestCase
             'validator' => 'email',
         ]);
         $this->assertEquals(['Email'=>'Email is invalid.'], $v->getErrors());
+        $this->assertEquals('Email is invalid.', $v->getErrors('Email'));
+        $this->assertFalse($v->getErrors('fake'));
+        $this->assertTrue($v->hasErrors('Email'));
+        $this->assertFalse($v->hasErrors('fake'));
+        $this->assertTrue($v->hasErrors());
     }
 
     public function testValidateNotACallableException()
@@ -368,5 +373,42 @@ class RecordValidatorTest extends TestCase
             'validator' => 'email',
         ]);
         $this->assertEquals(['Email'=>'Email required'], $v->getErrors());
+    }
+
+    public function testValidateAddError()
+    {
+        $Record = [];
+
+        $v = new TestableRecordValidator($Record);
+        $v->addError('id','message');
+
+        $this->assertEquals(['id'=>'message'], $v->getErrors());
+        $this->assertEquals('message', $v->getErrors('id'));
+    }
+
+    public function testValidateNonExistantField()
+    {
+        $Record = [];
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Email',
+            'required' => true,
+            'validator' => 'email',
+        ]);
+        $this->assertEquals(['Email'=>'Email is missing.'], $v->getErrors());   
+    }
+
+    public function testValidateNonExistantFieldNotRequired()
+    {
+        $Record = [];
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Email',
+            'required' => false,
+            'validator' => 'email',
+        ]);
+        $this->assertEquals([], $v->getErrors());   
     }
 }
