@@ -80,16 +80,12 @@ class RecordValidator
 
         // check 'field'
         if (empty($options['field'])) {
-            throw new Exception('FormValidator: required option "field" missing');
+            throw new Exception('Required option "field" missing');
         }
 
         // check 'id' and default to 'field'
         if (empty($options['id'])) {
-            if (is_array($options['field'])) {
-                throw new Exception('Option "id" is required when option "field" is an array');
-            } else {
-                $options['id'] = $options['field'];
-            }
+            $options['id'] = $options['field'];
         }
 
 
@@ -112,26 +108,12 @@ class RecordValidator
         }
 
 
-        // parse 'field' for multiple values and array paths
-        if (is_array($options['field'])) {
-            $value = [];
-            foreach ($options['field'] as $field_single) {
-                $value[] = $this->resolveValue($field_single);
-            }
+        $value = $this->resolveValue($options['field']);
 
-            // skip validation for empty fields that aren't required
-            if (!$options['required'] && !count(array_filter($value))) {
-                return true;
-            }
-        } else {
-            $value = $this->resolveValue($options['field']);
-
-            // skip validation for empty fields that aren't required
-            if (!$options['required'] && empty($value)) {
-                return true;
-            }
+        // skip validation for empty fields that aren't required
+        if (!$options['required'] && empty($value)) {
+            return true;
         }
-
 
         // call validator
         $isValid = call_user_func($validator, $value, $options);
@@ -152,22 +134,14 @@ class RecordValidator
 
 
     // protected instance methods
-    protected function resolveValue($path)
+    protected function resolveValue($field)
     {
-        // break apart path
-        $crumbs = explode('.', $path);
-
-        // resolve path recursively
         $cur = &$this->_record;
-        while ($crumb = array_shift($crumbs)) {
-            if (array_key_exists($crumb, $cur)) {
-                $cur = &$cur[$crumb];
-            } else {
-                return null;
-            }
+        if (array_key_exists($field, $cur)) {
+            $cur = &$cur[$field];
+        } else {
+            return null;
         }
-
-        // return current value
         return $cur;
     }
 

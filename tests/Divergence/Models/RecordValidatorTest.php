@@ -269,6 +269,18 @@ class RecordValidatorTest extends TestCase
         $this->assertEquals([], $v->getErrors());
     }
 
+    public function testValidateRequiredOptionFieldException()
+    {
+        $Record = [];
+
+        $v = new TestableRecordValidator($Record);
+        $this->expectExceptionMessage('Required option "field" missing');
+        $v->validate([
+            'required' => true,
+            'validator' => 'email',
+        ]);
+    }
+
     public function testValidateEmailFail()
     {
         $Record = [];
@@ -333,5 +345,28 @@ class RecordValidatorTest extends TestCase
             }
         ]);
         $this->assertEquals([], $v->getErrors());
+    }
+
+    public function testValidateTwoErrorsSameField()
+    {
+        $Record = [];
+
+        $Record['Email'] = '';
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Email',
+            'required' => true,
+            'validator' => 'string',
+            'errorMessage' => 'Email required',
+        ]);
+
+        // if there are two validation errors on the same field the first will not be overwritten
+        $v->validate([
+            'field' => 'Email',
+            'required' => true,
+            'validator' => 'email',
+        ]);
+        $this->assertEquals(['Email'=>'Email required'], $v->getErrors());
     }
 }
