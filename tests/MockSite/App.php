@@ -9,6 +9,8 @@ use Divergence\Tests\MockSite\Models\Forum\Post;
 use Divergence\Tests\MockSite\Models\Forum\Thread;
 use Divergence\Tests\MockSite\Models\Forum\Category;
 
+use Faker\Provider\Lorem;
+
 class App extends \Divergence\App
 {
     public static function setUp()
@@ -89,6 +91,16 @@ class App extends \Divergence\App
                         'Title' => $Thread,
                         'CategoryID' => $Category->ID,
                     ], true);
+
+                    $x = rand(0,10);
+                    $i = 0;
+                    while($i<$x) {
+                        Post::create([
+                            'Content' => Lorem::text(rand(50,400)),
+                            'ThreadID' => $Thread->ID
+                        ],true);
+                        $i++;
+                    }
                 }
             }
         }

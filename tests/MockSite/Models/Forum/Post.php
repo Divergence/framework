@@ -29,7 +29,7 @@ class Post extends \Divergence\Models\Model
 
     public static $fields = [
         'Content' => [
-            'type' => 'string',
+            'type' => 'clob',
             'required' => true,
             'notnull' => true,
         ],

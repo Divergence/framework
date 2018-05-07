@@ -84,9 +84,9 @@ class RelationsTest extends TestCase
         $this->assertFalse(Thread::_relationshipExists('nope'));
     }
 
-    /*public function testOneone()
+    public function testOneone()
     {
         $Post = Post::getByID(1);
-        dump($Post->ThreadID);
-    }*/
+        $this->assertEquals($Post->ThreadID,$Post->Thread->ID);
+    }
 }

@@ -10,6 +10,7 @@ use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\MockSite\Models\Forum\Thread;
 use Divergence\Tests\MockSite\Models\Forum\Category;
+use Divergence\Tests\MockSite\Models\Forum\Post;
 
 class fakeResult
 {
@@ -351,7 +352,7 @@ class MySQLTest extends TestCase
 
         $tables = DB::allRecords('SHOW TABLES');
         
-        $this->assertCount(7, $tables);
+        $this->assertCount(9, $tables);
         foreach ($tables as $table) {
             $this->assertNotEmpty($table['Tables_in_test']);
         }
@@ -371,6 +372,8 @@ class MySQLTest extends TestCase
             Canary::$historyTable,
             Category::$tableName,
             Category::$historyTable,
+            Post::$tableName,
+            Post::$historyTable,
             Thread::$tableName,
             Thread::$historyTable,
             Tag::$tableName,
