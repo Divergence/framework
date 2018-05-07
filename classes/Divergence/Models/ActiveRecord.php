@@ -780,7 +780,7 @@ class ActiveRecord
         return static::instantiateRecords(DB::allRecords($query, $params, [static::class,'handleError']));
     }
 
-    public static function getTableByQuery($keyField, $query, $params)
+    public static function getTableByQuery($keyField, $query, $params = [])
     {
         return static::instantiateRecords(DB::table($keyField, $query, $params, [static::class,'handleError']));
     }

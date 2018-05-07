@@ -285,6 +285,21 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
+     * @covers Divergence\Models\ActiveRecord::changeClass
+     */
+    public function testChangeClassWithData()
+    {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux',
+        ]);
+        $expected = ['Tag'=>'Graphics','Slug'=>'graphics'];
+        $C = $A->changeClass(Tag::class,$expected);
+        $this->assertArraySubset($expected,$C->data);
+        
+    }
+
+    /**
      * @covers Divergence\Models\ActiveRecord::getOriginalValue
      */
     public function testGetOriginalValue()
@@ -945,11 +960,17 @@ class ActiveRecordTest extends TestCase
     /**
      * @covers Divergence\Models\ActiveRecord::instantiateRecords
      * @covers Divergence\Models\ActiveRecord::getTableByQuery
+     * @covers Divergence\IO\Database\MySQL::table
      */
-    /*public function testGetTableByQuery()
+    public function testGetTableByQuery()
     {
-
-    }*/
+        $x = Canary::getTableByQuery('ID','SELECT * FROM canaries');
+        $expected = DB::allRecords('SELECT * FROM canaries');
+        foreach($expected as $record) {
+            $ID = $record['ID'];
+            $this->assertEquals($x[$ID]->ID,$ID);
+        }
+    }
 
     /**
      * @covers Divergence\Models\ActiveRecord::getUniqueHandle
