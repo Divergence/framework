@@ -61,4 +61,21 @@ class RelationsTest extends TestCase
         $Expected = Thread::getAllByField('CategoryID',1);
         $this->assertEquals($Expected,$Threads);
     }
+
+    public function testSave()
+    {
+        $Category = Category::getByID(1);
+        $Expected = Thread::getAllByField('CategoryID',1);
+        foreach($Expected as $i=>$object) {
+            $Expected[$i] = $object->data;
+        }
+        
+        
+        
+        foreach($Category->Threads as $Thread) {
+            $Threads[] = $Thread->data;
+        }
+        $Category->save(true);
+        $this->assertEquals($Expected,$Threads);
+    }
 }

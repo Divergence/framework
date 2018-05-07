@@ -272,12 +272,6 @@ class ActiveRecord
         if (static::fieldExists($name)) {
             $this->_setFieldValue($name, $value);
         }
-        // handle relationship
-        elseif (static::isRelational()) {
-            if (static::_relationshipExists($name)) {
-                $this->_setRelationshipValue($name, $value);
-            }
-        }
         // undefined
         else {
             return false;
@@ -411,11 +405,6 @@ class ActiveRecord
                 DB::clearCachedRecord($key);
             }
         }
-        
-        // traverse relationships
-        if ($deep && static::isRelational()) {
-            $this->_saveRelationships();
-        }
 
         if ($this->isDirty) {
             // prepare record values
@@ -479,11 +468,6 @@ class ActiveRecord
             if (is_callable($afterSave)) {
                 $afterSave($this);
             }
-        }
-        
-        // traverse relationships again
-        if ($deep && static::isRelational()) {
-            $this->_postSaveRelationships();
         }
     }
     
