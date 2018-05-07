@@ -42,7 +42,7 @@ class Category extends \Divergence\Models\Model
             'type' => 'one-many',
             'class' => Thread::class,
             'local' => 'ID',
-            'foreign' => 'ThreadID',
+            'foreign' => 'CategoryID',
         ],
     ];
 

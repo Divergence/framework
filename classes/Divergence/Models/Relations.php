@@ -281,9 +281,9 @@ trait Relations
                     ]),
                 
                     [
-                        'indexField' => $rel['indexField']
-                        ,'order' => $rel['order']
-                        ,'conditions' => $rel['conditions'],
+                        'indexField' => $rel['indexField'],
+                        'order' => $rel['order'],
+                        'conditions' => $rel['conditions'],
                     ]
                 );
                 
@@ -296,16 +296,16 @@ trait Relations
                 }
                 
                 $conditions = array_merge($rel['conditions'], [
-                    'ContextClass' => $rel['contextClass']
-                    ,'ContextID' => $this->_getFieldValue($rel['local']),
+                    'ContextClass' => $rel['contextClass'],
+                    'ContextID' => $this->_getFieldValue($rel['local']),
                 ]);
             
                 $this->_relatedObjects[$relationship] = $rel['class']::getAllByWhere(
                     $conditions,
             
                     [
-                        'indexField' => $rel['indexField']
-                        ,'order' => $rel['order'],
+                        'indexField' => $rel['indexField'],
+                        'order' => $rel['order'],
                     ]
                 );
                 
@@ -313,8 +313,8 @@ trait Relations
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'context-child') {
                 $conditions = array_merge($rel['conditions'], [
-                    'ContextClass' => $rel['contextClass']
-                    ,'ContextID' => $this->_getFieldValue($rel['local']),
+                    'ContextClass' => $rel['contextClass'],
+                    'ContextID' => $this->_getFieldValue($rel['local']),
                 ]);
             
                 $this->_relatedObjects[$relationship] = $rel['class']::getByWhere(
@@ -351,13 +351,13 @@ trait Relations
                     'SELECT Related.* FROM `%s` Link JOIN `%s` Related ON (Related.`%s` = Link.%s) WHERE Link.`%s` = %u AND %s',
                 
                     [
-                        $rel['linkClass']::$tableName
-                        ,$rel['class']::$tableName
-                        ,$rel['foreign']
-                        ,$rel['linkForeign']
-                        ,$rel['linkLocal']
-                        ,$this->_getFieldValue($rel['local'])
-                        ,$rel['conditions'] ? join(' AND ', $rel['conditions']) : '1',
+                        $rel['linkClass']::$tableName,
+                        $rel['class']::$tableName,
+                        $rel['foreign'],
+                        $rel['linkForeign'],
+                        $rel['linkLocal'],
+                        $this->_getFieldValue($rel['local']),
+                        $rel['conditions'] ? join(' AND ', $rel['conditions']) : '1',
                     ]
                 );
                 

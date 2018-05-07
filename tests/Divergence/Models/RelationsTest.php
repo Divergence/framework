@@ -5,13 +5,13 @@ use Divergence\Models\Model;
 
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
-use Divergence\Models\Relations;
-use Divergence\Models\Versioning;
-
 use Divergence\Models\ActiveRecord;
 use Divergence\IO\Database\MySQL as DB;
-use Divergence\Tests\MockSite\Models\Forum\Thread;
+
 use Divergence\Tests\MockSite\Models\Forum\Category;
+use Divergence\Tests\MockSite\Models\Forum\Thread;
+use Divergence\Models\Versioning;
+use Divergence\Models\Relations;
 
 class fakeCategory extends Category
 {
@@ -52,5 +52,13 @@ class RelationsTest extends TestCase
         $this->assertEquals(true, fakeCategory::getProtected('_fieldsDefined')[fakeCategory::class]);
         $this->assertEquals(true, fakeCategory::getProtected('_relationshipsDefined')[fakeCategory::class]);
         $this->assertEquals(true, fakeCategory::getProtected('_eventsDefined')[fakeCategory::class]);
+    }
+
+    public function test__get()
+    {
+        $Category = Category::getByID(1);
+        $Threads = $Category->Threads;
+        $Expected = Thread::getAllByField('CategoryID',1);
+        $this->assertEquals($Expected,$Threads);
     }
 }
