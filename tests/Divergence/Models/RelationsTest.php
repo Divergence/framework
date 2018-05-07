@@ -10,12 +10,15 @@ use Divergence\IO\Database\MySQL as DB;
 
 use Divergence\Tests\MockSite\Models\Forum\Category;
 use Divergence\Tests\MockSite\Models\Forum\Thread;
+use Divergence\Tests\MockSite\Models\Forum\Post;
 use Divergence\Models\Versioning;
 use Divergence\Models\Relations;
 
 class fakeCategory extends Category
 {
     use Versioning, Relations;
+
+    public static $relationships = [];
 }
 
 class RelationsTest extends TestCase
@@ -69,13 +72,21 @@ class RelationsTest extends TestCase
         foreach($Expected as $i=>$object) {
             $Expected[$i] = $object->data;
         }
-        
-        
-        
         foreach($Category->Threads as $Thread) {
             $Threads[] = $Thread->data;
         }
-        $Category->save(true);
+        $Category->save();
         $this->assertEquals($Expected,$Threads);
     }
+
+    public function test_relationshipExistsFalse()
+    {
+        $this->assertFalse(Thread::_relationshipExists('nope'));
+    }
+
+    /*public function testOneone()
+    {
+        $Post = Post::getByID(1);
+        dump($Post->ThreadID);
+    }*/
 }

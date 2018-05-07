@@ -3,6 +3,8 @@ namespace Divergence\Models;
 
 use Divergence\IO\Database\MySQL as DB;
 
+use PhpCsFixer\Diff\v3_0\Exception;
+
 trait Relations
 {
     public static function _relationshipExists($relationship)
@@ -13,23 +15,15 @@ trait Relations
             return false;
         }
     }
-    
+
     /**
      * Called when anything relationships related is used for the first time to define relationships before _initRelationships
      */
     protected static function _defineRelationships()
     {
         $className = get_called_class();
-        
-        // skip if fields already defined
-        if (isset(static::$_classRelationships[$className])) {
-            return;
-        }
-        
-        // merge fields from first ancestor up
         $classes = class_parents($className);
         array_unshift($classes, $className);
-        
         static::$_classRelationships[$className] = [];
         while ($class = array_pop($classes)) {
             if (!empty($class::$relationships)) {
@@ -52,7 +46,7 @@ trait Relations
             $relationships = [];
             
             foreach (static::$_classRelationships[$className] as $relationship => $options) {
-                if (!$options) {
+                if (!is_array($options)) {
                     continue;
                 }
 
@@ -69,17 +63,6 @@ trait Relations
     {
         // sanity checks
         $className = get_called_class();
-        
-        if (is_string($options)) {
-            $options = [
-                'type' => 'one-one'
-                ,'class' => $options,
-            ];
-        }
-        
-        if (!is_string($relationship) || !is_array($options)) {
-            die('Relationship must be specified as a name => options pair');
-        }
         
         // apply defaults
         if (empty($options['type'])) {
