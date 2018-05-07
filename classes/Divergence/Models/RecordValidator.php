@@ -141,7 +141,7 @@ class RecordValidator
                 $this->_errors[$options['id']] = gettext($options['errorMessage']);
             } else {
                 // default 'errorMessage' built from 'id'
-                $this->_errors[$options['id']] = sprintf($options['required'] && empty($value) ? _('%s is missing.') : _('%s is invalid.'), Inflector::spacifyCaps($options['id']));
+                $this->_errors[$options['id']] = sprintf($options['required'] && empty($value) ? _('%s is missing.') : _('%s is invalid.'), $options['id']);
             }
             return false;
         } else {

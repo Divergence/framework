@@ -4,6 +4,7 @@ namespace Divergence\Tests\Models;
 use PHPUnit\Framework\TestCase;
 use Divergence\Models\RecordValidator;
 use Divergence\Tests\MockSite\Models\Canary;
+use Divergence\Helpers\Validate;
 
 class TestableRecordValidator extends RecordValidator
 {
@@ -33,9 +34,39 @@ class RecordValidatorTest extends TestCase
         $this->assertNotEquals($b, strlen($v2->getProtected('_record')['Handle']));
     }
 
-    public function testValidate()
+    public function testValidateStringRequiredSuccess()
     {
-        $Record = Canary::avis();
+        $Record = [];
+
+        $Record['Name'] = 'Kelly';
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Name',
+            'required' => true,
+            'errorMessage' => 'Name is required.',
+        ]);
+        $this->assertEquals([], $v->getErrors());
+    }
+
+    public function testValidateStringRequiredFail()
+    {
+        $Record = [];
+
+        $Record['Name'] = null;
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Name',
+            'required' => true,
+            'errorMessage' => 'Name is required.',
+        ]);
+        $this->assertEquals(['Name'=>'Name is required.'], $v->getErrors());
+    }
+
+    public function testValidateStringMinLengthFail()
+    {
+        $Record = [];
 
         $Record['Name'] = 'A';
 
@@ -47,5 +78,260 @@ class RecordValidatorTest extends TestCase
             'errorMessage' => 'Name is required.',
         ]);
         $this->assertEquals(['Name'=>'Name is required.'], $v->getErrors());
+    }
+
+    public function testValidateStringMinLengthSuccess()
+    {
+        $Record = [];
+
+        $Record['Name'] = 'A';
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Name',
+            'minlength' => 2,
+            'required' => true,
+            'errorMessage' => 'Name is required.',
+        ]);
+        $this->assertEquals(['Name'=>'Name is required.'], $v->getErrors());
+    }
+
+    public function testValidateStringMaxLengthFail()
+    {
+        $Record = [];
+
+        $Record['Name'] = 'arebel';
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Name',
+            'maxlength' => 5,
+            'required' => true,
+            'errorMessage' => 'Name is too big. Max 5 characters.',
+        ]);
+        $this->assertEquals(['Name'=>'Name is too big. Max 5 characters.'], $v->getErrors());
+    }
+
+    public function testValidateStringMaxLengthSuccess()
+    {
+        $Record = [];
+
+        $Record['Name'] = 'rebel';
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Name',
+            'maxlength' => 5,
+            'required' => true,
+            'errorMessage' => 'Name is too big. Max 5 characters.',
+        ]);
+        $this->assertEquals([], $v->getErrors());
+    }
+
+    public function testValidateNumberSuccess()
+    {
+        $Record = [];
+
+        $Record['ID'] = 1;
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'ID',
+            'required' => true,
+            'validator' => 'number',
+            'max' => PHP_INT_MAX,
+            'min' => 1,
+            'errorMessage' => 'ID must be between 0 and PHP_INT_MAX ('.PHP_INT_MAX.')',
+        ]);
+        $this->assertEquals([], $v->getErrors());
+    }
+
+    public function testValidateNumberFailZero()
+    {
+        $Record = [];
+
+        $Record['ID'] = 0;
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'ID',
+            'required' => true,
+            'validator' => 'number',
+            'max' => PHP_INT_MAX,
+            'min' => 1,
+            'errorMessage' => 'ID must be between 0 and PHP_INT_MAX ('.PHP_INT_MAX.')',
+        ]);
+        $this->assertEquals(['ID'=>'ID must be between 0 and PHP_INT_MAX ('.PHP_INT_MAX.')'], $v->getErrors());
+    }
+
+    public function testValidateNumberFailMax()
+    {
+        $Record = [];
+
+        $Record['ID'] = PHP_INT_MAX * 2;
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'ID',
+            'required' => true,
+            'validator' => 'number',
+            'max' => PHP_INT_MAX,
+            'min' => 1,
+            'errorMessage' => 'ID must be between 0 and PHP_INT_MAX ('.PHP_INT_MAX.')',
+        ]);
+        $this->assertEquals(['ID'=>'ID must be between 0 and PHP_INT_MAX ('.PHP_INT_MAX.')'], $v->getErrors());
+    }
+
+    public function testValidateNumberFailFloatMax()
+    {
+        $Record = [];
+
+        $Record['Float'] = 1;
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Float',
+            'required' => true,
+            'validator' => 'number',
+            'max' => 0.759,
+            'min' => 0.128,
+            'errorMessage' => 'ID must be between 0.127 and 0.760',
+        ]);
+        $this->assertEquals(['Float'=>'ID must be between 0.127 and 0.760'], $v->getErrors());
+    }
+
+    public function testValidateNumberFailFloatMin()
+    {
+        $Record = [];
+
+        $Record['Float'] = 0.127;
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Float',
+            'required' => true,
+            'validator' => 'number',
+            'max' => 0.759,
+            'min' => 0.128,
+            'errorMessage' => 'ID must be between 0.127 and 0.760',
+        ]);
+        $this->assertEquals(['Float'=>'ID must be between 0.127 and 0.760'], $v->getErrors());
+    }
+
+    public function testValidateNumberSuccessFloat()
+    {
+        $Record = [];
+
+        $Record['Float'] = 0.128;
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Float',
+            'required' => true,
+            'validator' => 'number',
+            'max' => 0.759,
+            'min' => 0.128,
+            'errorMessage' => 'ID must be between 0.127 and 0.760',
+        ]);
+        $this->assertEquals([], $v->getErrors());
+    }
+
+
+    public function testValidateEmailSuccess()
+    {
+        $Record = [];
+
+        $Record['Email'] = 'henry.paradiz@gmail.com';
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Email',
+            'required' => true,
+        ]);
+        $this->assertEquals([], $v->getErrors());
+    }
+
+    public function testValidateEmailSuccessWithCustomValidator()
+    {
+        $Record = [];
+
+        $Record['Email'] = 'henry.paradiz@gmail.com';
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Email',
+            'required' => true,
+            'validator' => [
+                Validate::class,
+                'email',
+            ]
+        ]);
+        $this->assertEquals([], $v->getErrors());
+    }
+
+    public function testValidateEmailFail()
+    {
+        $Record = [];
+
+        $Record['Email'] = 'henry.paradiz|gmail.com';
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'Email',
+            'required' => true,
+            'validator' => 'email',
+        ]);
+        $this->assertEquals(['Email'=>'Email is invalid.'], $v->getErrors());
+    }
+
+    public function testValidateNotACallableException()
+    {
+        $Record = [];
+        $Record['something'] = 'anything';
+        $v = new TestableRecordValidator($Record);
+        $this->expectExceptionMessage('Validator for field something is not callable');
+        $v->validate([
+            'field' => 'something',
+            'required' => true,
+            'errorMessage' => 'Fail whale',
+            'validator' => new \stdClass()
+        ]);
+
+    }
+
+    public function testValidateCustomValidatorSuccess()
+    {
+        $Record = Canary::avis();
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'DNA',
+            'required' => true,
+            'errorMessage' => 'Not a valid DNA sequence',
+            'validator' => function($value,$options) {
+                preg_match_all('/^[ACGT]*$/m', $value, $matches, PREG_SET_ORDER, 0);
+                return is_array($matches);
+            }
+        ]);
+        $this->assertEquals([], $v->getErrors());
+    }
+
+    public function testValidateCustomValidatorFail()
+    {
+        $Record = Canary::avis();
+
+        $Record['DNA'][67] = 'X';
+
+        $v = new TestableRecordValidator($Record);
+        $v->validate([
+            'field' => 'DNA',
+            'required' => true,
+            'errorMessage' => 'Not a valid DNA sequence',
+            'validator' => function($value,$options) {
+                preg_match_all('/^[ACGT]*$/m', $value, $matches, PREG_SET_ORDER, 0);
+                return is_array($matches);
+            }
+        ]);
+        $this->assertEquals([], $v->getErrors());
     }
 }
