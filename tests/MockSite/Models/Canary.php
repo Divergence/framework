@@ -117,6 +117,21 @@ class Canary extends \Divergence\Models\Model
         ],
     ];
 
+
+    public static $indexes = [
+        'Handle' => [
+            'fields' => [
+                'Handle',
+            ],
+            'unique' => true
+        ],
+        'DateOfBirth' => [
+            'fields' => [
+                'DateOfBirth'
+            ]
+        ]  
+    ];
+
     /* expose protected attributes for unit testing */
     public static function getProtected($field)
     {

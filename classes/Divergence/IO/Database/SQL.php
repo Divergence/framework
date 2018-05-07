@@ -22,7 +22,7 @@ class SQL
     public static function getCreateTable($recordClass, $historyVariant = false)
     {
         $queryFields = [];
-        //$indexes = $historyVariant ? [] : $recordClass::aggregateStackedConfig('indexes');
+        $indexes = $historyVariant ? [] : $recordClass::$indexes;
         $fulltextColumns = [];
 
         // history table revisionID field
