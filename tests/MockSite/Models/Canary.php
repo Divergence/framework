@@ -123,13 +123,13 @@ class Canary extends \Divergence\Models\Model
             'fields' => [
                 'Handle',
             ],
-            'unique' => true
+            'unique' => true,
         ],
         'DateOfBirth' => [
             'fields' => [
-                'DateOfBirth'
-            ]
-        ]  
+                'DateOfBirth',
+            ],
+        ],
     ];
 
     /* expose protected attributes for unit testing */

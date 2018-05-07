@@ -39,7 +39,7 @@ class TagPost extends \Divergence\Models\Model
             'type' => 'integer',
             'required' => true,
             'notnull' => true,
-        ]
+        ],
     ];
 
     public static $indexes = [
@@ -48,8 +48,8 @@ class TagPost extends \Divergence\Models\Model
                 'TagID',
                 'PostID',
             ],
-            'unique' => true
-        ]
+            'unique' => true,
+        ],
     ];
 
     public static $relationships = [
@@ -64,6 +64,6 @@ class TagPost extends \Divergence\Models\Model
             'class' => Post::class,
             'local' => 'PostID',
             'foreign' => 'ID',
-        ]
+        ],
     ];
 }

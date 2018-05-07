@@ -5,9 +5,9 @@ use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
-use Divergence\Tests\MockSite\Models\Forum\Category;
-use Divergence\Tests\MockSite\Models\Forum\Thread;
 use Divergence\Tests\MockSite\Models\Forum\Post;
+use Divergence\Tests\MockSite\Models\Forum\Thread;
+use Divergence\Tests\MockSite\Models\Forum\Category;
 
 class App extends \Divergence\App
 {
@@ -66,7 +66,7 @@ class App extends \Divergence\App
                     'Top movies this year',
                     'leaked album',
                     'Checkout this stream',
-                    'Ratings info', 
+                    'Ratings info',
                 ],
                 'Technology' => [
                     'New prices drop for next gen phones! Still no aux plug',
@@ -79,16 +79,16 @@ class App extends \Divergence\App
                     'can i haz human???',
                 ],
             ];
-            foreach($Categories as $Category=>$Threads) {
+            foreach ($Categories as $Category=>$Threads) {
                 $Category = Category::create([
-                    'Name' => $Category
-                ],true);
+                    'Name' => $Category,
+                ], true);
 
-                foreach($Threads as $Thread) {
+                foreach ($Threads as $Thread) {
                     $Thread = Thread::create([
                         'Title' => $Thread,
-                        'CategoryID' => $Category->ID
-                    ],true);
+                        'CategoryID' => $Category->ID,
+                    ], true);
                 }
             }
         }

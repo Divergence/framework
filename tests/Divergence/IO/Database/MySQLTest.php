@@ -8,8 +8,8 @@ use Divergence\IO\Database\MySQL as DB;
 
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
-use Divergence\Tests\MockSite\Models\Forum\Category;
 use Divergence\Tests\MockSite\Models\Forum\Thread;
+use Divergence\Tests\MockSite\Models\Forum\Category;
 
 class fakeResult
 {
@@ -352,7 +352,7 @@ class MySQLTest extends TestCase
         $tables = DB::allRecords('SHOW TABLES');
         
         $this->assertCount(7, $tables);
-        foreach($tables as $table) {
+        foreach ($tables as $table) {
             $this->assertNotEmpty($table['Tables_in_test']);
         }
     }

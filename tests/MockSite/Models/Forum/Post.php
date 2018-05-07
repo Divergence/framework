@@ -37,7 +37,7 @@ class Post extends \Divergence\Models\Model
             'type' => 'integer',
             'required' => true,
             'notnull' => true,
-        ]
+        ],
     ];
 
     public static $indexes = [
@@ -45,8 +45,8 @@ class Post extends \Divergence\Models\Model
             'fields' => [
                 'ThreadID',
             ],
-            'unique' => false
-        ]
+            'unique' => false,
+        ],
     ];
 
     public static $relationships = [

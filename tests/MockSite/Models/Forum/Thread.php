@@ -37,7 +37,7 @@ class Thread extends \Divergence\Models\Model
             'type' => 'integer',
             'required' => true,
             'notnull' => true,
-        ]
+        ],
     ];
 
     public static $indexes = [];

@@ -2,9 +2,9 @@
 namespace Divergence\Tests\Models;
 
 use PHPUnit\Framework\TestCase;
+use Divergence\Helpers\Validate;
 use Divergence\Models\RecordValidator;
 use Divergence\Tests\MockSite\Models\Canary;
-use Divergence\Helpers\Validate;
 
 class TestableRecordValidator extends RecordValidator
 {
@@ -264,7 +264,7 @@ class RecordValidatorTest extends TestCase
             'validator' => [
                 Validate::class,
                 'email',
-            ]
+            ],
         ]);
         $this->assertEquals([], $v->getErrors());
     }
@@ -311,9 +311,8 @@ class RecordValidatorTest extends TestCase
             'field' => 'something',
             'required' => true,
             'errorMessage' => 'Fail whale',
-            'validator' => new \stdClass()
+            'validator' => new \stdClass(),
         ]);
-
     }
 
     public function testValidateCustomValidatorSuccess()
@@ -325,10 +324,10 @@ class RecordValidatorTest extends TestCase
             'field' => 'DNA',
             'required' => true,
             'errorMessage' => 'Not a valid DNA sequence',
-            'validator' => function($value,$options) {
+            'validator' => function ($value, $options) {
                 preg_match_all('/^[ACGT]*$/m', $value, $matches, PREG_SET_ORDER, 0);
                 return is_array($matches);
-            }
+            },
         ]);
         $this->assertEquals([], $v->getErrors());
     }
@@ -344,10 +343,10 @@ class RecordValidatorTest extends TestCase
             'field' => 'DNA',
             'required' => true,
             'errorMessage' => 'Not a valid DNA sequence',
-            'validator' => function($value,$options) {
+            'validator' => function ($value, $options) {
                 preg_match_all('/^[ACGT]*$/m', $value, $matches, PREG_SET_ORDER, 0);
                 return is_array($matches);
-            }
+            },
         ]);
         $this->assertEquals([], $v->getErrors());
     }
@@ -380,7 +379,7 @@ class RecordValidatorTest extends TestCase
         $Record = [];
 
         $v = new TestableRecordValidator($Record);
-        $v->addError('id','message');
+        $v->addError('id', 'message');
 
         $this->assertEquals(['id'=>'message'], $v->getErrors());
         $this->assertEquals('message', $v->getErrors('id'));
@@ -396,7 +395,7 @@ class RecordValidatorTest extends TestCase
             'required' => true,
             'validator' => 'email',
         ]);
-        $this->assertEquals(['Email'=>'Email is missing.'], $v->getErrors());   
+        $this->assertEquals(['Email'=>'Email is missing.'], $v->getErrors());
     }
 
     public function testValidateNonExistantFieldNotRequired()
@@ -409,6 +408,6 @@ class RecordValidatorTest extends TestCase
             'required' => false,
             'validator' => 'email',
         ]);
-        $this->assertEquals([], $v->getErrors());   
+        $this->assertEquals([], $v->getErrors());
     }
 }

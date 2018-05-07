@@ -5,13 +5,13 @@ use Divergence\Models\Model;
 
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
+use Divergence\Models\Relations;
+use Divergence\Models\Versioning;
+
 use Divergence\Models\ActiveRecord;
 use Divergence\IO\Database\MySQL as DB;
-
-use Divergence\Tests\MockSite\Models\Forum\Category;
 use Divergence\Tests\MockSite\Models\Forum\Thread;
-use Divergence\Models\Versioning;
-use Divergence\Models\Relations;
+use Divergence\Tests\MockSite\Models\Forum\Category;
 
 class fakeCategory extends Category
 {
