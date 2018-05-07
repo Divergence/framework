@@ -45,4 +45,9 @@ class Category extends \Divergence\Models\Model
             'foreign' => 'ThreadID',
         ],
     ];
+
+    public static function getProtected($field)
+    {
+        return static::$$field;
+    }
 }

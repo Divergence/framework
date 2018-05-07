@@ -192,7 +192,7 @@ class ActiveRecord
             static::_defineRelationships();
             static::_initRelationships();
             
-            static::$_fieldsDefined[$className] = true;
+            static::$_relationshipsDefined[$className] = true;
         }
         
         if (!static::$_eventsDefined[$className]) {
