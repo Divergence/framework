@@ -103,4 +103,13 @@ class RelationsTest extends TestCase
         $Post = Post::getByID(1);
         $this->assertEquals($Post->ThreadID,$Post->Thread->ID);
     }
+
+    public function testInvalidRelationshipOption()
+    {
+        $x = fakeCategory::getClassRelationships();
+        $x[fakeCategory::class]['somerelation'] = false;
+        fakeCategory::setClassRelationships($x);
+        $y = fakeCategory::getByID(1);
+        $this->assertNull($y->somerelation);
+    }
 }
