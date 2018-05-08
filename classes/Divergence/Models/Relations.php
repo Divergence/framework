@@ -40,20 +40,13 @@ trait Relations
     protected static function _initRelationships()
     {
         $className = get_called_class();
-        
-        // apply defaults to relationship definitions
         if (!empty(static::$_classRelationships[$className])) {
             $relationships = [];
-            
             foreach (static::$_classRelationships[$className] as $relationship => $options) {
-                if (!is_array($options)) {
-                    continue;
+                if (is_array($options)) {
+                    $relationships[$relationship] = static::_initRelationship($relationship, $options);
                 }
-
-                // store
-                $relationships[$relationship] = static::_initRelationship($relationship, $options);
             }
-            
             static::$_classRelationships[$className] = $relationships;
         }
     }
