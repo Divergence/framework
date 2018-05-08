@@ -3,7 +3,7 @@ namespace Divergence\Models;
 
 use Divergence\IO\Database\MySQL as DB;
 
-use PhpCsFixer\Diff\v3_0\Exception;
+use Exception;
 
 trait Relations
 {

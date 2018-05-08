@@ -19,6 +19,16 @@ class fakeCategory extends Category
     use Versioning, Relations;
 
     public static $relationships = [];
+
+    public static function setClassRelationships($x)
+    {
+        static::$_classRelationships = $x;
+    }
+
+    public static function getClassRelationships()
+    {
+        return static::$_classRelationships;
+    }
 }
 
 class RelationsTest extends TestCase
@@ -81,7 +91,11 @@ class RelationsTest extends TestCase
 
     public function test_relationshipExistsFalse()
     {
-        $this->assertFalse(Thread::_relationshipExists('nope'));
+        $this->assertFalse(fakeCategory::_relationshipExists('nope'));
+        $x = fakeCategory::getClassRelationships();
+        fakeCategory::setClassRelationships([]);
+        $this->assertFalse(fakeCategory::_relationshipExists('nope'));
+        fakeCategory::setClassRelationships($x);
     }
 
     public function testOneone()

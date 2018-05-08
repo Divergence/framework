@@ -981,12 +981,12 @@ class ActiveRecordTest extends TestCase
         TestUtils::requireDB($this);
 
         $x = Canary::getByID(1);
-        
+
         $newHandle = Canary::getUniqueHandle($x->Handle);
 
         $lastChar = substr($x->Handle, -1);
         if (intval($lastChar)) {
-            $expectedHandle = str_replace(substr($x->Handle, -1), (intval($lastChar)+1), $x->Handle);
+            $expectedHandle = substr($x->Handle,0,-2) . ':' . (intval($lastChar)+1);
         } else {
             $expectedHandle = $x->Handle.':2';
         }
