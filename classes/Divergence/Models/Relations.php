@@ -51,7 +51,7 @@ trait Relations
         }
     }
     
-    
+    // TODO: Make relations getPrimaryKey() instead of using ID all the time.
     protected static function _initRelationship($relationship, $options)
     {
         // sanity checks

@@ -50,11 +50,20 @@ class Post extends \Divergence\Models\Model
     ];
 
     public static $relationships = [
+        /*
+         *  The first one is testing the minimal configuration of a one-to-one relationship
+         *  The key in this case "Thread" is used to look for $Key.'ID' in this case "ThreadID" as the local
+         *  The foreign is assumed to have it's own PK as ID
+         */
+
         'Thread' => [
+            'class' => Thread::class,
+        ],
+        'ThreadExplicit' => [
             'type' => 'one-one',
             'class' => Thread::class,
             'local' => 'ThreadID',
             'foreign' => 'ID',
-        ],
+        ]
     ];
 }

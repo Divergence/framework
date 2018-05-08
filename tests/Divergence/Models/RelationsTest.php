@@ -67,6 +67,7 @@ class RelationsTest extends TestCase
         $this->assertEquals(true, fakeCategory::getProtected('_eventsDefined')[fakeCategory::class]);
     }
 
+    // also tests basic one-many 
     public function test__get()
     {
         $Category = Category::getByID(1);
@@ -112,4 +113,21 @@ class RelationsTest extends TestCase
         $y = fakeCategory::getByID(1);
         $this->assertNull($y->somerelation);
     }
+
+    public function testExplicitOneOne()
+    {
+        $Post = Post::getByID(1);
+        $this->assertEquals($Post->ThreadID,$Post->ThreadExplicit->ID);
+    }
+
+    /*public function testOneManyConditional()
+    {
+        $Post = Post::getByID(1);
+        $Category = Category::getByID(1);
+        $Threads = $Category->ThreadsAlpha;
+        dump($Threads);
+        exit;
+        $Expected = Thread::getAllByField('CategoryID',1);
+        $this->assertEquals($Expected,$Threads);
+    }*/
 }

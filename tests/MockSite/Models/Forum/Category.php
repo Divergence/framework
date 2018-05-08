@@ -44,6 +44,15 @@ class Category extends \Divergence\Models\Model
             'local' => 'ID',
             'foreign' => 'CategoryID',
         ],
+        'ThreadsAlpha' => [
+            'type' => 'one-many',
+            'class' => Thread::class,
+            'local' => 'ID',
+            'foreign' => 'CategoryID',
+            'conditions' => [
+                'order' => ['Title'=>'ASC']
+            ]
+        ],
     ];
 
     public static function getProtected($field)
