@@ -171,5 +171,26 @@ class RelationsTest extends TestCase
             'conditions'=>[],
             'order'=>false,
         ], $x);
+
+        // one many test string conditional
+        $x = fakeCategory::initRelationship('label', [
+            'type' => 'one-many',
+            'conditions' => 'true=true',
+        ]);
+        $this->assertEquals([
+            'type'=>'one-many',
+            'local'=>'ID',
+            'foreign'=>'CategoryID',
+            'indexField'=>false,
+            'conditions'=>['true=true'],
+            'order'=>false,
+        ], $x);
+
+
+        // context-children
+
+        // context-child
+
+        // context-parent
     }
 }
