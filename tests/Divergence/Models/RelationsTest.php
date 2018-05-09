@@ -5,14 +5,14 @@ use Divergence\Models\Model;
 
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
+use Divergence\Models\Relations;
+use Divergence\Models\Versioning;
+
 use Divergence\Models\ActiveRecord;
 use Divergence\IO\Database\MySQL as DB;
-
-use Divergence\Tests\MockSite\Models\Forum\Category;
-use Divergence\Tests\MockSite\Models\Forum\Thread;
 use Divergence\Tests\MockSite\Models\Forum\Post;
-use Divergence\Models\Versioning;
-use Divergence\Models\Relations;
+use Divergence\Tests\MockSite\Models\Forum\Thread;
+use Divergence\Tests\MockSite\Models\Forum\Category;
 
 class fakeCategory extends Category
 {
@@ -28,6 +28,11 @@ class fakeCategory extends Category
     public static function getClassRelationships()
     {
         return static::$_classRelationships;
+    }
+
+    public static function initRelationship($relationship, $options)
+    {
+        return static::_initRelationship($relationship, $options);
     }
 }
 
@@ -67,27 +72,27 @@ class RelationsTest extends TestCase
         $this->assertEquals(true, fakeCategory::getProtected('_eventsDefined')[fakeCategory::class]);
     }
 
-    // also tests basic one-many 
+    // also tests basic one-many
     public function test__get()
     {
         $Category = Category::getByID(1);
         $Threads = $Category->Threads;
-        $Expected = Thread::getAllByField('CategoryID',1);
-        $this->assertEquals($Expected,$Threads);
+        $Expected = Thread::getAllByField('CategoryID', 1);
+        $this->assertEquals($Expected, $Threads);
     }
 
     public function testSave()
     {
         $Category = Category::getByID(1);
-        $Expected = Thread::getAllByField('CategoryID',1);
-        foreach($Expected as $i=>$object) {
+        $Expected = Thread::getAllByField('CategoryID', 1);
+        foreach ($Expected as $i=>$object) {
             $Expected[$i] = $object->data;
         }
-        foreach($Category->Threads as $Thread) {
+        foreach ($Category->Threads as $Thread) {
             $Threads[] = $Thread->data;
         }
         $Category->save();
-        $this->assertEquals($Expected,$Threads);
+        $this->assertEquals($Expected, $Threads);
     }
 
     public function test_relationshipExistsFalse()
@@ -102,7 +107,7 @@ class RelationsTest extends TestCase
     public function testOneone()
     {
         $Post = Post::getByID(1);
-        $this->assertEquals($Post->ThreadID,$Post->Thread->ID);
+        $this->assertEquals($Post->ThreadID, $Post->Thread->ID);
     }
 
     public function testInvalidRelationshipOption()
@@ -117,17 +122,54 @@ class RelationsTest extends TestCase
     public function testExplicitOneOne()
     {
         $Post = Post::getByID(1);
-        $this->assertEquals($Post->ThreadID,$Post->ThreadExplicit->ID);
+        $this->assertEquals($Post->ThreadID, $Post->ThreadExplicit->ID);
     }
 
-    /*public function testOneManyConditional()
+    public function testOneManyConditional()
     {
         $Post = Post::getByID(1);
         $Category = Category::getByID(1);
         $Threads = $Category->ThreadsAlpha;
-        dump($Threads);
-        exit;
-        $Expected = Thread::getAllByField('CategoryID',1);
-        $this->assertEquals($Expected,$Threads);
-    }*/
+        
+        $Expected = Thread::getAllByField('CategoryID', 1, [
+            'order' => ['Title'=>'ASC'],
+        ]);
+        $this->assertEquals($Expected, $Threads);
+    }
+
+    public function testInitRelationship()
+    {
+        $x = fakeCategory::initRelationship('label', []);
+        $this->assertEquals([
+            'type'=>'one-one',
+            'local'=>'labelID',
+            'foreign'=>'ID',
+        ], $x);
+
+        // one-one with options
+        $x = fakeCategory::initRelationship('label', [
+            'type' => 'one-one',
+            'local' => 'primaryKey',
+            'foreign' => 'foreignKey',
+        ]);
+        $this->assertEquals([
+            'type'=>'one-one',
+            'local'=>'primaryKey',
+            'foreign'=>'foreignKey',
+        ], $x);
+
+
+        // one many default
+        $x = fakeCategory::initRelationship('label', [
+            'type' => 'one-many',
+        ]);
+        $this->assertEquals([
+            'type'=>'one-many',
+            'local'=>'ID',
+            'foreign'=>'CategoryID',
+            'indexField'=>false,
+            'conditions'=>[],
+            'order'=>false,
+        ], $x);
+    }
 }

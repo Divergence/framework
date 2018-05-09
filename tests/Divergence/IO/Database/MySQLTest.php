@@ -8,9 +8,9 @@ use Divergence\IO\Database\MySQL as DB;
 
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
+use Divergence\Tests\MockSite\Models\Forum\Post;
 use Divergence\Tests\MockSite\Models\Forum\Thread;
 use Divergence\Tests\MockSite\Models\Forum\Category;
-use Divergence\Tests\MockSite\Models\Forum\Post;
 
 class fakeResult
 {

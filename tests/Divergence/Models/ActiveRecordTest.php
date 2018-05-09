@@ -294,9 +294,8 @@ class ActiveRecordTest extends TestCase
             'Slug' => 'linux',
         ]);
         $expected = ['Tag'=>'Graphics','Slug'=>'graphics'];
-        $C = $A->changeClass(Tag::class,$expected);
-        $this->assertArraySubset($expected,$C->data);
-        
+        $C = $A->changeClass(Tag::class, $expected);
+        $this->assertArraySubset($expected, $C->data);
     }
 
     /**
@@ -964,11 +963,11 @@ class ActiveRecordTest extends TestCase
      */
     public function testGetTableByQuery()
     {
-        $x = Canary::getTableByQuery('ID','SELECT * FROM canaries');
+        $x = Canary::getTableByQuery('ID', 'SELECT * FROM canaries');
         $expected = DB::allRecords('SELECT * FROM canaries');
-        foreach($expected as $record) {
+        foreach ($expected as $record) {
             $ID = $record['ID'];
-            $this->assertEquals($x[$ID]->ID,$ID);
+            $this->assertEquals($x[$ID]->ID, $ID);
         }
     }
 
@@ -986,7 +985,7 @@ class ActiveRecordTest extends TestCase
 
         $lastChar = substr($x->Handle, -1);
         if (intval($lastChar)) {
-            $expectedHandle = substr($x->Handle,0,-2) . ':' . (intval($lastChar)+1);
+            $expectedHandle = substr($x->Handle, 0, -2) . ':' . (intval($lastChar)+1);
         } else {
             $expectedHandle = $x->Handle.':2';
         }

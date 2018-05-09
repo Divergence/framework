@@ -1,15 +1,15 @@
 <?php
 namespace Divergence\Tests\MockSite;
 
+use Faker\Provider\Lorem;
 use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\MockSite\Models\Forum\Post;
 use Divergence\Tests\MockSite\Models\Forum\Thread;
-use Divergence\Tests\MockSite\Models\Forum\Category;
 
-use Faker\Provider\Lorem;
+use Divergence\Tests\MockSite\Models\Forum\Category;
 
 class App extends \Divergence\App
 {
@@ -92,13 +92,13 @@ class App extends \Divergence\App
                         'CategoryID' => $Category->ID,
                     ], true);
 
-                    $x = rand(0,10);
+                    $x = rand(0, 10);
                     $i = 0;
-                    while($i<$x) {
+                    while ($i<$x) {
                         Post::create([
-                            'Content' => Lorem::text(rand(50,400)),
-                            'ThreadID' => $Thread->ID
-                        ],true);
+                            'Content' => Lorem::text(rand(50, 400)),
+                            'ThreadID' => $Thread->ID,
+                        ], true);
                         $i++;
                     }
                 }
