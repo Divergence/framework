@@ -50,8 +50,9 @@ class Category extends \Divergence\Models\Model
             'local' => 'ID',
             'foreign' => 'CategoryID',
             'conditions' => [
-                'order' => ['Title'=>'ASC']
-            ]
+                'Created > DATE_SUB(NOW(), INTERVAL 1 HOUR)',
+            ],
+            'order' => ['Title'=>'ASC'],
         ],
     ];
 

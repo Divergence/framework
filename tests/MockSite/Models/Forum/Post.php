@@ -64,6 +64,6 @@ class Post extends \Divergence\Models\Model
             'class' => Thread::class,
             'local' => 'ThreadID',
             'foreign' => 'ID',
-        ]
+        ],
     ];
 }

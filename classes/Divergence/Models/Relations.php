@@ -1,9 +1,11 @@
 <?php
 namespace Divergence\Models;
 
-use Divergence\IO\Database\MySQL as DB;
-
 use Exception;
+
+use ReflectionClass;
+
+use Divergence\IO\Database\MySQL as DB;
 
 trait Relations
 {
@@ -54,9 +56,8 @@ trait Relations
     // TODO: Make relations getPrimaryKey() instead of using ID all the time.
     protected static function _initRelationship($relationship, $options)
     {
-        // sanity checks
-        $className = get_called_class();
-        
+        $classShortName = basename(str_replace('\\', '/', static::$rootClass));
+
         // apply defaults
         if (empty($options['type'])) {
             $options['type'] = 'one-one';
@@ -76,7 +77,7 @@ trait Relations
             }
                     
             if (empty($options['foreign'])) {
-                $options['foreign'] = static::$rootClass . 'ID';
+                $options['foreign'] =  $classShortName. 'ID';
             }
                 
             if (!isset($options['indexField'])) {
