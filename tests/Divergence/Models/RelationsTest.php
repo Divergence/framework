@@ -188,6 +188,34 @@ class RelationsTest extends TestCase
 
 
         // context-children
+        $x = fakeCategory::initRelationship('label', [
+            'type'=>'context-children'
+        ]);
+        $this->assertEquals([
+            'type'=>'context-children',
+            'local'=>'ID',
+            'contextClass'=>fakeCategory::class,
+            'indexField'=>false,
+            'conditions'=>[],
+            'order'=>false,
+        ], $x);
+
+        $x = fakeCategory::initRelationship('label', [
+            'type'=>'context-children',
+            'local'=>'ID',
+            'contextClass'=>fakeCategory::class,
+            'indexField'=>false,
+            'conditions'=>['true'=>'true'],
+            'order'=>false,
+        ]);
+        $this->assertEquals([
+            'type'=>'context-children',
+            'local'=>'ID',
+            'contextClass'=>fakeCategory::class,
+            'indexField'=>false,
+            'conditions'=>['true'=>'true'],
+            'order'=>false,
+        ],$x);
 
         // context-child
 
