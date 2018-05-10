@@ -218,7 +218,73 @@ class RelationsTest extends TestCase
         ],$x);
 
         // context-child
+        $x = fakeCategory::initRelationship('label', [
+            'type'=>'context-child'
+        ]);
+        $this->assertEquals([
+            'type' => 'context-child',
+            'local'=>'ID',
+            'contextClass'=>fakeCategory::class,
+            'indexField'=>false,
+            'conditions'=>[],
+            'order'=>[
+                'ID'=>'DESC',
+            ],
+        ],$x);
+        $x = fakeCategory::initRelationship('label', [
+            'type' => 'context-child',
+            'local'=>'ID',
+            'contextClass'=>fakeCanary::class,
+            'indexField'=>true,
+            'conditions'=>[],
+            'order'=>[
+                'ID'=>'ASC',
+            ]
+        ]);
+        $this->assertEquals([
+            'type' => 'context-child',
+            'local'=>'ID',
+            'contextClass'=>fakeCanary::class,
+            'indexField'=>true,
+            'conditions'=>[],
+            'order'=>[
+                'ID'=>'ASC',
+            ],
+        ],$x);
+
 
         // context-parent
+        $x = fakeCategory::initRelationship('label', [
+            'type'=>'context-parent'
+        ]);
+        $this->assertEquals([
+            'type' => 'context-parent',
+            'local'=>'ContextID',
+            'foreign'=>'ID',
+            'classField'=>'ContextClass',
+            'allowedClasses'=>null
+        ],$x);
+
+        $x = fakeCategory::initRelationship('label', [
+            'type' => 'context-parent',
+            'local'=>'ContextID',
+            'foreign'=>'ID',
+            'classField'=>'ContextClass',
+            'allowedClasses'=>[
+                fakeCanary::class,
+                fakeCategory::class
+            ]
+        ]);
+        $this->assertEquals([
+            'type' => 'context-parent',
+            'local'=>'ContextID',
+            'foreign'=>'ID',
+            'classField'=>'ContextClass',
+            'allowedClasses'=>[
+                fakeCanary::class,
+                fakeCategory::class
+            ]
+        ],$x);
+        
     }
 }

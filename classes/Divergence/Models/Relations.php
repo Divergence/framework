@@ -149,14 +149,6 @@ trait Relations
             if (empty($options['allowedClasses'])) {
                 $options['allowedClasses'] = static::$contextClasses;
             }
-        } elseif ($options['type'] == 'handle') {
-            if (empty($options['local'])) {
-                $options['local'] = 'Handle';
-            }
-
-            if (empty($options['class'])) {
-                $options['class'] = 'GlobalHandle';
-            }
         } elseif ($options['type'] == 'many-many') {
             if (empty($options['class'])) {
                 die('required many-many option "class" missing');
