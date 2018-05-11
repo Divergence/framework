@@ -18,7 +18,7 @@ trait Versioning
     ];
     
     public static $versioningRelationships = [
-        'OldVersions' => [
+        'History' => [
             'type' => 'history'
             ,'order' => ['RevisionID' => 'DESC'],
         ],

@@ -36,6 +36,11 @@ class fakeCategory extends Category
     }
 }
 
+class relationalCanary extends fakeCanary
+{
+    use Versioning,Relations;
+}
+
 class RelationsTest extends TestCase
 {
     public function test__construct()
@@ -286,5 +291,19 @@ class RelationsTest extends TestCase
             ]
         ],$x);
         
+    }
+
+    public function testHistoryRelationshipType()
+    {
+        
+        $Canary = relationalCanary::getByID(1);
+        
+        $expected = relationalCanary::getRevisionsByID($Canary->ID,[
+            'order' => [
+                'RevisionID' => 'DESC',
+            ]
+        ]);
+
+        $this->assertEquals($expected,$Canary->History);
     }
 }

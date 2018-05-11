@@ -31,6 +31,9 @@ trait Relations
             if (!empty($class::$relationships)) {
                 static::$_classRelationships[$className] = array_merge(static::$_classRelationships[$className], $class::$relationships);
             }
+            if(static::isVersioned() && !empty($class::$versioningRelationships)) {
+                static::$_classRelationships[$className] = array_merge(static::$_classRelationships[$className], $class::$versioningRelationships);
+            }
         }
     }
 
@@ -186,12 +189,10 @@ trait Relations
                 $options['order'] = false;
             }
         }
-        
-        if (static::isVersioned()) {
-            if ($options['type'] == 'history') {
-                if (empty($options['class'])) {
-                    $options['class'] = get_called_class();
-                }
+           
+        if (static::isVersioned() && $options['type'] == 'history') {
+            if (empty($options['class'])) {
+                $options['class'] = get_called_class();
             }
         }
                 
@@ -278,15 +279,6 @@ trait Relations
                 // hook both relationships for invalidation
                 static::$_classFields[get_called_class()][$rel['classField']]['relationships'][$relationship] = true;
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
-            } elseif ($rel['type'] == 'handle') {
-                if ($handle = $this->_getFieldValue($rel['local'])) {
-                    $this->_relatedObjects[$relationship] = $rel['class']::getByHandle($handle);
-                
-                    // hook relationship for invalidation
-                    static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
-                } else {
-                    $this->_relatedObjects[$relationship] = null;
-                }
             } elseif ($rel['type'] == 'many-many') {
                 if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
@@ -310,8 +302,8 @@ trait Relations
                 
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
-            } elseif ($rel['type'] == 'history' && static::isRelational()) {
-                $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->__get(static::$primaryKey), $rel);
+            } elseif ($rel['type'] == 'history' && static::isVersioned()) {
+                $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->getPrimaryKey(),$rel);
             }
         }
         
