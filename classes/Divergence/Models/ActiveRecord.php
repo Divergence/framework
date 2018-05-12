@@ -170,7 +170,11 @@ class ActiveRecord
         return isset($value);
     }
     
-    public function getPrimaryKey()
+    public function getPrimaryKey() {
+        return isset(static::$primaryKey)?static::$primaryKey:'ID';
+    }
+
+    public function getPrimaryKeyValue()
     {
         if (isset(static::$primaryKey)) {
             return $this->__get(static::$primaryKey);
@@ -424,7 +428,7 @@ class ActiveRecord
                         static::$tableName
                         , join(',', $set)
                         , static::_cn(static::$primaryKey ? static::$primaryKey : 'ID')
-                        , $this->getPrimaryKey(),
+                        , $this->getPrimaryKeyValue(),
                     ],
                     [static::class,'handleError']
                 );
@@ -485,7 +489,7 @@ class ActiveRecord
             }
         }
         
-        return static::delete($this->getPrimaryKey());
+        return static::delete($this->getPrimaryKeyValue());
     }
     
     public static function delete($id)
@@ -501,7 +505,7 @@ class ActiveRecord
     
     public static function getByContextObject(ActiveRecord $Record, $options = [])
     {
-        return static::getByContext($Record::$rootClass, $Record->getPrimaryKey(), $options);
+        return static::getByContext($Record::$rootClass, $Record->getPrimaryKeyValue(), $options);
     }
     
     public static function getByContext($contextClass, $contextID, $options = [])
@@ -612,7 +616,7 @@ class ActiveRecord
     
     public static function getAllByContextObject(ActiveRecord $Record, $options = [])
     {
-        return static::getAllByContext($Record::$rootClass, $Record->getPrimaryKey(), $options);
+        return static::getAllByContext($Record::$rootClass, $Record->getPrimaryKeyValue(), $options);
     }
 
     public static function getAllByContext($contextClass, $contextID, $options = [])

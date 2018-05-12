@@ -184,6 +184,22 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
+     * @covers Divergence\Models\ActiveRecord::getPrimaryKeyValue
+     */
+    public function testGetPrimaryKeyValue()
+    {
+        $A = Tag::create([
+            'Tag' => 'Linux',
+            'Slug' => 'linux',
+        ]);
+
+        $this->assertEquals(null, $A->getPrimaryKeyValue());
+        Tag::$primaryKey = 'Tag';
+        $this->assertEquals('Linux', $A->getPrimaryKeyValue());
+        Tag::$primaryKey = null;
+    }
+
+    /**
      * @covers Divergence\Models\ActiveRecord::getPrimaryKey
      */
     public function testGetPrimaryKey()
@@ -193,9 +209,9 @@ class ActiveRecordTest extends TestCase
             'Slug' => 'linux',
         ]);
 
-        $this->assertEquals(null, $A->getPrimaryKey());
+        $this->assertEquals(null, $A->getPrimaryKeyValue());
         Tag::$primaryKey = 'Tag';
-        $this->assertEquals('Linux', $A->getPrimaryKey());
+        $this->assertEquals('Linux', $A->getPrimaryKeyValue());
         Tag::$primaryKey = null;
     }
 

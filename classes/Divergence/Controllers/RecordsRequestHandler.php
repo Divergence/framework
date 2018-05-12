@@ -209,7 +209,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         $className = static::$recordClass;
     
-        $PrimaryKey = $className::$primaryKey ? $className::$primaryKey : 'ID';
+        $PrimaryKey = $className::getPrimaryKey();
             
         if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT'])) {
             $JSONData = JSON::getRequestData();
@@ -297,7 +297,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         $className = static::$recordClass;
 
-        $PrimaryKey = $className::$primaryKey ? $className::$primaryKey : 'ID';
+        $PrimaryKey = $className::getPrimaryKey();
             
         if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT','DELETE'])) {
             $JSONData = JSON::getRequestData();

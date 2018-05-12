@@ -56,7 +56,7 @@ trait Relations
         }
     }
     
-    // TODO: Make relations getPrimaryKey() instead of using ID all the time.
+    // TODO: Make relations getPrimaryKeyValue() instead of using ID all the time.
     protected static function _initRelationship($relationship, $options)
     {
         $classShortName = basename(str_replace('\\', '/', static::$rootClass));
@@ -303,7 +303,8 @@ trait Relations
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'history' && static::isVersioned()) {
-                $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->getPrimaryKey(),$rel);
+                dump($rel);
+                $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->getPrimaryKeyValue(),$rel);
             }
         }
         

@@ -39,7 +39,7 @@ trait Versioning
      */
     public static function getRevisionsByID($ID, $options = [])
     {
-        $options['conditions'][static::$primaryKey ? static::$primaryKey : 'ID'] = $ID;
+        $options['conditions'][static::getPrimaryKey()] = $ID;
         
         return static::getRevisions($options);
     }
