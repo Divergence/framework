@@ -309,17 +309,15 @@ class RelationsTest extends TestCase
 
     public function testRecursiveHistoryRelationshipType()
     {
-        
-        
-        
         $expected = relationalCanary::getRevisionsByID(20,[
             'order' => [
                 'RevisionID' => 'DESC',
             ]
         ]);
 
-
-        dump($expected->History);
-        //$this->assertEquals($expected,$Canary->History);
+        $History = $expected[0]->History;
+        for($i=0;$i<count($History);$i++) {
+            $this->assertEquals($expected[$i]->data,$History[$i]->data);
+        }
     }
 }

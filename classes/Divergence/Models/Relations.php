@@ -303,7 +303,6 @@ trait Relations
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'history' && static::isVersioned()) {
-                dump($rel);
                 $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->getPrimaryKeyValue(),$rel);
             }
         }
