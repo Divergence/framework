@@ -282,6 +282,21 @@ class MySQLTest extends TestCase
     }
 
     /**
+     * @covers Divergence\IO\Database\MySQL::query
+     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     */
+    public function testHandleErrorDevelopment()
+    {
+        App::$Config['environment']='dev';
+        DB::$defaultDevLabel = 'tests-mysql';
+        $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler',App::$whoops->getHandlers()[0]);
+        $this->expectExceptionMessage('Database error!');
+        $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
+        App::$Config['environment']='production';
+    }
+
+    /**
      * @covers Divergence\IO\Database\MySQL::table
      *
      */

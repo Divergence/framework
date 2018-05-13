@@ -253,12 +253,10 @@ class ActiveRecord
                 elseif ($name == 'Handle') {
                     return $this->ID;
                 }
-                // undefined
-                else {
-                    return null;
-                }
             }
         }
+        // undefined
+        return null;
     }
     
     public function setValue($name, $value)
