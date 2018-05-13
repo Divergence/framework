@@ -3,7 +3,7 @@
     "description": "The Divergence Framework.",
     "keywords": ["framework", "divergence","activerecord","orm"],
     "type": "project",
-    "version": "1.0-beta",
+    "version": "1.0.0-beta",
     "homepage": "https://packagist.org/packages/divergence/divergence",
     "authors": [
         {
@@ -41,5 +41,8 @@
         "fix-code": "php-cs-fixer fix",
         "test": "vendor/bin/phpunit --coverage-clover build/logs/clover.xml"
     },
+    "support": {
+        "issues": "https://github.com/hparadiz/divergence/issues"
+    }
     "license": "MIT"
 }
