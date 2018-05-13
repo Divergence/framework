@@ -3,7 +3,6 @@
     "description": "The Divergence Framework.",
     "keywords": ["framework", "divergence","activerecord","orm"],
     "type": "project",
-    "version": "1.0.0-beta",
     "homepage": "https://packagist.org/packages/divergence/divergence",
     "authors": [
         {
