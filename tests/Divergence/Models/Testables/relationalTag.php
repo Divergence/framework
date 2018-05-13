@@ -1,9 +1,9 @@
 <?php
 namespace Divergence\Tests\Models\Testables;
 
+use Divergence\Models\Relations;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
-use Divergence\Models\Relations;
 
 class relationalTag extends Tag
 {

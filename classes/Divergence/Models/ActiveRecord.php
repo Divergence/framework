@@ -170,8 +170,9 @@ class ActiveRecord
         return isset($value);
     }
     
-    public function getPrimaryKey() {
-        return isset(static::$primaryKey)?static::$primaryKey:'ID';
+    public function getPrimaryKey()
+    {
+        return isset(static::$primaryKey) ? static::$primaryKey : 'ID';
     }
 
     public function getPrimaryKeyValue()

@@ -31,7 +31,7 @@ trait Relations
             if (!empty($class::$relationships)) {
                 static::$_classRelationships[$className] = array_merge(static::$_classRelationships[$className], $class::$relationships);
             }
-            if(static::isVersioned() && !empty($class::$versioningRelationships)) {
+            if (static::isVersioned() && !empty($class::$versioningRelationships)) {
                 static::$_classRelationships[$className] = array_merge(static::$_classRelationships[$className], $class::$versioningRelationships);
             }
         }
@@ -134,19 +134,20 @@ trait Relations
             }
         } elseif ($options['type'] == 'many-many') {
             if (empty($options['class'])) {
-                die('required many-many option "class" missing');
+                throw new Exception('Relationship type many-many option requires a class setting.');
             }
         
             if (empty($options['linkClass'])) {
-                die('required many-many option "linkClass" missing');
+                throw new Exception('Relationship type many-many option requires a linkClass setting.');
             }
                 
             if (empty($options['linkLocal'])) {
-                $options['linkLocal'] = static::$rootClass . 'ID';
+                $options['linkLocal'] = $classShortName . 'ID';
             }
         
             if (empty($options['linkForeign'])) {
-                $options['linkForeign'] = $options['class']::$rootClass . 'ID';
+                $foreignShortname = basename(str_replace('\\', '/', $options['class']::$rootClass));
+                $options['linkForeign'] =  $foreignShortname . 'ID';
             }
         
             if (empty($options['local'])) {
@@ -270,7 +271,7 @@ trait Relations
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'history' && static::isVersioned()) {
-                $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->getPrimaryKeyValue(),$rel);
+                $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->getPrimaryKeyValue(), $rel);
             }
         }
         

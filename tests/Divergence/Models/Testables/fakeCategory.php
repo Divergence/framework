@@ -1,9 +1,9 @@
 <?php
 namespace Divergence\Tests\Models\Testables;
 
-use Divergence\Tests\MockSite\Models\Forum\Category;
-use Divergence\Models\Versioning;
 use Divergence\Models\Relations;
+use Divergence\Models\Versioning;
+use Divergence\Tests\MockSite\Models\Forum\Category;
 
 class fakeCategory extends Category
 {

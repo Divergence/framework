@@ -11,12 +11,13 @@ use Divergence\Models\Versioning;
 use Divergence\Models\ActiveRecord;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\MockSite\Models\Forum\Post;
+use Divergence\Tests\Models\Testables\fakeCanary;
 use Divergence\Tests\MockSite\Models\Forum\Thread;
-use Divergence\Tests\MockSite\Models\Forum\Category;
 
 use Divergence\Tests\Models\Testables\fakeCategory;
-use Divergence\Tests\Models\Testables\relationalCanary;
+use Divergence\Tests\MockSite\Models\Forum\Category;
 use Divergence\Tests\Models\Testables\relationalTag;
+use Divergence\Tests\Models\Testables\relationalCanary;
 
 class RelationsTest extends TestCase
 {
@@ -171,7 +172,7 @@ class RelationsTest extends TestCase
 
         // context-children
         $x = fakeCategory::initRelationship('label', [
-            'type'=>'context-children'
+            'type'=>'context-children',
         ]);
         $this->assertEquals([
             'type'=>'context-children',
@@ -197,19 +198,19 @@ class RelationsTest extends TestCase
             'indexField'=>false,
             'conditions'=>['true'=>'true'],
             'order'=>false,
-        ],$x);
+        ], $x);
 
         // context-parent
         $x = fakeCategory::initRelationship('label', [
-            'type'=>'context-parent'
+            'type'=>'context-parent',
         ]);
         $this->assertEquals([
             'type' => 'context-parent',
             'local'=>'ContextID',
             'foreign'=>'ID',
             'classField'=>'ContextClass',
-            'allowedClasses'=>null
-        ],$x);
+            'allowedClasses'=>null,
+        ], $x);
 
         $x = fakeCategory::initRelationship('label', [
             'type' => 'context-parent',
@@ -218,8 +219,8 @@ class RelationsTest extends TestCase
             'classField'=>'ContextClass',
             'allowedClasses'=>[
                 fakeCanary::class,
-                fakeCategory::class
-            ]
+                fakeCategory::class,
+            ],
         ]);
         $this->assertEquals([
             'type' => 'context-parent',
@@ -228,37 +229,74 @@ class RelationsTest extends TestCase
             'classField'=>'ContextClass',
             'allowedClasses'=>[
                 fakeCanary::class,
-                fakeCategory::class
-            ]
-        ],$x);
-        
+                fakeCategory::class,
+            ],
+        ], $x);
+    }
+
+    public function testInitRelationshipManyMany()
+    {
+        $x = fakeCategory::initRelationship('label', [
+            'type' => 'many-many',
+            'class' => fakeCanary::class,
+            'linkClass' => 'linkyClass',
+        ]);
+
+        $this->assertEquals([
+            'type' => 'many-many',
+            'class' => fakeCanary::class,
+            'linkClass' => 'linkyClass',
+            'linkLocal' => 'CategoryID',
+            'linkForeign' => 'CanaryID',
+            'local' => 'ID',
+            'foreign' => 'ID',
+            'indexField' => false,
+            'conditions' => [],
+            'order' => false,
+        ], $x);
+    }
+
+    public function testInitRelationshipManyManyExceptionMissingClass()
+    {
+        $this->expectExceptionMessage('Relationship type many-many option requires a class setting.');
+        $x = fakeCategory::initRelationship('label', [
+            'type' => 'many-many',
+        ]);
+    }
+
+    public function testInitRelationshipManyManyExceptionLinkClass()
+    {
+        $this->expectExceptionMessage('Relationship type many-many option requires a linkClass setting.');
+        $x = fakeCategory::initRelationship('label', [
+            'type' => 'many-many',
+            'class' => 'anything',
+        ]);
     }
 
     public function testHistoryRelationshipType()
     {
-        
         $Canary = relationalCanary::getByID(1);
         
-        $expected = relationalCanary::getRevisionsByID($Canary->ID,[
+        $expected = relationalCanary::getRevisionsByID($Canary->ID, [
             'order' => [
                 'RevisionID' => 'DESC',
-            ]
+            ],
         ]);
 
-        $this->assertEquals($expected,$Canary->History);
+        $this->assertEquals($expected, $Canary->History);
     }
 
     public function testRecursiveHistoryRelationshipType()
     {
-        $expected = relationalCanary::getRevisionsByID(20,[
+        $expected = relationalCanary::getRevisionsByID(20, [
             'order' => [
                 'RevisionID' => 'DESC',
-            ]
+            ],
         ]);
 
         $History = $expected[0]->History;
-        for($i=0;$i<count($History);$i++) {
-            $this->assertEquals($expected[$i]->data,$History[$i]->data);
+        for ($i=0;$i<count($History);$i++) {
+            $this->assertEquals($expected[$i]->data, $History[$i]->data);
         }
     }
 
@@ -267,12 +305,12 @@ class RelationsTest extends TestCase
         $x = relationalCanary::getByID(1);
         $class = $x->ContextClass;
         $y = $class::getByID($x->ContextID);
-        $this->assertEquals($x->ContextParent,$y);
+        $this->assertEquals($x->ContextParent, $y);
     }
 
     public function testContextChildrenRelationship()
     {
         $x = relationalTag::getByID(7);
-        $this->assertEquals(count($x->ContextChildren),DB::oneValue('SELECT COUNT(*) FROM `canaries`'));
+        $this->assertEquals(count($x->ContextChildren), DB::oneValue('SELECT COUNT(*) FROM `canaries`'));
     }
 }

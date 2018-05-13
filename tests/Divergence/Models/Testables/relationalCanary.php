@@ -1,9 +1,9 @@
 <?php
 namespace Divergence\Tests\Models\Testables;
 
-use Divergence\Tests\Models\Testables\fakeCanary;
-use Divergence\Models\Versioning;
 use Divergence\Models\Relations;
+use Divergence\Models\Versioning;
+use Divergence\Tests\Models\Testables\fakeCanary;
 
 class relationalCanary extends fakeCanary
 {
@@ -11,7 +11,7 @@ class relationalCanary extends fakeCanary
 
     public static $relationships = [
         'ContextParent' => [
-            'type' => 'context-parent'
+            'type' => 'context-parent',
         ],
     ];
 }
