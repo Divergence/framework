@@ -6,14 +6,7 @@ use Divergence\Helpers\Validate;
 use Divergence\Models\RecordValidator;
 use Divergence\Tests\MockSite\Models\Canary;
 
-class TestableRecordValidator extends RecordValidator
-{
-    public function getProtected($field)
-    {
-        return $this->$field;
-    }
-}
-
+use Divergence\Tests\Models\Testables\TestableRecordValidator;
 
 class RecordValidatorTest extends TestCase
 {

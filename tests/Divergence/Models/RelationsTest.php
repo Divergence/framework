@@ -14,32 +14,8 @@ use Divergence\Tests\MockSite\Models\Forum\Post;
 use Divergence\Tests\MockSite\Models\Forum\Thread;
 use Divergence\Tests\MockSite\Models\Forum\Category;
 
-class fakeCategory extends Category
-{
-    use Versioning, Relations;
-
-    public static $relationships = [];
-
-    public static function setClassRelationships($x)
-    {
-        static::$_classRelationships = $x;
-    }
-
-    public static function getClassRelationships()
-    {
-        return static::$_classRelationships;
-    }
-
-    public static function initRelationship($relationship, $options)
-    {
-        return static::_initRelationship($relationship, $options);
-    }
-}
-
-class relationalCanary extends fakeCanary
-{
-    use Versioning,Relations;
-}
+use Divergence\Tests\Models\Testables\fakeCategory;
+use Divergence\Tests\Models\Testables\relationalCanary;
 
 class RelationsTest extends TestCase
 {
@@ -319,5 +295,13 @@ class RelationsTest extends TestCase
         for($i=0;$i<count($History);$i++) {
             $this->assertEquals($expected[$i]->data,$History[$i]->data);
         }
+    }
+
+    public function testContextRelationship()
+    {
+        $x = relationalCanary::getByID(1);
+        $class = $x->ContextClass;
+        $y = $class::getByID($x->ContextID);
+        $this->assertEquals($x->ContextParent,$y);
     }
 }
