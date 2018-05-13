@@ -41,7 +41,7 @@
         "test": "vendor/bin/phpunit --coverage-clover build/logs/clover.xml"
     },
     "support": {
-        "issues": "https://github.com/hparadiz/divergence/issues"
+        "issues": "https://github.com/Divergence/framework/issues"
     },
     "license": "MIT"
 }
