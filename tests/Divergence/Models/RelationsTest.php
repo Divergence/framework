@@ -16,6 +16,7 @@ use Divergence\Tests\MockSite\Models\Forum\Category;
 
 use Divergence\Tests\Models\Testables\fakeCategory;
 use Divergence\Tests\Models\Testables\relationalCanary;
+use Divergence\Tests\Models\Testables\relationalTag;
 
 class RelationsTest extends TestCase
 {
@@ -198,42 +199,6 @@ class RelationsTest extends TestCase
             'order'=>false,
         ],$x);
 
-        // context-child
-        $x = fakeCategory::initRelationship('label', [
-            'type'=>'context-child'
-        ]);
-        $this->assertEquals([
-            'type' => 'context-child',
-            'local'=>'ID',
-            'contextClass'=>fakeCategory::class,
-            'indexField'=>false,
-            'conditions'=>[],
-            'order'=>[
-                'ID'=>'DESC',
-            ],
-        ],$x);
-        $x = fakeCategory::initRelationship('label', [
-            'type' => 'context-child',
-            'local'=>'ID',
-            'contextClass'=>fakeCanary::class,
-            'indexField'=>true,
-            'conditions'=>[],
-            'order'=>[
-                'ID'=>'ASC',
-            ]
-        ]);
-        $this->assertEquals([
-            'type' => 'context-child',
-            'local'=>'ID',
-            'contextClass'=>fakeCanary::class,
-            'indexField'=>true,
-            'conditions'=>[],
-            'order'=>[
-                'ID'=>'ASC',
-            ],
-        ],$x);
-
-
         // context-parent
         $x = fakeCategory::initRelationship('label', [
             'type'=>'context-parent'
@@ -297,11 +262,17 @@ class RelationsTest extends TestCase
         }
     }
 
-    public function testContextRelationship()
+    public function testContextParentRelationship()
     {
         $x = relationalCanary::getByID(1);
         $class = $x->ContextClass;
         $y = $class::getByID($x->ContextID);
         $this->assertEquals($x->ContextParent,$y);
+    }
+
+    public function testContextChildrenRelationship()
+    {
+        $x = relationalTag::getByID(7);
+        $this->assertEquals(count($x->ContextChildren),DB::oneValue('SELECT COUNT(*) FROM `canaries`'));
     }
 }

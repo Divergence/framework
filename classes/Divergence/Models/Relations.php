@@ -116,26 +116,6 @@ trait Relations
             if (!isset($options['order'])) {
                 $options['order'] = false;
             }
-        } elseif ($options['type'] == 'context-child') {
-            if (empty($options['local'])) {
-                $options['local'] = 'ID';
-            }
-                    
-            if (empty($options['contextClass'])) {
-                $options['contextClass'] = get_called_class();
-            }
-                
-            if (!isset($options['indexField'])) {
-                $options['indexField'] = false;
-            }
-                
-            if (!isset($options['conditions'])) {
-                $options['conditions'] = [];
-            }
-                
-            if (!isset($options['order'])) {
-                $options['order'] = ['ID' => 'DESC'];
-            }
         } elseif ($options['type'] == 'context-parent') {
             if (empty($options['local'])) {
                 $options['local'] = 'ContextID';
@@ -242,7 +222,7 @@ trait Relations
                 if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
-                
+
                 $conditions = array_merge($rel['conditions'], [
                     'ContextClass' => $rel['contextClass'],
                     'ContextID' => $this->_getFieldValue($rel['local']),
@@ -259,19 +239,6 @@ trait Relations
                 
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
-            } elseif ($rel['type'] == 'context-child') {
-                $conditions = array_merge($rel['conditions'], [
-                    'ContextClass' => $rel['contextClass'],
-                    'ContextID' => $this->_getFieldValue($rel['local']),
-                ]);
-            
-                $this->_relatedObjects[$relationship] = $rel['class']::getByWhere(
-                    $conditions,
-            
-                    [
-                        'order' => $rel['order'],
-                    ]
-                );
             } elseif ($rel['type'] == 'context-parent') {
                 $className = $this->_getFieldValue($rel['classField']);
                 $this->_relatedObjects[$relationship] = $className ? $className::getByID($this->_getFieldValue($rel['local'])) : null;
