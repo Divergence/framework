@@ -33,7 +33,7 @@ Unit testing the code base and providing code coverage is a primary goal of this
     * Out of the box support for Smarty & Dwoo Templates using the Dwoo engine
     * Respond with a Template instantly `RequestHandler::respond('/path/to/tpl')` 
 
-
+## [Getting Started](https://github.com/Divergence/docs#getting-started)
 
 ### Contributing To Divergence
 
