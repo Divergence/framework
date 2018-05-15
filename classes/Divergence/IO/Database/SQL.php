@@ -1,5 +1,25 @@
 <?php
+
+/*
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Divergence\IO\Database;
+
+use Exception;
+
+/**
+ * SQL.
+ * @package Divergence
+ * @author  Henry Paradiz <henry.paradiz@gmail.com>
+ * @author  Chris Alfano <themightychris@gmail.com>
+ * 
+ */
 
 class SQL
 {
@@ -32,7 +52,6 @@ class SQL
         }
 
         // compile fields
-        $rootClass = $recordClass::$rootClass;
         foreach (static::getAggregateFieldOptions($recordClass) as $fieldId => $field) {
             if ($field['columnName'] == 'RevisionID') {
                 continue;
@@ -68,13 +87,6 @@ class SQL
 
         // compile indexes
         foreach ($indexes as $indexName => $index) {
-            if (is_array($index['fields'])) {
-                $indexFields = $index['fields'];
-            } elseif ($index['fields']) {
-                $indexFields = [$index['fields']];
-            } else {
-                continue;
-            }
 
             // translate field names
             foreach ($index['fields'] as &$indexField) {
@@ -166,7 +178,7 @@ class SQL
                 return sprintf('set("%s")', join('","', array_map([static::class,'escape'], $field['values'])));
 
             default:
-                die("getSQLType: unhandled type $field[type]");
+                throw new Exception("getSQLType: unhandled type $field[type]");
         }
     }
 

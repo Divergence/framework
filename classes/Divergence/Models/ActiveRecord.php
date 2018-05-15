@@ -18,7 +18,9 @@ use Divergence\IO\Database\MySQL as DB;
 /**
  * ActiveRecord.
  *
- * @author Henry Paradiz <henry.paradiz@gmail.com>
+ * @package Divergence
+ * @author  Henry Paradiz <henry.paradiz@gmail.com>
+ * @author  Chris Alfano <themightychris@gmail.com>
  * 
  * @property-read bool isDirty      True if this object has changed fields but not yet saved.
  * @property-read bool isPhantom    True if this object was instantiated as a brand new object and isn't yet saved.
@@ -30,37 +32,40 @@ use Divergence\IO\Database\MySQL as DB;
  * @property-read array validationErrors    An empty string by default. Returns validation errors as an array.
  * @property-read array data                A plain PHP array of the fields and values for this model object.
  * @property-read array originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
+ * 
+ * These are actually part of Divergence\Models\Model but are used in this file as "defaults".
+ * @property   int      ID          Default primary key field.
+ * @property   string   Class       Name of this fully qualified PHP class for use with subclassing to explicitly specify which class to instantiate a record as when pulling from datastore.
+ * @property   mixed    Created     Timestamp of when this record was created. Supports Unix timestamp as well as any format accepted by PHP's strtotime as well as MySQL standard.
+ * @property   int      CreatorID   A standard user ID field for use by your login & authentication system.
  */
 class ActiveRecord
 {
-    // configurables
     /**
-    * Set this to true if you want the table(s) to automatically be created when not found.
-    * @var bool
-    */
+     * @var bool    $autoCreateTables   Set this to true if you want the table(s) to automatically be created when not found.
+     */
     public static $autoCreateTables = true;
     
     /**
-     * Name of table
-     * @var string
+     * @var string  $tableName          Name of table
      */
     public static $tableName = 'records';
     
     /**
-     * Noun to describe singular object
-     * @var string
+     * 
+     * @var string  $singularNoun       Noun to describe singular object
      */
     public static $singularNoun = 'record';
     
     /**
-     * Noun to describe a plurality of objects
-     * @var string
+     * 
+     * @var string  $pluralNoun         Noun to describe a plurality of objects
      */
     public static $pluralNoun = 'records';
     
     /**
-     * Defaults values for field definitions
-     * @var array
+     * 
+     * @var array   $fieldDefaults      Defaults values for field definitions
      */
     public static $fieldDefaults = [
         'type' => 'string'
@@ -92,11 +97,6 @@ class ActiveRecord
      */
     public static $relationships = [];
     
-    /**
-     * Map of existing tables
-     * @var array
-     */
-    public static $tables;
     
     /**
      * Class names of possible contexts
@@ -409,7 +409,7 @@ class ActiveRecord
         
         // validate
         if (!$this->validate($deep)) {
-            throw new RecordValidationException($this, 'Cannot save invalid record');
+            throw new Exception('Cannot save invalid record');
         }
         
         // clear caches
@@ -531,7 +531,7 @@ class ActiveRecord
     public static function getByContext($contextClass, $contextID, $options = [])
     {
         if (!static::fieldExists('ContextClass')) {
-            throw new \Exception('getByContext requires the field ContextClass to be defined');
+            throw new Exception('getByContext requires the field ContextClass to be defined');
         }
 
         $options = Util::prepareOptions($options, [
@@ -642,7 +642,7 @@ class ActiveRecord
     public static function getAllByContext($contextClass, $contextID, $options = [])
     {
         if (!static::fieldExists('ContextClass')) {
-            throw new \Exception('getByContext requires the field ContextClass to be defined');
+            throw new Exception('getByContext requires the field ContextClass to be defined');
         }
 
         $options = Util::prepareOptions($options, [

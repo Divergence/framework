@@ -1,2 +1,2 @@
 <?php
-App\Controllers\SiteRequestHandler::handleRequest();
+Divergence\Controllers\SiteRequestHandler::handleRequest();

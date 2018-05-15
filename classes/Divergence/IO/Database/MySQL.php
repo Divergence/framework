@@ -1,9 +1,18 @@
 <?php
+
+/*
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Divergence\IO\Database;
 
 use \PDO as PDO;
 use \Divergence\App as App;
-use \Divergence\Helpers\Debug as Debug;
 
 class MySQL
 {
@@ -161,7 +170,7 @@ class MySQL
         static::$LastStatement = $Statement;
         
         // finish query log
-        self::finishQueryLog($queryLog, $result);
+        self::finishQueryLog($queryLog);
         
         return $Statement;
     }
