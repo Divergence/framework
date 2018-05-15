@@ -1,4 +1,12 @@
 <?php
+/*
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Models;
 
 use Exception;
@@ -7,6 +15,22 @@ use Divergence\IO\Database\SQL as SQL;
 
 use Divergence\IO\Database\MySQL as DB;
 
+/**
+ * ActiveRecord.
+ *
+ * @author Henry Paradiz <henry.paradiz@gmail.com>
+ * 
+ * @property-read bool isDirty      True if this object has changed fields but not yet saved.
+ * @property-read bool isPhantom    True if this object was instantiated as a brand new object and isn't yet saved.
+ * @property-read bool wasPhantom   True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
+ * @property-read bool isValid      True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem. 
+ * @property-read bool isNew        False by default. Set to true only when an object that isPhantom is saved.
+ * @property-read bool isUpdated    False by default. Set to true when an object that already existed in the data store is saved.
+ * 
+ * @property-read array validationErrors    An empty string by default. Returns validation errors as an array.
+ * @property-read array data                A plain PHP array of the fields and values for this model object.
+ * @property-read array originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
+ */
 class ActiveRecord
 {
     // configurables
@@ -33,12 +57,6 @@ class ActiveRecord
      * @var string
      */
     public static $pluralNoun = 'records';
-    
-    /**
-     * String to identify this class with in administrative interfaces
-     * @var string
-     */
-    public static $classTitle = 'Untitled Class';
     
     /**
      * Defaults values for field definitions
@@ -207,6 +225,9 @@ class ActiveRecord
         }
     }
     
+    /*
+     
+     */
     public function getValue($name)
     {
         switch ($name) {
