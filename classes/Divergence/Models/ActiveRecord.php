@@ -111,6 +111,7 @@ class ActiveRecord
     public static $defaultConditions = [];
     
     public static $primaryKey = null;
+    public static $handleField = 'Handle';
     
     // support subclassing
     public static $rootClass = null;
@@ -274,7 +275,7 @@ class ActiveRecord
                     }
                 }
                 // default Handle to ID if not caught by fieldExists
-                elseif ($name == 'Handle') {
+                elseif ($name == static::$handleField) {
                     return $this->ID;
                 }
             }
@@ -554,8 +555,8 @@ class ActiveRecord
     
     public static function getByHandle($handle)
     {
-        if (static::fieldExists('Handle')) {
-            if ($Record = static::getByField('Handle', $handle)) {
+        if (static::fieldExists(static::$handleField)) {
+            if ($Record = static::getByField(static::$handleField, $handle)) {
                 return $Record;
             }
         }
@@ -834,7 +835,7 @@ class ActiveRecord
     {
         // apply default options
         $options = Util::prepareOptions($options, [
-            'handleField' => 'Handle',
+            'handleField' => static::$handleField,
             'domainConstraints' => [],
             'alwaysSuffix' => false,
             'format' => '%s:%u',
@@ -867,16 +868,13 @@ class ActiveRecord
         return $handle;
     }
     
+
+    // TODO: make the handleField
     public static function generateRandomHandle($length = 32)
     {
-        // apply default options
-        $options = Util::prepareOptions($options, [
-            'handleField' => 'Handle',
-        ]);
-    
         do {
             $handle = substr(md5(mt_rand(0, mt_getrandmax())), 0, $length);
-        } while (static::getByField($options['handleField'], $handle));
+        } while (static::getByField(static::$handleField, $handle));
         
         return $handle;
     }
@@ -1031,7 +1029,7 @@ class ActiveRecord
         
             // handle query error
             if ($ErrorInfo[0] != '00000') {
-                self::handleError($query, $queryLog, $errorHandler);
+                self::handleError($query, $queryLog);
             }
             
             // clear buffer (required for the next query to work without running fetchAll first

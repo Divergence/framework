@@ -41,8 +41,8 @@ class MySQL
             static::config();
             
             $config = array_merge([
-                'host' => 'localhost'
-                ,'port' => 3306,
+                'host' => 'localhost',
+                'port' => 3306,
             ], static::$Config[$label]);
             
             if ($config['socket']) {
@@ -296,9 +296,9 @@ class MySQL
             $Handler = \Divergence\App::$whoops->popHandler();
             
             $Handler->addDataTable("Query Information", [
-                'Query'     	=>	$query
-                ,'Error'		=>	$message
-                ,'ErrorCode'	=>	self::getConnection()->errorCode(),
+                'Query'     	=>	$query,
+                'Error'		=>	$message,
+                'ErrorCode'	=>	self::getConnection()->errorCode(),
             ]);
             
             \Divergence\App::$whoops->pushHandler($Handler);
