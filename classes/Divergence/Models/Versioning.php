@@ -10,17 +10,17 @@ trait Versioning
 {
     public static $versioningFields = [
         'RevisionID' => [
-            'columnName' => 'RevisionID'
-            ,'type' => 'integer'
-            ,'unsigned' => true
-            ,'notnull' => false,
+            'columnName' => 'RevisionID',
+            'type' => 'integer',
+            'unsigned' => true,
+            'notnull' => false,
         ],
     ];
     
     public static $versioningRelationships = [
         'History' => [
-            'type' => 'history'
-            ,'order' => ['RevisionID' => 'DESC'],
+            'type' => 'history',
+            'order' => ['RevisionID' => 'DESC'],
         ],
     ];
     
@@ -52,17 +52,17 @@ trait Versioning
     public static function getRevisionRecords($options = [])
     {
         $options = Util::prepareOptions($options, [
-            'indexField' => false
-            ,'conditions' => []
-            ,'order' => false
-            ,'limit' => false
-            ,'offset' => 0,
+            'indexField' => false,
+            'conditions' => [],
+            'order' => false,
+            'limit' => false,
+            'offset' => 0,
         ]);
                 
         $query = 'SELECT * FROM `%s` WHERE (%s)';
         $params = [
-            static::getHistoryTable()
-            , count($options['conditions']) ? join(') AND (', static::_mapConditions($options['conditions'])) : 1,
+            static::getHistoryTable(),
+            count($options['conditions']) ? join(') AND (', static::_mapConditions($options['conditions'])) : 1,
         ];
         
         if ($options['order']) {

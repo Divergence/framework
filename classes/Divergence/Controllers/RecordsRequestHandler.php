@@ -462,6 +462,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
     
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $data = $Record->data;
             $Record->destroy();
                     
             // call cleanup function after delete
@@ -587,8 +588,8 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
     }
     
-    protected static function throwRecordNotFoundError($message = 'Record not found')
+    protected static function throwRecordNotFoundError()
     {
-        return static::throwNotFoundError($message);
+        return static::throwNotFoundError();
     }
 }

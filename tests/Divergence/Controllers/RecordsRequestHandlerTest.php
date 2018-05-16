@@ -453,8 +453,8 @@ class RecordsRequestHandlerTest extends TestCase
     public function testHandleBrowseRequestInvalidFilter()
     {
         $expected = [
-            'success' => false
-            ,'failed' => [
+            'success' => false,
+            'failed' => [
                 'errors'	=>	'Invalid filter.',
             ],
         ];
@@ -470,8 +470,8 @@ class RecordsRequestHandlerTest extends TestCase
     public function testHandleBrowseRequestInvalidSorter()
     {
         $expected = [
-            'success' => false
-            ,'failed' => [
+            'success' => false,
+            'failed' => [
                 'errors'	=>	'Invalid sorter.',
             ],
         ];

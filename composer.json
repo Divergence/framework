@@ -20,8 +20,8 @@
     },
     "autoload": {
 	    "psr-4": {
-		    "App\\": "classes/App"
-		    ,"Divergence\\": "classes/Divergence"
+		    "App\\": "classes/App",
+		    "Divergence\\": "classes/Divergence"
 	    }
     },
     "autoload-dev": {

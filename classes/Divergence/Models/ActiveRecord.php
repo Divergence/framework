@@ -68,8 +68,8 @@ class ActiveRecord
      * @var array   $fieldDefaults      Defaults values for field definitions
      */
     public static $fieldDefaults = [
-        'type' => 'string'
-        ,'notnull' => true,
+        'type' => 'string',
+        'notnull' => true,
     ];
     
     /**
@@ -435,8 +435,8 @@ class ActiveRecord
                 DB::nonQuery(
                     'INSERT INTO `%s` SET %s',
                     [
-                        static::$tableName
-                        , join(',', $set),
+                        static::$tableName,
+                        join(',', $set),
                     ],
                     [static::class,'handleError']
                 );
@@ -448,10 +448,10 @@ class ActiveRecord
                 DB::nonQuery(
                     'UPDATE `%s` SET %s WHERE `%s` = %u',
                     [
-                        static::$tableName
-                        , join(',', $set)
-                        , static::_cn(static::$primaryKey ? static::$primaryKey : 'ID')
-                        , $this->getPrimaryKeyValue(),
+                        static::$tableName,
+                        join(',', $set),
+                        static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'),
+                        $this->getPrimaryKeyValue(),
                     ],
                     [static::class,'handleError']
                 );
@@ -472,8 +472,8 @@ class ActiveRecord
                         'INSERT INTO `%s` SET %s',
             
                         [
-                            static::getHistoryTable()
-                            , join(',', $set),
+                            static::getHistoryTable(),
+                            join(',', $set),
                         ]
                     );
                 }
@@ -505,8 +505,8 @@ class ActiveRecord
                         'INSERT INTO `%s` SET %s',
             
                     [
-                                static::getHistoryTable()
-                                , join(',', $set),
+                                static::getHistoryTable(),
+                                join(',', $set),
                         ]
                 );
             }
@@ -518,9 +518,9 @@ class ActiveRecord
     public static function delete($id)
     {
         DB::nonQuery('DELETE FROM `%s` WHERE `%s` = %u', [
-            static::$tableName
-            ,static::_cn(static::$primaryKey ? static::$primaryKey : 'ID')
-            ,$id,
+            static::$tableName,
+            static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'),
+            $id,
         ], [static::class,'handleError']);
         
         return DB::affectedRows() > 0;
@@ -538,8 +538,8 @@ class ActiveRecord
         }
 
         $options = Util::prepareOptions($options, [
-            'conditions' => []
-            ,'order' => false,
+            'conditions' => [],
+            'order' => false,
         ]);
         
         $options['conditions']['ContextClass'] = $contextClass;
@@ -580,9 +580,9 @@ class ActiveRecord
     {
         $query = 'SELECT * FROM `%s` WHERE `%s` = "%s" LIMIT 1';
         $params = [
-            static::$tableName
-            , static::_cn($field)
-            , DB::escape($value),
+            static::$tableName,
+            static::_cn($field),
+            DB::escape($value),
         ];
     
         if ($cacheIndex) {
@@ -618,9 +618,9 @@ class ActiveRecord
             'SELECT * FROM `%s` WHERE (%s) %s LIMIT 1',
         
             [
-                static::$tableName
-                , join(') AND (', $conditions)
-                , $order ? 'ORDER BY '.join(',', $order) : '',
+                static::$tableName,
+                join(') AND (', $conditions),
+                $order ? 'ORDER BY '.join(',', $order) : '',
             ],
         
             [static::class,'handleError']
@@ -673,14 +673,14 @@ class ActiveRecord
         $className = get_called_class();
     
         $options = Util::prepareOptions($options, [
-            'indexField' => false
-            ,'order' => false
-            ,'limit' => false
-            ,'offset' => 0
-            ,'calcFoundRows' => !empty($options['limit'])
-            ,'joinRelated' => false
-            ,'extraColumns' => false
-            ,'having' => false,
+            'indexField' => false,
+            'order' => false,
+            'limit' => false,
+            'offset' => 0,
+            'calcFoundRows' => !empty($options['limit']),
+            'joinRelated' => false,
+            'extraColumns' => false,
+            'having' => false,
         ]);
 
         
@@ -696,7 +696,7 @@ class ActiveRecord
                 
                 foreach ($options['joinRelated'] as $relationship) {
                     if (!$rel = static::$_classRelationships[get_called_class()][$relationship]) {
-                        die("joinRelated specifies a relationship that does not exist: $relationship");
+                        throw new Exception("joinRelated specifies a relationship that does not exist: $relationship");
                     }
                                     
                     switch ($rel['type']) {
@@ -707,7 +707,7 @@ class ActiveRecord
                         }
                         default:
                         {
-                            die("getAllRecordsByWhere does not support relationship type $rel[type]");
+                            throw new Exception("getAllRecordsByWhere does not support relationship type $rel[type]");
                         }
                     }
                 }
@@ -743,11 +743,11 @@ class ActiveRecord
         }
         
         $params = [
-            $options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : ''
-            , static::$tableName
-            , $className::$rootClass
-            , $join
-            , $conditions ? join(') AND (', $conditions) : '1',
+            $options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : '',
+            static::$tableName,
+            $className::$rootClass,
+            $join,
+            $conditions ? join(') AND (', $conditions) : '1',
         ];
         
         
@@ -775,11 +775,11 @@ class ActiveRecord
     public static function getAllRecords($options = [])
     {
         $options = Util::prepareOptions($options, [
-            'indexField' => false
-            ,'order' => false
-            ,'limit' => false
-            ,'calcFoundRows' => false
-            ,'offset' => 0,
+            'indexField' => false,
+            'order' => false,
+            'limit' => false,
+            'calcFoundRows' => false,
+            'offset' => 0,
         ]);
         
         $query = 'SELECT '.($options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : '').'* FROM `%s`';
@@ -834,10 +834,10 @@ class ActiveRecord
     {
         // apply default options
         $options = Util::prepareOptions($options, [
-            'handleField' => 'Handle'
-            ,'domainConstraints' => []
-            ,'alwaysSuffix' => false
-            ,'format' => '%s:%u',
+            'handleField' => 'Handle',
+            'domainConstraints' => [],
+            'alwaysSuffix' => false,
+            'format' => '%s:%u',
         ]);
         
         // transliterate accented characters
@@ -1109,15 +1109,15 @@ class ActiveRecord
     {
         $className = get_called_class();
         $optionsMask = [
-            'type' => null
-            ,'length' => null
-            ,'primary' => null
-            ,'unique' => null
-            ,'autoincrement' => null
-            ,'notnull' => null
-            ,'unsigned' => null
-            ,'default' => null
-            ,'values' => null,
+            'type' => null,
+            'length' => null,
+            'primary' => null,
+            'unique' => null,
+            'autoincrement' => null,
+            'notnull' => null,
+            'unsigned' => null,
+            'default' => null,
+            'values' => null,
         ];
         
         // apply default values to field definitions

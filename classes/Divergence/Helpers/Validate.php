@@ -6,8 +6,8 @@ class Validate
     public static function string($string, array $options = [])
     {
         $options = array_merge([
-            'minlength' => 1
-            ,'maxlength' => false,
+            'minlength' => 1,
+            'maxlength' => false,
         ], $options);
 
         return !empty($string) && is_string($string)
@@ -18,8 +18,8 @@ class Validate
     public static function number($number, array $options = [])
     {
         $options = array_merge([
-            'min' => false
-            ,'max' => false,
+            'min' => false,
+            'max' => false,
         ], $options);
 
         return is_numeric($number)

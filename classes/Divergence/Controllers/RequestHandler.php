@@ -66,8 +66,8 @@ abstract class RequestHandler
                     'data' => 	$responseData,
                 ];
                 return [
-                    'TemplatePath'	=> $TemplatePath
-                    ,'data'			=> $data,
+                    'TemplatePath'	=> $TemplatePath,
+                    'data'			=> $data,
                 ];
 
             default:
