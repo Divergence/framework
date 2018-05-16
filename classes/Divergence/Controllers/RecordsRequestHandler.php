@@ -1,6 +1,8 @@
 <?php
 namespace Divergence\Controllers;
 
+use Exception;
+
 use Divergence\Helpers\JSON;
 use Divergence\Helpers\JSONP;
 use Divergence\Helpers\Util as Util;
@@ -79,7 +81,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
                     return static::handleRecordRequest($Record);
                 } else {
-                    return static::throwRecordNotFoundError($action);
+                    return static::throwRecordNotFoundError();
                 }
             }
         }
@@ -276,7 +278,7 @@ abstract class RecordsRequestHandler extends RequestHandler
                 
                 // call template function
                 static::onRecordSaved($Record, $datum);
-            } catch (RecordValidationException $e) {
+            } catch (Exception $e) {
                 $failed[] = [
                     'record' => $Record->data,
                     'validationErrors' => $Record->validationErrors,
@@ -431,10 +433,10 @@ abstract class RecordsRequestHandler extends RequestHandler
         
                 // fire created response
                 $responseID = static::getTemplateName($className::$singularNoun).'Saved';
-                $responseData = static::getEditResponse($responseID, [
+                $responseData = [
                     'success' => true,
                     'data' => $Record,
-                ]);
+                ];
                 return static::respond($responseID, $responseData);
             }
             
@@ -442,10 +444,10 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
         
         $responseID = static::getTemplateName($className::$singularNoun).'Edit';
-        $responseData = static::getEditResponse($responseID, [
+        $responseData = [
             'success' => false,
             'data' => $Record,
-        ]);
+        ];
     
         return static::respond($responseID, $responseData);
     }
@@ -561,10 +563,10 @@ abstract class RecordsRequestHandler extends RequestHandler
     
     public static function applyRecordDelta(ActiveRecord $Record, $data)
     {
-        if (static::$editableFields) {
+        if (is_array(static::$editableFields)) {
             $Record->setFields(array_intersect_key($data, array_flip(static::$editableFields)));
         } else {
-            return $Record->setFields($data);
+            $Record->setFields($data);
         }
     }
     
@@ -585,13 +587,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
     }
     
-    protected static function getEditResponse($responseID, $responseData)
-    {
-        return $responseData;
-    }
-    
-    
-    protected static function throwRecordNotFoundError($handle, $message = 'Record not found')
+    protected static function throwRecordNotFoundError($message = 'Record not found')
     {
         return static::throwNotFoundError($message);
     }

@@ -290,7 +290,7 @@ class MySQLTest extends TestCase
     {
         App::$Config['environment']='dev';
         DB::$defaultDevLabel = 'tests-mysql';
-        $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler',App::$whoops->getHandlers()[0]);
+        $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$whoops->getHandlers()[0]);
         $this->expectExceptionMessage('Database error!');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
         App::$Config['environment']='production';

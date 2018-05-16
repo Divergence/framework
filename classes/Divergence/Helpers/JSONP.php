@@ -15,7 +15,7 @@ namespace Divergence\Helpers;
  * ActiveRecord.
  *
  * @author Henry Paradiz <henry.paradiz@gmail.com>
- * 
+ *
  */
 
 class JSONP

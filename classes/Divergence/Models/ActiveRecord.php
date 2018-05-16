@@ -21,18 +21,18 @@ use Divergence\IO\Database\MySQL as DB;
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
  * @author  Chris Alfano <themightychris@gmail.com>
- * 
+ *
  * @property-read bool isDirty      True if this object has changed fields but not yet saved.
  * @property-read bool isPhantom    True if this object was instantiated as a brand new object and isn't yet saved.
  * @property-read bool wasPhantom   True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
- * @property-read bool isValid      True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem. 
+ * @property-read bool isValid      True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem.
  * @property-read bool isNew        False by default. Set to true only when an object that isPhantom is saved.
  * @property-read bool isUpdated    False by default. Set to true when an object that already existed in the data store is saved.
- * 
+ *
  * @property-read array validationErrors    An empty string by default. Returns validation errors as an array.
  * @property-read array data                A plain PHP array of the fields and values for this model object.
  * @property-read array originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
- * 
+ *
  * These are actually part of Divergence\Models\Model but are used in this file as "defaults".
  * @property   int      ID          Default primary key field.
  * @property   string   Class       Name of this fully qualified PHP class for use with subclassing to explicitly specify which class to instantiate a record as when pulling from datastore.
@@ -52,19 +52,19 @@ class ActiveRecord
     public static $tableName = 'records';
     
     /**
-     * 
+     *
      * @var string  $singularNoun       Noun to describe singular object
      */
     public static $singularNoun = 'record';
     
     /**
-     * 
+     *
      * @var string  $pluralNoun         Noun to describe a plurality of objects
      */
     public static $pluralNoun = 'records';
     
     /**
-     * 
+     *
      * @var array   $fieldDefaults      Defaults values for field definitions
      */
     public static $fieldDefaults = [
@@ -150,6 +150,9 @@ class ActiveRecord
     protected $_validationErrors;
     protected $_originalValues;
 
+    /*
+     *  @return ActiveRecord    Instance of the value of $this->Class
+     */
     public function __construct($record = [], $isDirty = false, $isPhantom = null)
     {
         $this->_record = $record;
@@ -226,7 +229,7 @@ class ActiveRecord
     }
     
     /*
-     
+
      */
     public function getValue($name)
     {
