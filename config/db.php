@@ -16,7 +16,7 @@ return [
      *	This configuration will be used instead of the default if
      *	the file .dev is detected inside of $_SERVER['DOCUMENT_ROOT']
      *
-     *	You may override this behaviour in /config/DB.config.php
+     *	You may override this behaviour in /config/app.php
      *
      */
     'dev-mysql' => [

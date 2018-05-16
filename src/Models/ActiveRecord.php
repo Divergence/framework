@@ -684,6 +684,7 @@ class ActiveRecord
             'having' => false,
         ]);
 
+        $join = '';
         
         // handle joining related tables
         if (static::isRelational()) {
