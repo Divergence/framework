@@ -8,6 +8,9 @@ This collection of classes contains my favorite building blocks for developing w
 
 Unit testing the code base and providing code coverage is a primary goal of this project.
 
+## [Documentation](https://github.com/Divergence/docs#divergence-framework-documentation)
+## [Getting Started](https://github.com/Divergence/docs/blob/master/gettingstarted.md#getting-started)
+
 # Main Features
  * Models
     * Real PHP classes.
@@ -31,9 +34,7 @@ Unit testing the code base and providing code coverage is a primary goal of this
  
  * Templates
     * Out of the box support for Smarty & Dwoo Templates using the Dwoo engine
-    * Respond with a Template instantly `RequestHandler::respond('/path/to/tpl')` 
-
-## [Getting Started](https://github.com/Divergence/docs#getting-started)
+    * Respond with a Template instantly `RequestHandler::respond('/path/to/tpl')`
 
 ### Contributing To Divergence
 

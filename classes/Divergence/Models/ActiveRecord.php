@@ -419,7 +419,7 @@ class ActiveRecord
         // clear caches
         foreach ($this->getClassFields() as $field => $options) {
             if (!empty($options['unique']) || !empty($options['primary'])) {
-                $key = sprintf('%s/%s:%s', static::$tableName, $field, $this->getValue($field));
+                $key = sprintf('%s/%s', static::$tableName, $field);
                 DB::clearCachedRecord($key);
             }
         }
