@@ -44,5 +44,6 @@ Unit testing the code base and providing code coverage is a primary goal of this
 
 The Divergence framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
 
-### Achnowledgements
-Based on the [PHP framework portion](https://github.com/JarvusInnovations/Emergence-Skeleton) of [Emergence](https://github.com/JarvusInnovations/Emergence).
+### Credits
+- Much of the original code in this framework was published as part of the [PHP framework portion](https://github.com/JarvusInnovations/Emergence-Skeleton) of [Emergence](https://github.com/JarvusInnovations/Emergence) by [Chris Alfano](https://github.com/themightychris).
+ - This project is maintained by [Henry Paradiz](https://github.com/hparadiz)
