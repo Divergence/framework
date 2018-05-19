@@ -1286,16 +1286,8 @@ class ActiveRecord
             }
         }
         
-        
         if (!static::fieldExists($field)) {
-            // set relationship
-            if (static::isRelational()) {
-                if (static::_relationshipExists($field)) {
-                    return $this->_setRelationshipValue($field, $value);
-                } else {
-                    return false;
-                }
-            }
+            return false;
         }
         $fieldOptions = static::$_classFields[get_called_class()][$field];
 
