@@ -13,9 +13,9 @@
     </listeners>
     <filter>
         <whitelist>
-            <directory>./classes</directory>
+            <directory>./src</directory>
             <exclude>
-                <directory>./classes/App</directory>
+                <directory>./src/App</directory>
                 <directory>./public</directory>
                 <directory>./vendor</directory>
                 <directory>./tests</directory>
