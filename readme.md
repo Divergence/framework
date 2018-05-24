@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/Divergence/framework.svg?branch=master)](https://travis-ci.org/Divergence/framework) [![Coverage Status](https://coveralls.io/repos/github/Divergence/framework/badge.svg?branch=master)](https://coveralls.io/github/Divergence/framework?branch=master) [![codecov](https://codecov.io/gh/Divergence/framework/branch/master/graph/badge.svg)](https://codecov.io/gh/Divergence/framework) [![Latest Stable Version](https://poser.pugx.org/divergence/divergence/downloads)](https://packagist.org/packages/divergence/divergence) [![Latest Unstable Version](https://poser.pugx.org/divergence/divergence/v/stable)](https://packagist.org/packages/divergence/divergence) [![Total Downloads](https://poser.pugx.org/divergence/divergence/v/unstable)](https://packagist.org/packages/divergence/divergence) [![License](https://poser.pugx.org/divergence/divergence/license)](https://packagist.org/packages/divergence/divergence)
 
-# About
+---
 Divergence is a PHP framework designed for rapid development and modern practices without becoming an over abstracted mess.
 
 ## [Documentation](https://github.com/Divergence/docs#divergence-framework-documentation)
