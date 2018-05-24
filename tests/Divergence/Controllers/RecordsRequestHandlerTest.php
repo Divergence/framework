@@ -18,6 +18,8 @@ use Divergence\Tests\MockSite\Controllers\TagRequestHandler;
 use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\SecureCanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\ParanoidCanaryRequestHandler;
+use Divergence\Tests\Models\Testables\fakeCanary;
+use Divergence\Tests\Models\Testables\relationalCanary;
 
 /*
  * About Unit Testing Divergence Controllers
@@ -743,6 +745,19 @@ class RecordsRequestHandlerTest extends TestCase
         CanaryRequestHandler::$editableFields = null;
     }
 
+    public function testAccessDeniedBrowse()
+    {
+        // create
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        SecureCanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json';
+        ob_start();
+        SecureCanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('Login required.', $x['failed']['errors']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
 
     public function testAccessDeniedCreate()
     {
