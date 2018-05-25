@@ -26,7 +26,7 @@ Unit testing the code base and providing code coverage is a primary goal of this
 
  * Routing
     * Simpler, faster, tree based routing system.
-    * Built with basic class inheritence in mind.
+    * Built with basic class inheritance in mind.
 
 * Controllers
     * Integrated CRUD controllers load templates or JSON depending on the response mode. 

@@ -8,6 +8,8 @@ use Divergence\IO\Database\MySQL as DB;
 
 trait Versioning
 {
+    public $wasDirty = false;
+
     public static $versioningFields = [
         'RevisionID' => [
             'columnName' => 'RevisionID',
@@ -78,6 +80,32 @@ trait Versioning
             return DB::table(static::_cn($options['indexField']), $query, $params);
         } else {
             return DB::allRecords($query, $params);
+        }
+    }
+
+    public function beforeVersionedSave()
+    {
+        $this->wasDirty = false;
+        if ($this->isDirty && static::$createRevisionOnSave) {
+            // update creation time
+            $this->Created = time();
+            $this->wasDirty = true;
+        }
+    }
+
+    public function afterVersionedSave()
+    {
+        if ($this->wasDirty && static::$createRevisionOnSave) {
+            // save a copy to history table
+            $recordValues = $this->_prepareRecordValues();
+            $set = static::_mapValuesToSet($recordValues);
+            DB::nonQuery(
+                'INSERT INTO `%s` SET %s',
+                [
+                    static::getHistoryTable(),
+                    join(',', $set),
+                ]
+            );
         }
     }
 }

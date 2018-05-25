@@ -383,28 +383,44 @@ class ActiveRecord
     {
         return $this->_originalValues[$field];
     }
-    
-    public function save($deep = true)
+
+    public function clearCaches()
     {
-        
-        // run before save
+        foreach ($this->getClassFields() as $field => $options) {
+            if (!empty($options['unique']) || !empty($options['primary'])) {
+                $key = sprintf('%s/%s', static::$tableName, $field);
+                DB::clearCachedRecord($key);
+            }
+        }
+    }
+    
+    public function beforeSave()
+    {
         foreach (static::$_classBeforeSave as $beforeSave) {
             if (is_callable($beforeSave)) {
                 $beforeSave($this);
             }
         }
-        
-        if (static::isVersioned()) {
-            $wasDirty = false;
-        
-            if ($this->isDirty && static::$createRevisionOnSave) {
-                // update creation time
-                $this->Created = time();
-                
-                $wasDirty = true;
+    }
+
+
+    public function afterSave()
+    {
+        foreach (static::$_classAfterSave as $afterSave) {
+            if (is_callable($afterSave)) {
+                $afterSave($this);
             }
         }
+    }
+
+    public function save($deep = true)
+    {
+        // run before save
+        $this->beforeSave();   
         
+        if (static::isVersioned()) {
+            $this->beforeVersionedSave();
+        }
         
         // set created
         if (static::fieldExists('Created') && (!$this->Created || ($this->Created == 'CURRENT_TIMESTAMP'))) {
@@ -416,13 +432,7 @@ class ActiveRecord
             throw new Exception('Cannot save invalid record');
         }
         
-        // clear caches
-        foreach ($this->getClassFields() as $field => $options) {
-            if (!empty($options['unique']) || !empty($options['primary'])) {
-                $key = sprintf('%s/%s', static::$tableName, $field);
-                DB::clearCachedRecord($key);
-            }
-        }
+        $this->clearCaches();
 
         if ($this->isDirty) {
             // prepare record values
@@ -464,29 +474,10 @@ class ActiveRecord
             $this->_isDirty = false;
             
             if (static::isVersioned()) {
-                if ($wasDirty && static::$createRevisionOnSave) {
-                    // save a copy to history table
-                    $recordValues = $this->_prepareRecordValues();
-                    $set = static::_mapValuesToSet($recordValues);
-            
-                    DB::nonQuery(
-                        'INSERT INTO `%s` SET %s',
-            
-                        [
-                            static::getHistoryTable(),
-                            join(',', $set),
-                        ]
-                    );
-                }
+                $this->afterVersionedSave();
             }
         }
-        
-        // run after save
-        foreach (static::$_classAfterSave as $afterSave) {
-            if (is_callable($afterSave)) {
-                $afterSave($this);
-            }
-        }
+        $this->afterSave();
     }
     
     
