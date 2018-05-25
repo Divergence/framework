@@ -188,7 +188,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (!static::checkReadAccess($Record)) {
             return static::throwUnauthorizedError();
         }
-        
+
         switch ($action ? $action : $action = static::shiftPath()) {
             case '':
             case false:
@@ -219,6 +219,15 @@ abstract class RecordsRequestHandler extends RequestHandler
     }
 
 
+    public static function prepareResponseModeJSON($methods = [])
+    {
+        if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], $methods)) {
+            $JSONData = JSON::getRequestData();
+            if (is_array($JSONData)) {
+                $_REQUEST = $JSONData;
+            }
+        }
+    }
 
     public static function handleMultiSaveRequest()
     {
@@ -226,26 +235,19 @@ abstract class RecordsRequestHandler extends RequestHandler
     
         $PrimaryKey = $className::getPrimaryKey();
             
-        if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT'])) {
-            $JSONData = JSON::getRequestData();
-            if (is_array($JSONData)) {
-                $_REQUEST = $JSONData;
-            }
-        }
+        static::prepareResponseModeJSON(['POST','PUT']);
         
         if ($className::fieldExists(key($_REQUEST['data']))) {
             $_REQUEST['data'] = [$_REQUEST['data']];
         }
 
         if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
-            if (static::$responseMode == 'json') {
-                return static::respond('error', [
-                    'success' => false,
-                    'failed' => [
-                        'errors'	=>	'Save expects "data" field as array of records.',
-                    ],
-                ]);
-            }
+            return static::respond('error', [
+                'success' => false,
+                'failed' => [
+                    'errors'	=>	'Save expects "data" field as array of records.',
+                ],
+            ]);
         }
         
         $results = [];
@@ -313,13 +315,8 @@ abstract class RecordsRequestHandler extends RequestHandler
         $className = static::$recordClass;
 
         $PrimaryKey = $className::getPrimaryKey();
-            
-        if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT','DELETE'])) {
-            $JSONData = JSON::getRequestData();
-            if (is_array($JSONData)) {
-                $_REQUEST = $JSONData;
-            }
-        }
+
+        static::prepareResponseModeJSON(['POST','PUT','DELETE']);
         
         if ($className::fieldExists(key($_REQUEST['data']))) {
             $_REQUEST['data'] = [$_REQUEST['data']];
