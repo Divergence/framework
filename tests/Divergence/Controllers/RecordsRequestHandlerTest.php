@@ -14,12 +14,12 @@ use Divergence\IO\Database\MySQL as DB;
 
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
+use Divergence\Tests\Models\Testables\fakeCanary;
+use Divergence\Tests\Models\Testables\relationalCanary;
 use Divergence\Tests\MockSite\Controllers\TagRequestHandler;
 use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\SecureCanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\ParanoidCanaryRequestHandler;
-use Divergence\Tests\Models\Testables\fakeCanary;
-use Divergence\Tests\Models\Testables\relationalCanary;
 
 /*
  * About Unit Testing Divergence Controllers

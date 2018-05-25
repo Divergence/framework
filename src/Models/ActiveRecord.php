@@ -416,7 +416,7 @@ class ActiveRecord
     public function save($deep = true)
     {
         // run before save
-        $this->beforeSave();   
+        $this->beforeSave();
         
         if (static::isVersioned()) {
             $this->beforeVersionedSave();
@@ -845,8 +845,6 @@ class ActiveRecord
         
         $handle = trim($handle, '-_');
         
-        $where = $options['domainConstraints'];
-        
         $incarnation = 0;
         do {
             // TODO: check for repeat posting here?
@@ -1031,6 +1029,36 @@ class ActiveRecord
         } else {
             return DB::handleError($query, $queryLog);
         }
+    }
+
+    public function _setDateValue($value)
+    {
+        if (is_numeric($value)) {
+            $value = date('Y-m-d', $value);
+        } elseif (is_string($value)) {
+            // check if m/d/y format
+            if (preg_match('/^(\d{2})\D?(\d{2})\D?(\d{4}).*/', $value)) {
+                $value = preg_replace('/^(\d{2})\D?(\d{2})\D?(\d{4}).*/', '$3-$1-$2', $value);
+            }
+            
+            // trim time and any extra crap, or leave as-is if it doesn't fit the pattern
+            $value = preg_replace('/^(\d{4})\D?(\d{2})\D?(\d{2}).*/', '$1-$2-$3', $value);
+        } elseif (is_array($value) && count(array_filter($value))) {
+            // collapse array date to string
+            $value = sprintf(
+                '%04u-%02u-%02u',
+                is_numeric($value['yyyy']) ? $value['yyyy'] : 0,
+                is_numeric($value['mm']) ? $value['mm'] : 0,
+                is_numeric($value['dd']) ? $value['dd'] : 0
+            );
+        } else {
+            if ($value = strtotime($value)) {
+                $value = date('Y-m-d', $value) ?: null;
+            } else {
+                $value = null;
+            }
+        }
+        return $value;
     }
     
     protected static function _defineEvents()
@@ -1262,6 +1290,67 @@ class ActiveRecord
         }
     }
     
+    protected function _setStringValue($fieldOptions, $value)
+    {
+        if (!$fieldOptions['notnull'] && $fieldOptions['blankisnull'] && ($value === '' || $value === null)) {
+            return null;
+        }
+        return @mb_convert_encoding($value, DB::$encoding, 'auto'); // normalize encoding to ASCII
+    }
+
+    protected function _setBooleanValue($value)
+    {
+        return (boolean)$value;
+    }
+
+    protected function _setDecimalValue($value)
+    {
+        return preg_replace('/[^-\d.]/', '', $value);
+    }
+
+    protected function _setIntegerValue($fieldOptions, $value)
+    {
+        $value = preg_replace('/[^-\d]/', '', $value);
+        if (!$fieldOptions['notnull'] && $value === '') {
+            return null;
+        }
+        return $value;
+    }
+
+    protected function _setTimestampValue($value)
+    {
+        if (is_numeric($value)) {
+            return date('Y-m-d H:i:s', $value);
+        } elseif (is_string($value)) {
+            // trim any extra crap, or leave as-is if it doesn't fit the pattern
+            if (preg_match('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/')) {
+                return preg_replace('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/', '$1-$2-$3 $4:$5:$6', $value);
+            } else {
+                return date('Y-m-d H:i:s', strtotime($value));
+            }
+        }
+        return null;
+    }
+
+    protected function _setSerializedValue($value)
+    {
+        return serialize($value);
+    }
+
+    protected function _setEnumValue($fieldOptions, $value)
+    {
+        return (in_array($value, $fieldOptions['values']) ? $value : null);
+    }
+
+    protected function _setListValue($fieldOptions, $value)
+    {
+        if (!is_array($value)) {
+            $delim = empty($fieldOptions['delimiter']) ? ',' : $fieldOptions['delimiter'];
+            $value = array_filter(preg_split('/\s*'.$delim.'\s*/', $value));
+        }
+        return $value;
+    }
+
     /**
      * Sets given field's value
      * @param string $field Name of field
@@ -1293,25 +1382,19 @@ class ActiveRecord
             case 'clob':
             case 'string':
             {
-                if (!$fieldOptions['notnull'] && $fieldOptions['blankisnull'] && ($value === '' || $value === null)) {
-                    $value = null;
-                    break;
-                }
-            
-                // normalize encoding to ASCII
-                $value = @mb_convert_encoding($value, DB::$encoding, 'auto');
-                
+                $value = $this->_setStringValue($fieldOptions, $value);
                 break;
             }
             
             case 'boolean':
             {
-                $value = (boolean)$value;
+                $value = $this->_setBooleanValue($value);
+                break;
             }
             
             case 'decimal':
             {
-                $value = preg_replace('/[^-\d.]/', '', $value);
+                $value = $this->_setDecimalValue($value);
                 break;
             }
             
@@ -1319,57 +1402,19 @@ class ActiveRecord
             case 'uint':
             case 'integer':
             {
-                $value = preg_replace('/[^-\d]/', '', $value);
-                
-                if (!$fieldOptions['notnull'] && $value === '') {
-                    $value = null;
-                }
-                
+                $value = $this->_setIntegerValue($fieldOptions, $value);
                 break;
             }
             
             case 'timestamp':
             {
-                if (is_numeric($value)) {
-                    $value = date('Y-m-d H:i:s', $value);
-                } elseif (is_string($value)) {
-                    // trim any extra crap, or leave as-is if it doesn't fit the pattern
-                    if (preg_match('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/')) {
-                        $value = preg_replace('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/', '$1-$2-$3 $4:$5:$6', $value);
-                    } else {
-                        $value = date('Y-m-d H:i:s', strtotime($value));
-                    }
-                }
+                $value = $this->_setTimestampValue($value);
                 break;
             }
             
             case 'date':
             {
-                if (is_numeric($value)) {
-                    $value = date('Y-m-d', $value);
-                } elseif (is_string($value)) {
-                    // check if m/d/y format
-                    if (preg_match('/^(\d{2})\D?(\d{2})\D?(\d{4}).*/', $value)) {
-                        $value = preg_replace('/^(\d{2})\D?(\d{2})\D?(\d{4}).*/', '$3-$1-$2', $value);
-                    }
-                    
-                    // trim time and any extra crap, or leave as-is if it doesn't fit the pattern
-                    $value = preg_replace('/^(\d{4})\D?(\d{2})\D?(\d{2}).*/', '$1-$2-$3', $value);
-                } elseif (is_array($value) && count(array_filter($value))) {
-                    // collapse array date to string
-                    $value = sprintf(
-                        '%04u-%02u-%02u',
-                        is_numeric($value['yyyy']) ? $value['yyyy'] : 0,
-                        is_numeric($value['mm']) ? $value['mm'] : 0,
-                        is_numeric($value['dd']) ? $value['dd'] : 0
-                    );
-                } else {
-                    if ($value = strtotime($value)) {
-                        $value = date('Y-m-d', $value) ?: null;
-                    } else {
-                        $value = null;
-                    }
-                }
+                $value = $this->_setDateValue($value);
                 break;
             }
             
@@ -1377,22 +1422,18 @@ class ActiveRecord
             case 'serialized':
             {
                 $this->_convertedValues[$field] = $value;
-                $value = serialize($value);
+                $value = $this->_setSerializedValue($value);
                 break;
             }
             case 'enum':
             {
-                $value = in_array($value, $fieldOptions['values']) ? $value : null;
+                $value = $this->_setEnumValue($fieldOptions, $value);
                 break;
             }
             case 'set':
             case 'list':
             {
-                if (!is_array($value)) {
-                    $delim = empty($fieldOptions['delimiter']) ? ',' : $fieldOptions['delimiter'];
-                    $value = array_filter(preg_split('/\s*'.$delim.'\s*/', $value));
-                }
-            
+                $value = $this->_setListValue($fieldOptions, $value);
                 $this->_convertedValues[$field] = $value;
                 $forceDirty = true;
                 break;
@@ -1415,8 +1456,6 @@ class ActiveRecord
                     }
                 }
             }
-            
-            
             return true;
         } else {
             return false;
