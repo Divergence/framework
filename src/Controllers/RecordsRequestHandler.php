@@ -116,11 +116,11 @@ abstract class RecordsRequestHandler extends RequestHandler
         $limit = !empty($_REQUEST['limit']) && is_numeric($_REQUEST['limit']) ? $_REQUEST['limit'] : static::$browseLimitDefault;
         $offset = !empty($_REQUEST['offset']) && is_numeric($_REQUEST['offset']) ? $_REQUEST['offset'] : false;
         
-        $options = Util::prepareOptions($options, [
+        $options = [
             'limit' =>  $limit,
             'offset' => $offset,
             'order' => static::$browseOrder,
-        ]);
+        ];
 
         return $options;
     }
