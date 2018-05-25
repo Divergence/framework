@@ -96,23 +96,23 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
     }
 
-    public static function handleBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = [])
+    public static function prepareBrowseConditions($conditions = [])
     {
-        if (!static::checkBrowseAccess(func_get_args())) {
-            return static::throwUnauthorizedError();
-        }
-            
         if (static::$browseConditions) {
             if (!is_array(static::$browseConditions)) {
                 static::$browseConditions = [static::$browseConditions];
             }
             $conditions = array_merge(static::$browseConditions, $conditions);
         }
-        
+        return $conditions;
+    }
+
+    public static function prepareDefaultBrowseOptions()
+    {
         if (empty($_REQUEST['offset']) && is_numeric($_REQUEST['start'])) {
             $_REQUEST['offset'] = $_REQUEST['start'];
         }
-        
+
         $limit = !empty($_REQUEST['limit']) && is_numeric($_REQUEST['limit']) ? $_REQUEST['limit'] : static::$browseLimitDefault;
         $offset = !empty($_REQUEST['offset']) && is_numeric($_REQUEST['offset']) ? $_REQUEST['offset'] : false;
         
@@ -121,7 +121,20 @@ abstract class RecordsRequestHandler extends RequestHandler
             'offset' => $offset,
             'order' => static::$browseOrder,
         ]);
+
+        return $options;
+    }
+
+    public static function handleBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = [])
+    {
+        if (!static::checkBrowseAccess(func_get_args())) {
+            return static::throwUnauthorizedError();
+        }
         
+        $conditions = static::prepareBrowseConditions($conditions);
+        
+        $options = static::prepareDefaultBrowseOptions();
+
         // process sorter
         if (!empty($_REQUEST['sort'])) {
             $sort = json_decode($_REQUEST['sort'], true);
