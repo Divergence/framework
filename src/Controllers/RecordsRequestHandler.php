@@ -75,10 +75,6 @@ abstract class RecordsRequestHandler extends RequestHandler
             default:
             {
                 if ($Record = static::getRecordByHandle($action)) {
-                    if (!static::checkReadAccess($Record)) {
-                        return static::throwUnauthorizedError();
-                    }
-
                     return static::handleRecordRequest($Record);
                 } else {
                     return static::throwRecordNotFoundError();
@@ -189,6 +185,10 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public static function handleRecordRequest(ActiveRecord $Record, $action = false)
     {
+        if (!static::checkReadAccess($Record)) {
+            return static::throwUnauthorizedError();
+        }
+        
         switch ($action ? $action : $action = static::shiftPath()) {
             case '':
             case false:
