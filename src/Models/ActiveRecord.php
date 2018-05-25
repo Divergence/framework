@@ -695,8 +695,8 @@ class ActiveRecord
                 $query .= ', ' . $options['extraColumns'];
             }
         }
-        $query .= ' FROM `%2$s` AS `%3$s` %4$s';
-        $query .= ' WHERE (%5$s)';
+        $query .= ' FROM `%2$s` AS `%3$s`';
+        $query .= ' WHERE (%4$s)';
         
         if (!empty($options['having'])) {
             $query .= ' HAVING (' . (is_array($options['having']) ? join(') AND (', static::_mapConditions($options['having'])) : $options['having']) . ')';
@@ -706,12 +706,9 @@ class ActiveRecord
             $options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : '',
             static::$tableName,
             $className::$rootClass,
-            $join,
             $conditions ? join(') AND (', $conditions) : '1',
         ];
         
-        
-
         if ($options['order']) {
             $query .= ' ORDER BY ' . join(',', static::_mapFieldOrder($options['order']));
         }
