@@ -670,42 +670,9 @@ class ActiveRecord
             'limit' => false,
             'offset' => 0,
             'calcFoundRows' => !empty($options['limit']),
-            'joinRelated' => false,
             'extraColumns' => false,
             'having' => false,
         ]);
-
-        $join = '';
-        
-        // handle joining related tables
-        if (static::isRelational()) {
-            $join = '';
-            if ($options['joinRelated']) {
-                if (is_string($options['joinRelated'])) {
-                    $options['joinRelated'] = [$options['joinRelated']];
-                }
-                
-                // prefix any conditions
-                
-                foreach ($options['joinRelated'] as $relationship) {
-                    if (!$rel = static::$_classRelationships[get_called_class()][$relationship]) {
-                        throw new Exception("joinRelated specifies a relationship that does not exist: $relationship");
-                    }
-                                    
-                    switch ($rel['type']) {
-                        case 'one-one':
-                        {
-                            $join .= sprintf(' JOIN `%1$s` AS `%2$s` ON(`%2$s`.`%3$s` = `%4$s`)', $rel['class']::$tableName, $relationship::$rootClass, $rel['foreign'], $rel['local']);
-                            break;
-                        }
-                        default:
-                        {
-                            throw new Exception("getAllRecordsByWhere does not support relationship type $rel[type]");
-                        }
-                    }
-                }
-            }
-        } // isRelational
         
         // initialize conditions
         if ($conditions) {
