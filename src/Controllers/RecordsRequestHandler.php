@@ -229,20 +229,25 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
     }
 
-    public static function processDatumSave($datum)
+    public static function getDatumRecord($datum)
     {
         $className = static::$recordClass;
         $PrimaryKey = $className::getPrimaryKey();
-
-        // get record
         if (empty($datum[$PrimaryKey])) {
-            $Record = new $className::$defaultClass();
-            static::onRecordCreated($Record, $datum);
+            $record = new $className::$defaultClass();
+            static::onRecordCreated($record, $datum);
         } else {
-            if (!$Record = $className::getByID($datum[$PrimaryKey])) {
+            if (!$record = $className::getByID($datum[$PrimaryKey])) {
                 throw new Exception('Record not found');
             }
         }
+        return $record;
+    }
+
+    public static function processDatumSave($datum)
+    {
+        // get record
+        $Record = static::getDatumRecord($datum);
         
         // check write access
         if (!static::checkWriteAccess($Record)) {
@@ -266,18 +271,13 @@ abstract class RecordsRequestHandler extends RequestHandler
             // call template function
             static::onRecordSaved($Record, $datum);
         } catch (Exception $e) {
-            $failed[] = [
-                'record' => $Record->data,
-                'validationErrors' => $Record->validationErrors,
-            ];
+            throw new Exception($Record->validationErrors);
         }
     }
 
     public static function handleMultiSaveRequest()
     {
         $className = static::$recordClass;
-    
-        $PrimaryKey = $className::getPrimaryKey();
             
         static::prepareResponseModeJSON(['POST','PUT']);
         
@@ -317,7 +317,36 @@ abstract class RecordsRequestHandler extends RequestHandler
         ]);
     }
     
-    
+    public static function processDatumDestroy($datum)
+    {
+        $className = static::$recordClass;
+        $PrimaryKey = $className::getPrimaryKey();
+
+        // get record
+        if (is_numeric($datum)) {
+            $recordID = $datum;
+        } elseif (!empty($datum[$PrimaryKey]) && is_numeric($datum[$PrimaryKey])) {
+            $recordID = $datum[$PrimaryKey];
+        } else {
+            throw new Exception($PrimaryKey.' missing');
+        }
+
+        if (!$Record = $className::getByField($PrimaryKey, $recordID)) {
+            throw new Exception($PrimaryKey.' not found');
+        }
+        
+        // check write access
+        if (!static::checkWriteAccess($Record)) {
+            throw new Exception('Write access denied');
+        }
+
+        if ($Record->destroy()) {
+            return $Record;
+        } else {
+            throw new Exception('Destroy failed');
+        }
+    }
+
     public static function handleMultiDestroyRequest()
     {
         $className = static::$recordClass;
@@ -339,44 +368,19 @@ abstract class RecordsRequestHandler extends RequestHandler
             ]);
         }
 
-
         $results = [];
         $failed = [];
         
         foreach ($_REQUEST['data'] as $datum) {
-            // get record
-            if (is_numeric($datum)) {
-                $recordID = $datum;
-            } elseif (!empty($datum[$PrimaryKey]) && is_numeric($datum[$PrimaryKey])) {
-                $recordID = $datum[$PrimaryKey];
-            } else {
+            try {
+                $results[] = static::processDatumDestroy($datum);
+            }    
+            catch(Exception $e) {
                 $failed[] = [
                     'record' => $datum,
-                    'errors' => $PrimaryKey.' missing',
+                    'errors' => $e->getMessage(),
                 ];
                 continue;
-            }
-
-            if (!$Record = $className::getByField($PrimaryKey, $recordID)) {
-                $failed[] = [
-                    'record' => $datum,
-                    'errors' => $PrimaryKey.' not found',
-                ];
-                continue;
-            }
-            
-            // check write access
-            if (!static::checkWriteAccess($Record)) {
-                $failed[] = [
-                    'record' => $datum,
-                    'errors' => 'Write access denied',
-                ];
-                continue;
-            }
-        
-            // destroy record
-            if ($Record->destroy()) {
-                $results[] = $Record;
             }
         }
         
