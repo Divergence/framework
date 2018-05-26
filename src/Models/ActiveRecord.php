@@ -42,30 +42,30 @@ use Divergence\IO\Database\MySQL as DB;
 class ActiveRecord
 {
     /**
-     * @var bool    $autoCreateTables   Set this to true if you want the table(s) to automatically be created when not found.
+     * @var bool $autoCreateTables Set this to true if you want the table(s) to automatically be created when not found.
      */
     public static $autoCreateTables = true;
     
     /**
-     * @var string  $tableName          Name of table
+     * @var string $tableName Name of table
      */
     public static $tableName = 'records';
     
     /**
      *
-     * @var string  $singularNoun       Noun to describe singular object
+     * @var string $singularNoun Noun to describe singular object
      */
     public static $singularNoun = 'record';
     
     /**
      *
-     * @var string  $pluralNoun         Noun to describe a plurality of objects
+     * @var string $pluralNoun Noun to describe a plurality of objects
      */
     public static $pluralNoun = 'records';
     
     /**
      *
-     * @var array   $fieldDefaults      Defaults values for field definitions
+     * @var array $fieldDefaults Defaults values for field definitions
      */
     public static $fieldDefaults = [
         'type' => 'string',
@@ -73,27 +73,23 @@ class ActiveRecord
     ];
     
     /**
-     * Field definitions
-     * @var array
+     * @var array $fields Field definitions
      */
     public static $fields = [];
     
     /**
-     * Index definitions
-     * @var array
+     * @var array $indexes Index definitions
      */
     public static $indexes = [];
     
     
     /**
-    * Validation checks
-    * @var array
+    * @var array $validators Validation checks
     */
     public static $validators = [];
 
     /**
-     * Relationship definitions
-     * @var array
+     * @var array $relationships Relationship definitions
      */
     public static $relationships = [];
     
@@ -105,59 +101,101 @@ class ActiveRecord
     public static $contextClasses;
     
     /**
-     * Default conditions for get* operations
-     * @var array
+     *  @var string|null $primaryKey The primary key for this model. Optional. Defaults to ID
      */
-    public static $defaultConditions = [];
-    
     public static $primaryKey = null;
+
+    /**
+     *  @var string $handleField Field which should be treated as unique but generated automatically.
+     */
     public static $handleField = 'Handle';
     
-    // support subclassing
+    /**
+     *  @var null|string $rootClass The root class.
+     */
     public static $rootClass = null;
+
+    /**
+     *  @var null|string $defaultClass The default class to be used when creating a new object.
+     */
     public static $defaultClass = null;
+
+    /**
+     *  @var array $subClasses Array of class names providing valid classes you can use for this model.
+     */
     public static $subClasses = [];
+    
+    /**
+     *  @var callable $beforeSave Runs inside the save() method before save actually happens.
+     */
+    public static $beforeSave;
+
+    /**
+     *  @var callable $afterSave Runs inside the save() method after save if no exception was thrown.
+     */
+    public static $afterSave;
+
     
     // versioning
     public static $historyTable;
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
-    
-    // callbacks
-    public static $beforeSave;
-    public static $afterSave;
 
-    // protected members
     protected static $_classFields = [];
     protected static $_classRelationships = [];
     protected static $_classBeforeSave = [];
     protected static $_classAfterSave = [];
     
-    // class members subclassing
+    
     protected static $_fieldsDefined = [];
     protected static $_relationshipsDefined = [];
     protected static $_eventsDefined = [];
     
+    /** 
+     * @var array $_record Raw array data for this model.
+     */
     protected $_record;
+
+    /**
+     * @var array $_convertedValues Raw array data for this model of data normalized for it's field type.
+     */
     protected $_convertedValues;
-    protected $_relatedObjects;
+
+    /**
+     * @var RecordValidator $_validator Instance of a RecordValidator object.
+     */
+    protected $_validator;
+
+    /**
+     * @var array $_validationErrors Array of validation errors if there are any.
+     */
+    protected $_validationErrors;
+
+    /**
+     * @var array $_originalValues If any values have been changed the initial value is stored here.
+     */
+    protected $_originalValues;
+
     protected $_isDirty;
     protected $_isPhantom;
     protected $_wasPhantom;
     protected $_isValid;
     protected $_isNew;
     protected $_isUpdated;
-    protected $_validator;
-    protected $_validationErrors;
-    protected $_originalValues;
+    
 
-    /*
-     *  @return ActiveRecord    Instance of the value of $this->Class
+    /**
+     *  Instantiates a Model and returns.
+     * 
+     *  @param array $record Raw array data to start off the model.
+     *  @param bool $isDirty Whether or not to treat this object as if it was modified from the start.
+     *  @param bool $isPhantom Whether or not to treat this object as a brand new record not yet in the database.
+     * 
+     *  @return ActiveRecord Instance of the value of $this->Class
      */
     public function __construct($record = [], $isDirty = false, $isPhantom = null)
     {
         $this->_record = $record;
-        $this->_relatedObjects = [];
         $this->_isPhantom = isset($isPhantom) ? $isPhantom : empty($record);
         $this->_wasPhantom = $this->_isPhantom;
         $this->_isDirty = $this->_isPhantom || $isDirty;
@@ -176,27 +214,53 @@ class ActiveRecord
         }
     }
     
+    /**
+     *  Passthru to getValue($name)
+     * 
+     *  @return mixed The return of $this->getValue($name)
+     */
     public function __get($name)
     {
         return $this->getValue($name);
     }
     
+    /**
+     *  Passthru to setValue($name,$value)
+     * 
+     *  @return mixed The return of $this->setValue($name,$value)
+     */
     public function __set($name, $value)
     {
         return $this->setValue($name, $value);
     }
     
+
+    /**
+     *  Is set magic method
+     * 
+     *  @return bool Returns true if a value was returned by $this->getValue($name), false otherwise.
+     */
     public function __isset($name)
     {
         $value = $this->getValue($name);
         return isset($value);
     }
     
+    /**
+     *  Gets the primary key field for his model.
+     * 
+     *  @return string ID by default or static::$primaryKey if it's set.
+     */
     public function getPrimaryKey()
     {
         return isset(static::$primaryKey) ? static::$primaryKey : 'ID';
     }
 
+    /**
+     *  Gets the primary key value for his model.
+     * 
+     *  @return int The primary key value for this object.
+     */
     public function getPrimaryKeyValue()
     {
         if (isset(static::$primaryKey)) {
@@ -206,6 +270,9 @@ class ActiveRecord
         }
     }
     
+    /**
+     *  Initializes the model by checking the ancestor tree for the existence of various config fields and merges them.
+     */
     public static function init()
     {
         $className = get_called_class();
@@ -229,8 +296,10 @@ class ActiveRecord
         }
     }
     
-    /*
-
+    /**
+     *  @param string $name The name of the field you want to get.
+     * 
+     * @return mixed Value of the field you wanted if it exists or null otherwise.
      */
     public function getValue($name)
     {
@@ -359,6 +428,11 @@ class ActiveRecord
         $this->_setFieldValue($field, $value);
     }
     
+    /**
+     *  Gets normalized object data.
+     * 
+     *  @return array The model's data as a normal array with any validation errors included.
+     */
     public function getData()
     {
         $data = [];
@@ -394,6 +468,9 @@ class ActiveRecord
         }
     }
     
+    /**
+     *  Runs the before save event function one at a time for any class that had $beforeSave configured in the ancestor tree.
+     */
     public function beforeSave()
     {
         foreach (static::$_classBeforeSave as $beforeSave) {
@@ -403,7 +480,9 @@ class ActiveRecord
         }
     }
 
-
+    /**
+     *  Runs the after save event function one at a time for any class that had $beforeSave configured in the ancestor tree. Will only fire if save was successful.
+     */
     public function afterSave()
     {
         foreach (static::$_classAfterSave as $afterSave) {
@@ -413,6 +492,9 @@ class ActiveRecord
         }
     }
 
+    /*
+     *  Saves this object to the database currently in use.
+     */
     public function save($deep = true)
     {
         // run before save

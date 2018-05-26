@@ -1,4 +1,12 @@
 <?php
+/*
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Models;
 
 use Exception;
@@ -7,8 +15,17 @@ use ReflectionClass;
 
 use Divergence\IO\Database\MySQL as DB;
 
+/**
+ * Relations.
+ *
+ * @package Divergence
+ * @author  Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ */
 trait Relations
 {
+    protected $_relatedObjects = [];
+
     public static function _relationshipExists($relationship)
     {
         if (is_array(static::$_classRelationships[get_called_class()])) {

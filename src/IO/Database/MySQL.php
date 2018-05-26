@@ -14,6 +14,13 @@ namespace Divergence\IO\Database;
 use \PDO as PDO;
 use \Divergence\App as App;
 
+/**
+ * MySQL.
+ *
+ * @package Divergence
+ * @author  Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ */
 class MySQL
 {
     // configurables
