@@ -352,8 +352,6 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         $className = static::$recordClass;
 
-        $PrimaryKey = $className::getPrimaryKey();
-
         static::prepareResponseModeJSON(['POST','PUT','DELETE']);
         
         if ($className::fieldExists(key($_REQUEST['data']))) {
