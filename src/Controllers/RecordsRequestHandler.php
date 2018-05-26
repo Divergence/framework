@@ -229,6 +229,50 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
     }
 
+    public static function processDatumSave($datum)
+    {
+        $className = static::$recordClass;
+        $PrimaryKey = $className::getPrimaryKey();
+
+        // get record
+        if (empty($datum[$PrimaryKey])) {
+            $Record = new $className::$defaultClass();
+            static::onRecordCreated($Record, $datum);
+        } else {
+            if (!$Record = $className::getByID($datum[$PrimaryKey])) {
+                throw new Exception('Record not found');
+            }
+        }
+        
+        // check write access
+        if (!static::checkWriteAccess($Record)) {
+            throw new Exception('Write access denied');
+        }
+        
+        // apply delta
+        static::applyRecordDelta($Record, $datum);
+
+        // call template function
+        static::onBeforeRecordValidated($Record, $datum);
+
+        // try to save record
+        try {
+            // call template function
+            static::onBeforeRecordSaved($Record, $datum);
+
+            $Record->save();
+            return (!$Record::fieldExists('Class') || get_class($Record) == $Record->Class) ? $Record : $Record->changeClass();
+            
+            // call template function
+            static::onRecordSaved($Record, $datum);
+        } catch (Exception $e) {
+            $failed[] = [
+                'record' => $Record->data,
+                'validationErrors' => $Record->validationErrors,
+            ];
+        }
+    }
+
     public static function handleMultiSaveRequest()
     {
         $className = static::$recordClass;
@@ -254,50 +298,14 @@ abstract class RecordsRequestHandler extends RequestHandler
         $failed = [];
 
         foreach ($_REQUEST['data'] as $datum) {
-            // get record
-            if (empty($datum[$PrimaryKey])) {
-                $Record = new $className::$defaultClass();
-                static::onRecordCreated($Record, $datum);
-            } else {
-                if (!$Record = $className::getByID($datum[$PrimaryKey])) {
-                    $failed[] = [
-                        'record' => $datum,
-                        'errors' => 'Record not found',
-                    ];
-                    continue;
-                }
-            }
-            
-            // check write access
-            if (!static::checkWriteAccess($Record)) {
-                $failed[] = [
-                    'record' => $datum,
-                    'errors' => 'Write access denied',
-                ];
-                continue;
-            }
-            
-            // apply delta
-            static::applyRecordDelta($Record, $datum);
-
-            // call template function
-            static::onBeforeRecordValidated($Record, $datum);
-
-            // try to save record
             try {
-                // call template function
-                static::onBeforeRecordSaved($Record, $datum);
-
-                $Record->save();
-                $results[] = (!$Record::fieldExists('Class') || get_class($Record) == $Record->Class) ? $Record : $Record->changeClass();
-                
-                // call template function
-                static::onRecordSaved($Record, $datum);
+                $results[] = static::processDatumSave($datum);
             } catch (Exception $e) {
                 $failed[] = [
-                    'record' => $Record->data,
-                    'validationErrors' => $Record->validationErrors,
+                    'record' => $datum,
+                    'errors' => $e->getMessage(),
                 ];
+                continue;
             }
         }
         
@@ -323,14 +331,12 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
 
         if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
-            if (static::$responseMode == 'json') {
-                return static::respond('error', [
-                    'success' => false,
-                    'failed' => [
-                        'errors'	=>	'Save expects "data" field as array of records.',
-                    ],
-                ]);
-            }
+            return static::respond('error', [
+                'success' => false,
+                'failed' => [
+                    'errors'	=>	'Save expects "data" field as array of records.',
+                ],
+            ]);
         }
 
 
