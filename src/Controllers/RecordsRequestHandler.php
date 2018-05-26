@@ -266,10 +266,11 @@ abstract class RecordsRequestHandler extends RequestHandler
             static::onBeforeRecordSaved($Record, $datum);
 
             $Record->save();
-            return (!$Record::fieldExists('Class') || get_class($Record) == $Record->Class) ? $Record : $Record->changeClass();
             
             // call template function
             static::onRecordSaved($Record, $datum);
+
+            return (!$Record::fieldExists('Class') || get_class($Record) == $Record->Class) ? $Record : $Record->changeClass();
         } catch (Exception $e) {
             throw new Exception($Record->validationErrors);
         }
