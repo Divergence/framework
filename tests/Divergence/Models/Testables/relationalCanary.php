@@ -14,4 +14,14 @@ class relationalCanary extends fakeCanary
             'type' => 'context-parent',
         ],
     ];
+
+    public static function setBeforeEvents($events)
+    {
+        static::$_classBeforeSave = $events;
+    }
+
+    public static function setAfterEvents($events)
+    {
+        static::$_classAfterSave = $events;
+    }
 }

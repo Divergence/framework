@@ -1,6 +1,8 @@
 <?php
 namespace Divergence\Tests\Models;
 
+use Closure;
+
 use Divergence\Models\Model;
 
 use Divergence\Tests\TestUtils;
@@ -12,6 +14,7 @@ use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\Models\Testables\fakeCanary;
+use Divergence\Tests\Models\Testables\relationalCanary;
 
 class ActiveRecordTest extends TestCase
 {
@@ -1074,5 +1077,49 @@ class ActiveRecordTest extends TestCase
         fakeCanary::$historyTable = $b;
         DB::nonQuery('DROP TABLE `fake`,`history_fake`');
         $this->assertCount(0, DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::beforeSave
+     */
+    public function testBeforeSave()
+    {
+        $x = relationalCanary::getByID(1);
+
+        $myBeforeSave = function($model) {
+            if(is_a($this, 'Divergence\Tests\Models\ActiveRecordTest')) {
+                $this->assertEquals(1,$model->ID);
+            }
+        };
+        $scopedBeforeSave = Closure::bind($myBeforeSave,$this);
+
+        relationalCanary::setBeforeEvents([
+            relationalCanary::class => $scopedBeforeSave
+        ]);
+
+        $x->beforeSave();
+        relationalCanary::setBeforeEvents(null);
+    }
+
+    /**
+     * @covers Divergence\Models\ActiveRecord::afterSave
+     */
+    public function testAfterSave()
+    {
+        $x = relationalCanary::getByID(1);
+
+        $myAfterSave = function($model) {
+            if(is_a($this, 'Divergence\Tests\Models\ActiveRecordTest')) {
+                $this->assertEquals(1,$model->ID);
+            }
+        };
+        $scopedAfterSave = Closure::bind($myAfterSave,$this);
+
+        relationalCanary::setAfterEvents([
+            relationalCanary::class => $scopedAfterSave
+        ]);
+
+        $x->afterSave();
+        relationalCanary::setAfterEvents(null);
     }
 }
