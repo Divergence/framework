@@ -121,7 +121,6 @@ class SQL
         if (!$historyVariant && is_subclass_of($recordClass, 'VersionedRecord')) {
             $createSQL .= PHP_EOL.PHP_EOL.PHP_EOL.static::getCreateTable($recordClass, true);
         }
-
         return $createSQL;
     }
 
@@ -142,7 +141,7 @@ class SQL
             case 'integer':
                 return 'int'.($field['unsigned'] ? ' unsigned' : '').(!empty($field['zerofill']) ? ' zerofill' : '');
             case 'decimal':
-                return sprintf('decimal(%s)', $field['length']).(!empty($field['unsigned']) ? ' unsigned' : '').(!empty($field['zerofill']) ? ' zerofill' : '');;
+                return sprintf('decimal(%s,%s)', $field['precision'], $field['scale']);
             case 'float':
                 return 'float';
             case 'double':
