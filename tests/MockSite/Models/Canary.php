@@ -120,7 +120,7 @@ class Canary extends \Divergence\Models\Model
             'notnull' => false,
             'precision' => '5',
             'scale' => '2',
-        ]
+        ],
     ];
 
 
@@ -182,7 +182,7 @@ class Canary extends \Divergence\Models\Model
             'HighestRecordedAltitude' => mt_rand(70, 2000),
             'ObservationCount' => 1,
             'DateOfBirth' => mt_rand(time()-315360000, time()),
-            'Weight' => (mt_rand (10, 200) / 10)
+            'Weight' => (mt_rand(10, 200) / 10),
         ];
 
         $output['Handle'] = static::getUniqueHandle($output['Name']);

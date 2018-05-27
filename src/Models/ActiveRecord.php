@@ -151,7 +151,7 @@ class ActiveRecord
     protected static $_relationshipsDefined = [];
     protected static $_eventsDefined = [];
     
-    /** 
+    /**
      * @var array $_record Raw array data for this model.
      */
     protected $_record;
@@ -186,11 +186,11 @@ class ActiveRecord
 
     /**
      *  Instantiates a Model and returns.
-     * 
+     *
      *  @param array $record Raw array data to start off the model.
      *  @param bool $isDirty Whether or not to treat this object as if it was modified from the start.
      *  @param bool $isPhantom Whether or not to treat this object as a brand new record not yet in the database.
-     * 
+     *
      *  @return ActiveRecord Instance of the value of $this->Class
      */
     public function __construct($record = [], $isDirty = false, $isPhantom = null)
@@ -216,7 +216,7 @@ class ActiveRecord
     
     /**
      *  Passthru to getValue($name)
-     * 
+     *
      *  @return mixed The return of $this->getValue($name)
      */
     public function __get($name)
@@ -226,7 +226,7 @@ class ActiveRecord
     
     /**
      *  Passthru to setValue($name,$value)
-     * 
+     *
      *  @return mixed The return of $this->setValue($name,$value)
      */
     public function __set($name, $value)
@@ -237,7 +237,7 @@ class ActiveRecord
 
     /**
      *  Is set magic method
-     * 
+     *
      *  @return bool Returns true if a value was returned by $this->getValue($name), false otherwise.
      */
     public function __isset($name)
@@ -248,7 +248,7 @@ class ActiveRecord
     
     /**
      *  Gets the primary key field for his model.
-     * 
+     *
      *  @return string ID by default or static::$primaryKey if it's set.
      */
     public function getPrimaryKey()
@@ -258,7 +258,7 @@ class ActiveRecord
 
     /**
      *  Gets the primary key value for his model.
-     * 
+     *
      *  @return int The primary key value for this object.
      */
     public function getPrimaryKeyValue()
@@ -298,7 +298,7 @@ class ActiveRecord
     
     /**
      *  @param string $name The name of the field you want to get.
-     * 
+     *
      * @return mixed Value of the field you wanted if it exists or null otherwise.
      */
     public function getValue($name)
@@ -430,7 +430,7 @@ class ActiveRecord
     
     /**
      *  Gets normalized object data.
-     * 
+     *
      *  @return array The model's data as a normal array with any validation errors included.
      */
     public function getData()
@@ -742,6 +742,26 @@ class ActiveRecord
         return static::instantiateRecords(static::getAllRecordsByWhere($conditions, $options));
     }
     
+    public static function buildExtraColumns($columns)
+    {
+        if (!empty($columns)) {
+            if (is_array($columns)) {
+                foreach ($columns as $key => $value) {
+                    return ', '.$value.' AS '.$key;
+                }
+            } else {
+                return ', ' . $columns;
+            }
+        }
+    }
+
+    public static function buildHaving($having)
+    {
+        if (!empty($having)) {
+            return ' HAVING (' . (is_array($having) ? join(') AND (', static::_mapConditions($having)) : $having) . ')';
+        }
+    }
+
     public static function getAllRecordsByWhere($conditions = [], $options = [])
     {
         $className = get_called_class();
@@ -767,22 +787,11 @@ class ActiveRecord
         
         // build query
         $query  = 'SELECT %1$s `%3$s`.*';
-        
-        if (!empty($options['extraColumns'])) {
-            if (is_array($options['extraColumns'])) {
-                foreach ($options['extraColumns'] as $key => $value) {
-                    $query .= ', '.$value.' AS '.$key;
-                }
-            } else {
-                $query .= ', ' . $options['extraColumns'];
-            }
-        }
+        $query .= static::buildExtraColumns($options['extraColumns']);
         $query .= ' FROM `%2$s` AS `%3$s`';
         $query .= ' WHERE (%4$s)';
         
-        if (!empty($options['having'])) {
-            $query .= ' HAVING (' . (is_array($options['having']) ? join(') AND (', static::_mapConditions($options['having'])) : $options['having']) . ')';
-        }
+        $query .= static::buildHaving($options['having']);
         
         $params = [
             $options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : '',

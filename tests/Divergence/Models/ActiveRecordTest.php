@@ -1086,15 +1086,15 @@ class ActiveRecordTest extends TestCase
     {
         $x = relationalCanary::getByID(1);
 
-        $myBeforeSave = function($model) {
-            if(is_a($this, 'Divergence\Tests\Models\ActiveRecordTest')) {
-                $this->assertEquals(1,$model->ID);
+        $myBeforeSave = function ($model) {
+            if (is_a($this, 'Divergence\Tests\Models\ActiveRecordTest')) {
+                $this->assertEquals(1, $model->ID);
             }
         };
-        $scopedBeforeSave = Closure::bind($myBeforeSave,$this);
+        $scopedBeforeSave = Closure::bind($myBeforeSave, $this);
 
         relationalCanary::setBeforeEvents([
-            relationalCanary::class => $scopedBeforeSave
+            relationalCanary::class => $scopedBeforeSave,
         ]);
 
         $x->beforeSave();
@@ -1108,15 +1108,15 @@ class ActiveRecordTest extends TestCase
     {
         $x = relationalCanary::getByID(1);
 
-        $myAfterSave = function($model) {
-            if(is_a($this, 'Divergence\Tests\Models\ActiveRecordTest')) {
-                $this->assertEquals(1,$model->ID);
+        $myAfterSave = function ($model) {
+            if (is_a($this, 'Divergence\Tests\Models\ActiveRecordTest')) {
+                $this->assertEquals(1, $model->ID);
             }
         };
-        $scopedAfterSave = Closure::bind($myAfterSave,$this);
+        $scopedAfterSave = Closure::bind($myAfterSave, $this);
 
         relationalCanary::setAfterEvents([
-            relationalCanary::class => $scopedAfterSave
+            relationalCanary::class => $scopedAfterSave,
         ]);
 
         $x->afterSave();

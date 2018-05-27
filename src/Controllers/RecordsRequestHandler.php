@@ -373,8 +373,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         foreach ($_REQUEST['data'] as $datum) {
             try {
                 $results[] = static::processDatumDestroy($datum);
-            }    
-            catch(Exception $e) {
+            } catch (Exception $e) {
                 $failed[] = [
                     'record' => $datum,
                     'errors' => $e->getMessage(),
