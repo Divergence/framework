@@ -22,25 +22,27 @@ use Divergence\IO\Database\MySQL as DB;
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
  * @author  Chris Alfano <themightychris@gmail.com>
  *
- * @property-read bool isDirty      True if this object has changed fields but not yet saved.
- * @property-read bool isPhantom    True if this object was instantiated as a brand new object and isn't yet saved.
- * @property-read bool wasPhantom   True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
- * @property-read bool isValid      True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem.
- * @property-read bool isNew        False by default. Set to true only when an object that isPhantom is saved.
- * @property-read bool isUpdated    False by default. Set to true when an object that already existed in the data store is saved.
- *
- * @property-read array validationErrors    An empty string by default. Returns validation errors as an array.
- * @property-read array data                A plain PHP array of the fields and values for this model object.
- * @property-read array originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
- *
+ * @property-read bool $isPhantom    True if this object was instantiated as a brand new object and isn't yet saved.
+ * @property-read bool $wasPhantom   True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
+ * @property-read bool $isValid      True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem.
+ * @property-read bool $isNew        False by default. Set to true only when an object that isPhantom is saved.
+ * @property-read bool $isUpdated    False by default. Set to true when an object that already existed in the data store is saved.
+ * 
  * These are actually part of Divergence\Models\Model but are used in this file as "defaults".
- * @property   int      ID          Default primary key field.
- * @property   string   Class       Name of this fully qualified PHP class for use with subclassing to explicitly specify which class to instantiate a record as when pulling from datastore.
- * @property   mixed    Created     Timestamp of when this record was created. Supports Unix timestamp as well as any format accepted by PHP's strtotime as well as MySQL standard.
- * @property   int      CreatorID   A standard user ID field for use by your login & authentication system.
+ * @property int        $ID Default primary key field.
+ * @property string     $Class Name of this fully qualified PHP class for use with subclassing to explicitly specify which class to instantiate a record as when pulling from datastore.
+ * @property mixed      $Created Timestamp of when this record was created. Supports Unix timestamp as well as any format accepted by PHP's strtotime as well as MySQL standard.
+ * @property int        $CreatorID A standard user ID field for use by your login & authentication system.
+ * 
+ * @property-read array $validationErrors    An empty string by default. Returns validation errors as an array.
+ * @property-read array $data                A plain PHP array of the fields and values for this model object.
+ * @property-read array $originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
+ * 
  */
 class ActiveRecord
 {
+    
+
     /**
      * @var bool $autoCreateTables Set this to true if you want the table(s) to automatically be created when not found.
      */
@@ -182,7 +184,6 @@ class ActiveRecord
     protected $_isValid;
     protected $_isNew;
     protected $_isUpdated;
-    
 
     /**
      *  Instantiates a Model and returns.
@@ -259,7 +260,7 @@ class ActiveRecord
     /**
      *  Gets the primary key value for his model.
      *
-     *  @return int The primary key value for this object.
+     *  @return mixed The primary key value for this object.
      */
     public function getPrimaryKeyValue()
     {
@@ -302,7 +303,7 @@ class ActiveRecord
      * @return mixed Value of the field you wanted if it exists or null otherwise.
      */
     public function getValue($name)
-    {
+    {        
         switch ($name) {
             case 'isDirty':
                 return $this->_isDirty;

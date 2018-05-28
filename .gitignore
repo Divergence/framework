@@ -4,3 +4,6 @@ vendor
 .debug
 .dev
 build/*
+phpDocumentor.phar
+docs
+.vscode
