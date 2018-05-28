@@ -883,12 +883,39 @@ class RecordsRequestHandlerTest extends TestCase
         ]);
     }
 
-    // write access denied
+    // database error
     public function testProcessDatumSaveDatabaseError()
     {
         $this->expectException('Exception');
         CanaryRequestHandler::processDatumSave([
             'Created' => 'fake'
+        ]);
+    }
+
+    // write access denied
+    public function testProcessDatumDestroyNoWriteAccess()
+    {
+        $this->expectException('Exception');
+        SecureCanaryRequestHandler::processDatumDestroy([
+            'ID' => '1',
+        ]);
+    }
+
+    // missing key
+    public function testProcessDatumDestroyNoKey()
+    {
+        $this->expectException('Exception');
+        CanaryRequestHandler::processDatumDestroy([
+            'fake' => 'fake',
+        ]);
+    }
+
+    // failed delete cause it doesn't exist
+    public function testProcessDatumDestroyFailed()
+    {
+        $this->expectException('Exception');
+        CanaryRequestHandler::processDatumDestroy([
+            'ID' => '1000',
         ]);
     }
 }
