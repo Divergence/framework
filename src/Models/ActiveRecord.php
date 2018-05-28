@@ -281,6 +281,8 @@ class ActiveRecord implements JsonSerializable
      * @param boolean $isDirty Whether or not to treat this object as if it was modified from the start.
      * @param boolean $isPhantom Whether or not to treat this object as a brand new record not yet in the database.
      *
+     * @uses static::init
+     * 
      * @return ActiveRecord Instance of the value of $this->Class
      */
     public function __construct($record = [], $isDirty = false, $isPhantom = null)
@@ -369,14 +371,14 @@ class ActiveRecord implements JsonSerializable
     /**
      * init Initializes the model by checking the ancestor tree for the existence of various config fields and merges them.
      *
-     * @uses ActiveRecord::$_fieldsDefined Sets ActiveRecord::$_fieldsDefined[get_called_class()] to true after running.
-     * @uses ActiveRecord::$_relationshipsDefined Sets ActiveRecord::$_relationshipsDefined[get_called_class()] to true after running.
-     * @uses ActiveRecord::$_eventsDefined Sets ActiveRecord::$_eventsDefined[get_called_class()] to true after running.
+     * @uses static::$_fieldsDefined Sets static::$_fieldsDefined[get_called_class()] to true after running.
+     * @uses static::$_relationshipsDefined Sets static::$_relationshipsDefined[get_called_class()] to true after running.
+     * @uses static::$_eventsDefined Sets static::$_eventsDefined[get_called_class()] to true after running.
      *
-     * @used-by ActiveRecord::__construct()
-     * @used-by ActiveRecord::fieldExists()
-     * @used-by ActiveRecord::getClassFields()
-     * @used-by ActiveRecord::getColumnName()
+     * @used-by static::__construct()
+     * @used-by static::fieldExists()
+     * @used-by static::getClassFields()
+     * @used-by static::getColumnName()
      * 
      * @return void
      */
