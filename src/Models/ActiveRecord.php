@@ -222,6 +222,9 @@ class ActiveRecord implements JsonSerializable
      * False by default. Set to true only when an object has had any field change from it's state when it was instantiated.
      *
      * @var bool $_isDirty
+     * 
+     * @used-by $this->save()
+     * @used-by $this->__get()
      */
     protected $_isDirty;
 
@@ -229,6 +232,9 @@ class ActiveRecord implements JsonSerializable
      * True if this object was instantiated as a brand new object and isn't yet saved.
      *
      * @var bool $_isPhantom
+     * 
+     * @used-by $this->save()
+     * @used-by $this->__get()
      */
     protected $_isPhantom;
 
@@ -236,6 +242,8 @@ class ActiveRecord implements JsonSerializable
      * True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
      *
      * @var bool $_wasPhantom
+     * 
+     * @used-by $this->__get()
      */
     protected $_wasPhantom;
 
@@ -243,6 +251,8 @@ class ActiveRecord implements JsonSerializable
      * True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem.
      *
      * @var bool $_isValid
+     * 
+     * @used-by $this->__get()
      */
     protected $_isValid;
 
@@ -250,6 +260,9 @@ class ActiveRecord implements JsonSerializable
      * False by default. Set to true only when an object that isPhantom is saved.
      *
      * @var bool $_isNew
+     * 
+     * @used-by $this->save()
+     * @used-by $this->__get()
      */
     protected $_isNew;
 
@@ -257,6 +270,8 @@ class ActiveRecord implements JsonSerializable
      * False by default. Set to true when an object that already existed in the data store is saved.
      *
      * @var bool $_isUpdated
+     * 
+     * @used-by $this->__get()
      */
     protected $_isUpdated;
 
@@ -303,7 +318,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * __set Passthru to setValue($name,$value)
+     * Passthru to setValue($name,$value)
      *
      * @param string $name Name of the magic field to set.
      * @param mixed $value Value to set.
@@ -316,7 +331,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * __isset Is set magic method
+     * Tests if a magic class attribute is set or not.
      *
      * @param string $name Name of the magic field to set.
      *
@@ -329,7 +344,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * getPrimaryKey Gets the primary key field for his model.
+     * Gets the primary key field for his model.
      *
      * @return string ID by default or static::$primaryKey if it's set.
      */
@@ -339,7 +354,7 @@ class ActiveRecord implements JsonSerializable
     }
 
     /**
-     * getPrimaryKeyValue Gets the primary key value for his model.
+     * Gets the primary key value for his model.
      *
      * @return mixed The primary key value for this object.
      */
@@ -355,10 +370,15 @@ class ActiveRecord implements JsonSerializable
     /**
      * init Initializes the model by checking the ancestor tree for the existence of various config fields and merges them.
      *
-     * @uses ActiveRecord::$_fieldsDefined Defined by.
-     * @uses ActiveRecord::$_relationshipsDefined Defined by.
-     * @uses ActiveRecord::$_eventsDefined Defined by.
+     * @uses ActiveRecord::$_fieldsDefined Sets ActiveRecord::$_fieldsDefined[get_called_class()] to true after running.
+     * @uses ActiveRecord::$_relationshipsDefined Sets ActiveRecord::$_relationshipsDefined[get_called_class()] to true after running.
+     * @uses ActiveRecord::$_eventsDefined Sets ActiveRecord::$_eventsDefined[get_called_class()] to true after running.
      *
+     * @used-by ActiveRecord::__construct()
+     * @used-by ActiveRecord::fieldExists()
+     * @used-by ActiveRecord::getClassFields()
+     * @used-by ActiveRecord::getColumnName()
+     * 
      * @return void
      */
     public static function init()
@@ -444,7 +464,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * setValue Pass thru for __get
+     * Sets a value on this model.
      *
      * @param string $name
      * @param mixed $value
@@ -463,7 +483,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * isVersioned
+     * Checks if this model is versioned.
      *
      * @return boolean Returns true if this class is defined with Divergence\Models\Versioning as a trait.
      */
@@ -473,7 +493,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * isVersioned
+     * Checks if this model is ready for relationships.
      *
      * @return boolean Returns true if this class is defined with Divergence\Models\Relations as a trait.
      */
@@ -483,11 +503,11 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * create
+     * Create a new object from this model.
      *
-     * @param array $values
-     * @param boolean $save
-     * @return void
+     * @param array $values Array of keys as fields and values.
+     * @param boolean $save If the object should be immediately saved to database before being returned.
+     * @return ActiveRecord An object of this model.
      */
     public static function create($values = [], $save = false)
     {
@@ -505,7 +525,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * isA
+     * Checks if a model is a certain class.
      * @param string $class Check if the model matches this class.
      * @return boolean True if model matches the class provided. False otherwise.
      */
@@ -515,7 +535,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * changeClass Used to instantiate a new model of a different class with this model's field's. Useful when you have similar classes or subclasses with the same parent.
+     * Used to instantiate a new model of a different class with this model's field's. Useful when you have similar classes or subclasses with the same parent.
      *
      * @param string $className If you leave this blank the return will be $this
      * @param array $fieldValues Optional. Any field values you want to override.
@@ -542,7 +562,7 @@ class ActiveRecord implements JsonSerializable
     }
 
     /**
-     * setFields Change multiple fields in the model with an array.
+     * Change multiple fields in the model with an array.
      *
      * @param array $values Field/values array to change multiple fields in this model.
      * @return void
@@ -555,7 +575,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     * setField Change one field in the model.
+     * Change one field in the model.
      *
      * @param string $field
      * @param mixed $value
@@ -623,7 +643,7 @@ class ActiveRecord implements JsonSerializable
     }
     
     /**
-     *  Runs the before save event function one at a time for any class that had $beforeSave configured in the ancestor tree.
+     * Runs the before save event function one at a time for any class that had $beforeSave configured in the ancestor tree.
      */
     public function beforeSave()
     {
@@ -635,7 +655,7 @@ class ActiveRecord implements JsonSerializable
     }
 
     /**
-     *  Runs the after save event function one at a time for any class that had $beforeSave configured in the ancestor tree. Will only fire if save was successful.
+     * Runs the after save event function one at a time for any class that had $beforeSave configured in the ancestor tree. Will only fire if save was successful.
      */
     public function afterSave()
     {
@@ -646,8 +666,13 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
-    /*
-     *  Saves this object to the database currently in use.
+    /**
+     * Saves this object to the database currently in use.
+     * 
+     * @param $deep Default is true. When true will try to save any dirty models in any defined and initialized relationships.
+     * 
+     * @uses $this->_isPhantom
+     * @uses $this->_isDirty
      */
     public function save($deep = true)
     {
