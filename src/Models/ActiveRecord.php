@@ -1,11 +1,13 @@
 <?php
-/*
+/**
  * This file is part of the Divergence package.
  *
- * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ * @author Henry Paradiz <henry.paradiz@gmail.com>
+ * @copyright 2018 Henry Paradiz <henry.paradiz@gmail.com>
+ * @license MIT For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * @since 1.0
+ * @link https://github.com/Divergence/docs/blob/master/orm.md
  */
 namespace Divergence\Models;
 
@@ -16,7 +18,7 @@ use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
 
 /**
- * ActiveRecord.
+ * ActiveRecord
  *
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
@@ -178,6 +180,13 @@ class ActiveRecord
      */
     protected $_originalValues;
 
+    /**
+     * @var bool $_isPhantom    True if this object was instantiated as a brand new object and isn't yet saved.
+     * @var bool $_wasPhantom   True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
+     * @var bool $_isValid      True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem.
+     * @var bool $_isNew        False by default. Set to true only when an object that isPhantom is saved.
+     * @var bool $_isUpdated    False by default. Set to true when an object that already existed in the data store is saved.
+     */
     protected $_isDirty;
     protected $_isPhantom;
     protected $_wasPhantom;
@@ -186,13 +195,13 @@ class ActiveRecord
     protected $_isUpdated;
 
     /**
-     *  Instantiates a Model and returns.
+     * __construct Instantiates a Model and returns.
      *
-     *  @param array $record Raw array data to start off the model.
-     *  @param bool $isDirty Whether or not to treat this object as if it was modified from the start.
-     *  @param bool $isPhantom Whether or not to treat this object as a brand new record not yet in the database.
-     *
-     *  @return ActiveRecord Instance of the value of $this->Class
+     * @param array $record Raw array data to start off the model.
+     * @param boolean $isDirty Whether or not to treat this object as if it was modified from the start.
+     * @param boolean $isPhantom Whether or not to treat this object as a brand new record not yet in the database.
+     * 
+     * @return ActiveRecord Instance of the value of $this->Class
      */
     public function __construct($record = [], $isDirty = false, $isPhantom = null)
     {
@@ -216,9 +225,11 @@ class ActiveRecord
     }
     
     /**
-     *  Passthru to getValue($name)
+     * __get Passthru to getValue($name)
      *
-     *  @return mixed The return of $this->getValue($name)
+     * @param string $name Name of the magic field you want.
+     * 
+     * @return mixed The return of $this->getValue($name)
      */
     public function __get($name)
     {
@@ -226,20 +237,24 @@ class ActiveRecord
     }
     
     /**
-     *  Passthru to setValue($name,$value)
+     * __set Passthru to setValue($name,$value)
      *
-     *  @return mixed The return of $this->setValue($name,$value)
+     * @param string $name Name of the magic field to set.
+     * @param mixed $value Value to set.
+     * 
+     * @return mixed The return of $this->setValue($name,$value)
      */
     public function __set($name, $value)
     {
         return $this->setValue($name, $value);
     }
     
-
     /**
-     *  Is set magic method
+     * __isset Is set magic method
      *
-     *  @return bool Returns true if a value was returned by $this->getValue($name), false otherwise.
+     * @param string $name Name of the magic field to set.
+     * 
+     * @return bool Returns true if a value was returned by $this->getValue($name), false otherwise.
      */
     public function __isset($name)
     {
@@ -248,9 +263,9 @@ class ActiveRecord
     }
     
     /**
-     *  Gets the primary key field for his model.
+     * getPrimaryKey Gets the primary key field for his model.
      *
-     *  @return string ID by default or static::$primaryKey if it's set.
+     * @return string ID by default or static::$primaryKey if it's set.
      */
     public function getPrimaryKey()
     {
@@ -258,9 +273,9 @@ class ActiveRecord
     }
 
     /**
-     *  Gets the primary key value for his model.
+     * getPrimaryKeyValue Gets the primary key value for his model.
      *
-     *  @return mixed The primary key value for this object.
+     * @return mixed The primary key value for this object.
      */
     public function getPrimaryKeyValue()
     {
@@ -272,7 +287,8 @@ class ActiveRecord
     }
     
     /**
-     *  Initializes the model by checking the ancestor tree for the existence of various config fields and merges them.
+     * init Initializes the model by checking the ancestor tree for the existence of various config fields and merges them.
+     * @return void
      */
     public static function init()
     {
@@ -298,7 +314,9 @@ class ActiveRecord
     }
     
     /**
-     *  @param string $name The name of the field you want to get.
+     * getValue Pass thru for __get
+     * 
+     * @param string $name The name of the field you want to get.
      *
      * @return mixed Value of the field you wanted if it exists or null otherwise.
      */
@@ -354,6 +372,13 @@ class ActiveRecord
         return null;
     }
     
+    /**
+     * setValue Pass thru for __get
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return void|false False if the field does not exist. Void otherwise.
+     */
     public function setValue($name, $value)
     {
         // handle field
@@ -366,16 +391,33 @@ class ActiveRecord
         }
     }
     
+    /**
+     * isVersioned
+     * 
+     * @return boolean Returns true if this class is defined with Divergence\Models\Versioning as a trait.
+     */
     public static function isVersioned()
     {
         return in_array('Divergence\\Models\\Versioning', class_uses(get_called_class()));
     }
     
+    /**
+     * isVersioned
+     * 
+     * @return boolean Returns true if this class is defined with Divergence\Models\Relations as a trait.
+     */
     public static function isRelational()
     {
         return in_array('Divergence\\Models\\Relations', class_uses(get_called_class()));
     }
     
+    /**
+     * create
+     *
+     * @param array $values
+     * @param boolean $save
+     * @return void
+     */
     public static function create($values = [], $save = false)
     {
         $className = get_called_class();
@@ -391,7 +433,11 @@ class ActiveRecord
         return $ActiveRecord;
     }
     
-    
+    /**
+     * isA
+     * @param $string $class Check if the model matches this class.
+     * @return boolean True if model matches the class provided. False otherwise.
+     */
     public function isA($class)
     {
         return is_a($this, $class);
