@@ -32,11 +32,10 @@ use Divergence\IO\Database\MySQL as DB;
  * @property-read bool $isNew        False by default. Set to true only when an object that isPhantom is saved.
  * @property-read bool $isUpdated    False by default. Set to true when an object that already existed in the data store is saved.
  *
- * These are actually part of Divergence\Models\Model but are used in this file as "defaults".
- * @property int        $ID Default primary key field.
- * @property string     $Class Name of this fully qualified PHP class for use with subclassing to explicitly specify which class to instantiate a record as when pulling from datastore.
- * @property mixed      $Created Timestamp of when this record was created. Supports Unix timestamp as well as any format accepted by PHP's strtotime as well as MySQL standard.
- * @property int        $CreatorID A standard user ID field for use by your login & authentication system.
+ * @property int        $ID Default primary key field. Part of Divergence\Models\Model but used in this file as a default.
+ * @property string     $Class Name of this fully qualified PHP class for use with subclassing to explicitly specify which class to instantiate a record as when pulling from datastore. Part of Divergence\Models\Model but used in this file as a default.
+ * @property mixed      $Created Timestamp of when this record was created. Supports Unix timestamp as well as any format accepted by PHP's strtotime as well as MySQL standard. Part of Divergence\Models\Model but used in this file as a default.
+ * @property int        $CreatorID A standard user ID field for use by your login & authentication system. Part of Divergence\Models\Model but used in this file as a default.
  *
  * @property-read array $validationErrors    An empty string by default. Returns validation errors as an array.
  * @property-read array $data                A plain PHP array of the fields and values for this model object.
