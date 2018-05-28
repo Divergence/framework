@@ -234,6 +234,24 @@ class RecordsRequestHandlerTest extends TestCase
         $this->assertEquals('Database error!', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
+
+    public function testEditAsGet()
+    {
+        // edit
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $MockData = Canary::avis();
+        $_POST = $MockData;
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
+        }
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        CanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/'.$ID.'/edit';
+        $this->expectExceptionMessage('Template "canaryEdit" could not be found in any of your include path(s)');
+        CanaryRequestHandler::handleRequest();
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
     
     // delete
     public function testDelete()
