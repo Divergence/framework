@@ -135,7 +135,7 @@ class ActiveRecordTest extends TestCase
     public function testJsonSerialize()
     {
         $A = Tag::getByID(1);
-        $this->assertEquals($A->data,$A->jsonSerialize());
+        $this->assertEquals($A->data, $A->jsonSerialize());
     }
 
     /**

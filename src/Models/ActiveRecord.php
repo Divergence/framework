@@ -221,7 +221,7 @@ class ActiveRecord implements JsonSerializable
      * False by default. Set to true only when an object has had any field change from it's state when it was instantiated.
      *
      * @var bool $_isDirty
-     * 
+     *
      * @used-by $this->save()
      * @used-by $this->__get()
      */
@@ -231,7 +231,7 @@ class ActiveRecord implements JsonSerializable
      * True if this object was instantiated as a brand new object and isn't yet saved.
      *
      * @var bool $_isPhantom
-     * 
+     *
      * @used-by $this->save()
      * @used-by $this->__get()
      */
@@ -241,7 +241,7 @@ class ActiveRecord implements JsonSerializable
      * True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
      *
      * @var bool $_wasPhantom
-     * 
+     *
      * @used-by $this->__get()
      */
     protected $_wasPhantom;
@@ -250,7 +250,7 @@ class ActiveRecord implements JsonSerializable
      * True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem.
      *
      * @var bool $_isValid
-     * 
+     *
      * @used-by $this->__get()
      */
     protected $_isValid;
@@ -259,7 +259,7 @@ class ActiveRecord implements JsonSerializable
      * False by default. Set to true only when an object that isPhantom is saved.
      *
      * @var bool $_isNew
-     * 
+     *
      * @used-by $this->save()
      * @used-by $this->__get()
      */
@@ -269,7 +269,7 @@ class ActiveRecord implements JsonSerializable
      * False by default. Set to true when an object that already existed in the data store is saved.
      *
      * @var bool $_isUpdated
-     * 
+     *
      * @used-by $this->__get()
      */
     protected $_isUpdated;
@@ -282,7 +282,7 @@ class ActiveRecord implements JsonSerializable
      * @param boolean $isPhantom Whether or not to treat this object as a brand new record not yet in the database.
      *
      * @uses static::init
-     * 
+     *
      * @return ActiveRecord Instance of the value of $this->Class
      */
     public function __construct($record = [], $isDirty = false, $isPhantom = null)
@@ -379,7 +379,7 @@ class ActiveRecord implements JsonSerializable
      * @used-by static::fieldExists()
      * @used-by static::getClassFields()
      * @used-by static::getColumnName()
-     * 
+     *
      * @return void
      */
     public static function init()
@@ -669,9 +669,9 @@ class ActiveRecord implements JsonSerializable
 
     /**
      * Saves this object to the database currently in use.
-     * 
+     *
      * @param $deep Default is true. When true will try to save any dirty models in any defined and initialized relationships.
-     * 
+     *
      * @uses $this->_isPhantom
      * @uses $this->_isDirty
      */

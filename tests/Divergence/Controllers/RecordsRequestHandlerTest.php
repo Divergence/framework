@@ -49,7 +49,7 @@ class RecordsRequestHandlerTest extends TestCase
 
     public function tearDown()
     {
-        if(in_array($this->getName(),['testProcessDatumDestroyFailed','testEditWithError'])) {
+        if (in_array($this->getName(), ['testProcessDatumDestroyFailed','testEditWithError'])) {
             DB::nonQuery('UNLOCK TABLES');
         }
     }
@@ -947,7 +947,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         $this->expectException('Exception');
         CanaryRequestHandler::processDatumSave([
-            'Created' => 'fake'
+            'Created' => 'fake',
         ]);
     }
 
