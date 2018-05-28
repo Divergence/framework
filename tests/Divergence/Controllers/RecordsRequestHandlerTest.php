@@ -873,6 +873,18 @@ class RecordsRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
+    // delete
+    public function testNoWriteAccessDelete()
+    {
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $Canary = Canary::getByID($ID);
+        ob_start();
+        SecureCanaryRequestHandler::handleDeleteRequest($Canary);
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('Login required.', $x['failed']['errors']);
+    }
+
     // write access denied
     public function testProcessDatumSaveNoWriteAccess()
     {
