@@ -130,6 +130,15 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
+     * @covers Divergence\Models\ActiveRecord::jsonSerialize
+     */
+    public function testJsonSerialize()
+    {
+        $A = Tag::getByID(1);
+        $this->assertEquals($A->data,$A->jsonSerialize());
+    }
+
+    /**
      * @covers Divergence\Models\ActiveRecord::__set
      * @covers Divergence\Models\ActiveRecord::setFields
      * @covers Divergence\Models\ActiveRecord::setField
