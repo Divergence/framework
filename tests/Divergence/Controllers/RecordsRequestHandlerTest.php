@@ -49,7 +49,7 @@ class RecordsRequestHandlerTest extends TestCase
 
     public function tearDown()
     {
-        if($this->getName() == 'testProcessDatumDestroyFailed') {
+        if(in_array($this->getName(),['testProcessDatumDestroyFailed','testEditWithError'])) {
             DB::nonQuery('UNLOCK TABLES');
         }
     }
@@ -210,6 +210,28 @@ class RecordsRequestHandlerTest extends TestCase
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
         $this->assertArraySubset($MockData, $x['data']);
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+    }
+
+    public function testEditWithError()
+    {
+        // edit
+        $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
+        $MockData = Canary::avis();
+        $_POST = $MockData;
+        $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
+        if (is_integer($MockData['Colors'])) {
+            $MockData['Colors'] = [$MockData['Colors']];
+        }
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        CanaryRequestHandler::clear();
+        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
+        ob_start();
+        DB::nonQuery('LOCK TABLES `canaries` READ');
+        CanaryRequestHandler::handleRequest();
+        $x = json_decode(ob_get_clean(), true);
+        $this->assertFalse($x['success']);
+        $this->assertEquals('Database error!', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
     
@@ -932,7 +954,6 @@ class RecordsRequestHandlerTest extends TestCase
     // failed delete cause table locked (fires a database error)
     public function testProcessDatumDestroyFailed()
     {
-        
         DB::nonQuery('LOCK TABLES `canaries` READ');
         $this->expectException('Exception');
         CanaryRequestHandler::processDatumDestroy([
