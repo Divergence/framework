@@ -47,6 +47,11 @@ class RecordsRequestHandlerTest extends TestCase
         App::$Config['environment'] = 'production';
     }
 
+    public function tearDown()
+    {
+        DB::nonQuery('UNLOCK TABLES');
+    }
+
     public function testHandleRequestJSON()
     {
         $expected = [
@@ -922,9 +927,11 @@ class RecordsRequestHandlerTest extends TestCase
         ]);
     }
 
-    // failed delete cause it doesn't exist
+    // failed delete cause table locked
     public function testProcessDatumDestroyFailed()
     {
+        
+        DB::nonQuery('LOCK TABLES `canaries` READ');
         $this->expectException('Exception');
         CanaryRequestHandler::processDatumDestroy([
             'ID' => '1000',
