@@ -670,7 +670,7 @@ class ActiveRecord implements JsonSerializable
     /**
      * Saves this object to the database currently in use.
      *
-     * @param $deep Default is true. When true will try to save any dirty models in any defined and initialized relationships.
+     * @param bool $deep Default is true. When true will try to save any dirty models in any defined and initialized relationships.
      *
      * @uses $this->_isPhantom
      * @uses $this->_isDirty
