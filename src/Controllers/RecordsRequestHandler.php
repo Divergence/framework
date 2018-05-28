@@ -272,7 +272,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
             return (!$Record::fieldExists('Class') || get_class($Record) == $Record->Class) ? $Record : $Record->changeClass();
         } catch (Exception $e) {
-            throw new Exception($Record->validationErrors);
+            throw $e;
         }
     }
 

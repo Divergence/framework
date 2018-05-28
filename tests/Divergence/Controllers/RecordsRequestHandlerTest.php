@@ -872,4 +872,23 @@ class RecordsRequestHandlerTest extends TestCase
         $this->assertEquals('API access required.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
+
+    // write access denied
+    public function testProcessDatumSaveNoWriteAccess()
+    {
+        $this->expectException('Exception');
+        SecureCanaryRequestHandler::processDatumSave([
+            'ID' => '1',
+            'Name' => 'whatever',
+        ]);
+    }
+
+    // write access denied
+    public function testProcessDatumSaveDatabaseError()
+    {
+        $this->expectException('Exception');
+        CanaryRequestHandler::processDatumSave([
+            'Created' => 'fake'
+        ]);
+    }
 }
