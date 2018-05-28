@@ -12,6 +12,7 @@
 namespace Divergence\Models;
 
 use Exception;
+use JsonSerializable;
 use Divergence\Helpers\Util as Util;
 use Divergence\IO\Database\SQL as SQL;
 
@@ -24,27 +25,26 @@ use Divergence\IO\Database\MySQL as DB;
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
  * @author  Chris Alfano <themightychris@gmail.com>
  *
+ * @property-read bool $isDirty      False by default. Set to true only when an object has had any field change from it's state when it was instantiated.
  * @property-read bool $isPhantom    True if this object was instantiated as a brand new object and isn't yet saved.
  * @property-read bool $wasPhantom   True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
  * @property-read bool $isValid      True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem.
  * @property-read bool $isNew        False by default. Set to true only when an object that isPhantom is saved.
  * @property-read bool $isUpdated    False by default. Set to true when an object that already existed in the data store is saved.
- * 
+ *
  * These are actually part of Divergence\Models\Model but are used in this file as "defaults".
  * @property int        $ID Default primary key field.
  * @property string     $Class Name of this fully qualified PHP class for use with subclassing to explicitly specify which class to instantiate a record as when pulling from datastore.
  * @property mixed      $Created Timestamp of when this record was created. Supports Unix timestamp as well as any format accepted by PHP's strtotime as well as MySQL standard.
  * @property int        $CreatorID A standard user ID field for use by your login & authentication system.
- * 
+ *
  * @property-read array $validationErrors    An empty string by default. Returns validation errors as an array.
  * @property-read array $data                A plain PHP array of the fields and values for this model object.
  * @property-read array $originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
- * 
+ *
  */
-class ActiveRecord
+class ActiveRecord implements JsonSerializable
 {
-    
-
     /**
      * @var bool $autoCreateTables Set this to true if you want the table(s) to automatically be created when not found.
      */
@@ -145,13 +145,50 @@ class ActiveRecord
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
 
+    /**
+     * Internal registry of fields that comprise this class. The setting of this variable of every parent derived from a child model will get merged.
+     *
+     * @var array $_classFields
+     */
     protected static $_classFields = [];
+
+    /**
+     * Internal registry of relationships that are part of this class. The setting of this variable of every parent derived from a child model will get merged.
+     *
+     * @var array $_classFields
+     */
     protected static $_classRelationships = [];
+
+    /**
+     * Internal registry of before save PHP callables that are part of this class. The setting of this variable of every parent derived from a child model will get merged.
+     *
+     * @var array $_classBeforeSave
+     */
     protected static $_classBeforeSave = [];
+
+    /**
+     * Internal registry of after save PHP callables that are part of this class. The setting of this variable of every parent derived from a child model will get merged.
+     *
+     * @var array $_classAfterSave
+     */
     protected static $_classAfterSave = [];
     
-    
+    /**
+     * Global registry of booleans that check if a given model has had it's fields defined in a static context. The key is a class name and the value is a simple true / false.
+     *
+     * @used-by ActiveRecord::init()
+     *
+     * @var array $_fieldsDefined
+     */
     protected static $_fieldsDefined = [];
+
+    /**
+     * Global registry of booleans that check if a given model has had it's relationships defined in a static context. The key is a class name and the value is a simple true / false.
+     *
+     * @used-by ActiveRecord::init()
+     *
+     * @var array $_relationshipsDefined
+     */
     protected static $_relationshipsDefined = [];
     protected static $_eventsDefined = [];
     
@@ -180,18 +217,47 @@ class ActiveRecord
      */
     protected $_originalValues;
 
+
     /**
-     * @var bool $_isPhantom    True if this object was instantiated as a brand new object and isn't yet saved.
-     * @var bool $_wasPhantom   True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
-     * @var bool $_isValid      True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem.
-     * @var bool $_isNew        False by default. Set to true only when an object that isPhantom is saved.
-     * @var bool $_isUpdated    False by default. Set to true when an object that already existed in the data store is saved.
+     * False by default. Set to true only when an object has had any field change from it's state when it was instantiated.
+     *
+     * @var bool $_isDirty
      */
     protected $_isDirty;
+
+    /**
+     * True if this object was instantiated as a brand new object and isn't yet saved.
+     *
+     * @var bool $_isPhantom
+     */
     protected $_isPhantom;
+
+    /**
+     * True if this object was originally instantiated as a brand new object. Will stay true even if saved during that PHP runtime.
+     *
+     * @var bool $_wasPhantom
+     */
     protected $_wasPhantom;
+
+    /**
+     * True if this object is valid. This value is true by default and will only be set to false if the validator is executed first and finds a validation problem.
+     *
+     * @var bool $_isValid
+     */
     protected $_isValid;
+
+    /**
+     * False by default. Set to true only when an object that isPhantom is saved.
+     *
+     * @var bool $_isNew
+     */
     protected $_isNew;
+
+    /**
+     * False by default. Set to true when an object that already existed in the data store is saved.
+     *
+     * @var bool $_isUpdated
+     */
     protected $_isUpdated;
 
     /**
@@ -200,7 +266,7 @@ class ActiveRecord
      * @param array $record Raw array data to start off the model.
      * @param boolean $isDirty Whether or not to treat this object as if it was modified from the start.
      * @param boolean $isPhantom Whether or not to treat this object as a brand new record not yet in the database.
-     * 
+     *
      * @return ActiveRecord Instance of the value of $this->Class
      */
     public function __construct($record = [], $isDirty = false, $isPhantom = null)
@@ -228,7 +294,7 @@ class ActiveRecord
      * __get Passthru to getValue($name)
      *
      * @param string $name Name of the magic field you want.
-     * 
+     *
      * @return mixed The return of $this->getValue($name)
      */
     public function __get($name)
@@ -241,7 +307,7 @@ class ActiveRecord
      *
      * @param string $name Name of the magic field to set.
      * @param mixed $value Value to set.
-     * 
+     *
      * @return mixed The return of $this->setValue($name,$value)
      */
     public function __set($name, $value)
@@ -253,7 +319,7 @@ class ActiveRecord
      * __isset Is set magic method
      *
      * @param string $name Name of the magic field to set.
-     * 
+     *
      * @return bool Returns true if a value was returned by $this->getValue($name), false otherwise.
      */
     public function __isset($name)
@@ -288,6 +354,11 @@ class ActiveRecord
     
     /**
      * init Initializes the model by checking the ancestor tree for the existence of various config fields and merges them.
+     *
+     * @uses ActiveRecord::$_fieldsDefined Defined by.
+     * @uses ActiveRecord::$_relationshipsDefined Defined by.
+     * @uses ActiveRecord::$_eventsDefined Defined by.
+     *
      * @return void
      */
     public static function init()
@@ -315,13 +386,13 @@ class ActiveRecord
     
     /**
      * getValue Pass thru for __get
-     * 
+     *
      * @param string $name The name of the field you want to get.
      *
      * @return mixed Value of the field you wanted if it exists or null otherwise.
      */
     public function getValue($name)
-    {        
+    {
         switch ($name) {
             case 'isDirty':
                 return $this->_isDirty;
@@ -393,7 +464,7 @@ class ActiveRecord
     
     /**
      * isVersioned
-     * 
+     *
      * @return boolean Returns true if this class is defined with Divergence\Models\Versioning as a trait.
      */
     public static function isVersioned()
@@ -403,7 +474,7 @@ class ActiveRecord
     
     /**
      * isVersioned
-     * 
+     *
      * @return boolean Returns true if this class is defined with Divergence\Models\Relations as a trait.
      */
     public static function isRelational()
@@ -435,7 +506,7 @@ class ActiveRecord
     
     /**
      * isA
-     * @param $string $class Check if the model matches this class.
+     * @param string $class Check if the model matches this class.
      * @return boolean True if model matches the class provided. False otherwise.
      */
     public function isA($class)
@@ -443,6 +514,13 @@ class ActiveRecord
         return is_a($this, $class);
     }
     
+    /**
+     * changeClass Used to instantiate a new model of a different class with this model's field's. Useful when you have similar classes or subclasses with the same parent.
+     *
+     * @param string $className If you leave this blank the return will be $this
+     * @param array $fieldValues Optional. Any field values you want to override.
+     * @return ActiveRecord A new model of a different class with this model's field's. Useful when you have similar classes or subclasses with the same parent.
+     */
     public function changeClass($className = false, $fieldValues = false)
     {
         if (!$className) {
@@ -462,7 +540,13 @@ class ActiveRecord
         
         return $ActiveRecord;
     }
-    
+
+    /**
+     * setFields Change multiple fields in the model with an array.
+     *
+     * @param array $values Field/values array to change multiple fields in this model.
+     * @return void
+     */
     public function setFields($values)
     {
         foreach ($values as $field => $value) {
@@ -470,11 +554,28 @@ class ActiveRecord
         }
     }
     
+    /**
+     * setField Change one field in the model.
+     *
+     * @param string $field
+     * @param mixed $value
+     * @return void
+     */
     public function setField($field, $value)
     {
         $this->_setFieldValue($field, $value);
     }
     
+    /**
+     * Implements JsonSerializable for this class.
+     *
+     * @return array Return for extension JsonSerializable
+     */
+    public function jsonSerialize()
+    {
+        return $this->getData();
+    }
+
     /**
      *  Gets normalized object data.
      *
@@ -495,6 +596,12 @@ class ActiveRecord
         return $data;
     }
     
+    /**
+     * Checks if a field has been changed from it's value when this object was created.
+     *
+     * @param string $field
+     * @return boolean
+     */
     public function isFieldDirty($field)
     {
         return $this->isPhantom || array_key_exists($field, $this->_originalValues);
