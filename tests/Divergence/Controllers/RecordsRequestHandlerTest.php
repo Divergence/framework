@@ -49,7 +49,9 @@ class RecordsRequestHandlerTest extends TestCase
 
     public function tearDown()
     {
-        DB::nonQuery('UNLOCK TABLES');
+        if($this->getName() == 'testProcessDatumDestroyFailed') {
+            DB::nonQuery('UNLOCK TABLES');
+        }
     }
 
     public function testHandleRequestJSON()
@@ -927,14 +929,14 @@ class RecordsRequestHandlerTest extends TestCase
         ]);
     }
 
-    // failed delete cause table locked
+    // failed delete cause table locked (fires a database error)
     public function testProcessDatumDestroyFailed()
     {
         
         DB::nonQuery('LOCK TABLES `canaries` READ');
         $this->expectException('Exception');
         CanaryRequestHandler::processDatumDestroy([
-            'ID' => '1000',
+            'ID' => '1',
         ]);
     }
 }
