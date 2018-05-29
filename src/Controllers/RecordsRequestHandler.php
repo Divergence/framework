@@ -1,4 +1,14 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * @author Henry Paradiz <henry.paradiz@gmail.com>
+ * @copyright 2018 Henry Paradiz <henry.paradiz@gmail.com>
+ * @license MIT For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
+ *
+ * @since 1.0
+ * @link https://github.com/Divergence/docs/blob/master/controllers.md
+ */
 namespace Divergence\Controllers;
 
 use Exception;
@@ -9,6 +19,13 @@ use Divergence\Helpers\Util as Util;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Models\ActiveRecord as ActiveRecord;
 
+/**
+ * RecordsRequestHandler - A REST API for Divergence ActiveRecord
+ *
+ * @package Divergence
+ * @author  Henry Paradiz <henry.paradiz@gmail.com>
+ * @author  Chris Alfano <themightychris@gmail.com>
+ */
 abstract class RecordsRequestHandler extends RequestHandler
 {
     public static $config;
@@ -24,15 +41,22 @@ abstract class RecordsRequestHandler extends RequestHandler
     public static $browseLimitDefault = false;
     public static $editableFields = false;
     public static $searchConditions = false;
-    
+
     public static $calledClass = __CLASS__;
     public static $responseMode = 'dwoo';
-    
+
+    /**
+     * Start of routing for this controller.
+     * Methods in this execution path will always respond either as an error or a normal response.
+     * Responsible for detecting JSON or JSONP response modes.
+     *
+     * @return void
+     */
     public static function handleRequest()
     {
         // save static class
         static::$calledClass = get_called_class();
-    
+
         // handle JSON requests
         if (static::peekPath() == 'json') {
             // check access for API response modes
@@ -43,10 +67,9 @@ abstract class RecordsRequestHandler extends RequestHandler
                 }
             }
         }
-        
+
         return static::handleRecordsRequest();
     }
-
 
     public static function handleRecordsRequest($action = false)
     {
@@ -55,17 +78,17 @@ abstract class RecordsRequestHandler extends RequestHandler
             {
                 return static::handleMultiSaveRequest();
             }
-            
+
             case 'destroy':
             {
                 return static::handleMultiDestroyRequest();
             }
-            
+
             case 'create':
             {
                 return static::handleCreateRequest();
             }
-            
+
             case '':
             case false:
             {
@@ -82,11 +105,11 @@ abstract class RecordsRequestHandler extends RequestHandler
             }
         }
     }
-    
+
     public static function getRecordByHandle($handle)
     {
         $className = static::$recordClass;
-        
+
         if (method_exists($className, 'getByHandle')) {
             return $className::getByHandle($handle);
         }
@@ -111,7 +134,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
         $limit = !empty($_REQUEST['limit']) && is_numeric($_REQUEST['limit']) ? $_REQUEST['limit'] : static::$browseLimitDefault;
         $offset = !empty($_REQUEST['offset']) && is_numeric($_REQUEST['offset']) ? $_REQUEST['offset'] : false;
-        
+
         $options = [
             'limit' =>  $limit,
             'offset' => $offset,
@@ -126,9 +149,9 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (!static::checkBrowseAccess(func_get_args())) {
             return static::throwUnauthorizedError();
         }
-        
+
         $conditions = static::prepareBrowseConditions($conditions);
-        
+
         $options = static::prepareDefaultBrowseOptions();
 
         // process sorter
@@ -149,7 +172,7 @@ abstract class RecordsRequestHandler extends RequestHandler
                 }
             }
         }
-        
+
         // process filter
         if (!empty($_REQUEST['filter'])) {
             $filter = json_decode($_REQUEST['filter'], true);
@@ -194,23 +217,23 @@ abstract class RecordsRequestHandler extends RequestHandler
             case false:
             {
                 $className = static::$recordClass;
-                
+
                 return static::respond(static::getTemplateName($className::$singularNoun), [
                     'success' => true,
                     'data' => $Record,
                 ]);
             }
-            
+
             case 'edit':
             {
                 return static::handleEditRequest($Record);
             }
-            
+
             case 'delete':
             {
                 return static::handleDeleteRequest($Record);
             }
-        
+
             default:
             {
                 return static::onRecordRequestNotHandled($Record, $action);
@@ -248,12 +271,12 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         // get record
         $Record = static::getDatumRecord($datum);
-        
+
         // check write access
         if (!static::checkWriteAccess($Record)) {
             throw new Exception('Write access denied');
         }
-        
+
         // apply delta
         static::applyRecordDelta($Record, $datum);
 
@@ -266,7 +289,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             static::onBeforeRecordSaved($Record, $datum);
 
             $Record->save();
-            
+
             // call template function
             static::onRecordSaved($Record, $datum);
 
@@ -279,9 +302,9 @@ abstract class RecordsRequestHandler extends RequestHandler
     public static function handleMultiSaveRequest()
     {
         $className = static::$recordClass;
-            
+
         static::prepareResponseModeJSON(['POST','PUT']);
-        
+
         if ($className::fieldExists(key($_REQUEST['data']))) {
             $_REQUEST['data'] = [$_REQUEST['data']];
         }
@@ -294,7 +317,7 @@ abstract class RecordsRequestHandler extends RequestHandler
                 ],
             ]);
         }
-        
+
         $results = [];
         $failed = [];
 
@@ -309,15 +332,15 @@ abstract class RecordsRequestHandler extends RequestHandler
                 continue;
             }
         }
-        
-        
+
+
         return static::respond(static::getTemplateName($className::$pluralNoun).'Saved', [
             'success' => count($results) || !count($failed),
             'data' => $results,
             'failed' => $failed,
         ]);
     }
-    
+
     public static function processDatumDestroy($datum)
     {
         $className = static::$recordClass;
@@ -335,7 +358,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (!$Record = $className::getByField($PrimaryKey, $recordID)) {
             throw new Exception($PrimaryKey.' not found');
         }
-        
+
         // check write access
         if (!static::checkWriteAccess($Record)) {
             throw new Exception('Write access denied');
@@ -353,7 +376,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         $className = static::$recordClass;
 
         static::prepareResponseModeJSON(['POST','PUT','DELETE']);
-        
+
         if ($className::fieldExists(key($_REQUEST['data']))) {
             $_REQUEST['data'] = [$_REQUEST['data']];
         }
@@ -369,7 +392,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
         $results = [];
         $failed = [];
-        
+
         foreach ($_REQUEST['data'] as $datum) {
             try {
                 $results[] = static::processDatumDestroy($datum);
@@ -381,7 +404,7 @@ abstract class RecordsRequestHandler extends RequestHandler
                 continue;
             }
         }
-        
+
         return static::respond(static::getTemplateName($className::$pluralNoun).'Destroyed', [
             'success' => count($results) || !count($failed),
             'data' => $results,
@@ -399,7 +422,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             $className = static::$recordClass;
             $Record = new $className::$defaultClass();
         }
-        
+
         // call template function
         static::onRecordCreated($Record, $_REQUEST);
 
@@ -422,10 +445,10 @@ abstract class RecordsRequestHandler extends RequestHandler
                 }
             }
             $_REQUEST = $_REQUEST ? $_REQUEST : $_POST;
-        
+
             // apply delta
             static::applyRecordDelta($Record, $_REQUEST);
-            
+
             // call template function
             static::onBeforeRecordValidated($Record, $_REQUEST);
 
@@ -433,7 +456,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             if ($Record->validate()) {
                 // call template function
                 static::onBeforeRecordSaved($Record, $_REQUEST);
-                
+
                 try {
                     // save session
                     $Record->save();
@@ -445,10 +468,10 @@ abstract class RecordsRequestHandler extends RequestHandler
                         ],
                     ]);
                 }
-                
+
                 // call template function
                 static::onRecordSaved($Record, $_REQUEST);
-        
+
                 // fire created response
                 $responseID = static::getTemplateName($className::$singularNoun).'Saved';
                 $responseData = [
@@ -457,16 +480,16 @@ abstract class RecordsRequestHandler extends RequestHandler
                 ];
                 return static::respond($responseID, $responseData);
             }
-            
+
             // fall through back to form if validation failed
         }
-        
+
         $responseID = static::getTemplateName($className::$singularNoun).'Edit';
         $responseData = [
             'success' => false,
             'data' => $Record,
         ];
-    
+
         return static::respond($responseID, $responseData);
     }
 
@@ -478,38 +501,38 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (!static::checkWriteAccess($Record)) {
             return static::throwUnauthorizedError();
         }
-    
+
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = $Record->data;
             $Record->destroy();
-                    
+
             // call cleanup function after delete
             static::onRecordDeleted($Record, $data);
-            
+
             // fire created response
             return static::respond(static::getTemplateName($className::$singularNoun).'Deleted', [
                 'success' => true,
                 'data' => $Record,
             ]);
         }
-    
+
         return static::respond('confirm', [
             'question' => 'Are you sure you want to delete this '.$className::$singularNoun.'?',
             'data' => $Record,
         ]);
     }
-    
-    
+
+
     public static function respond($responseID, $responseData = [], $responseMode = false)
     {
         // default to static property
         if (!$responseMode) {
             $responseMode = static::$responseMode;
         }
-    
+
         return parent::respond($responseID, $responseData, $responseMode);
     }
-    
+
     // access control template functions
     public static function checkBrowseAccess($arguments)
     {
@@ -520,17 +543,17 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         return true;
     }
-    
+
     public static function checkWriteAccess(ActiveRecord $Record)
     {
         return true;
     }
-    
+
     public static function checkAPIAccess()
     {
         return true;
     }
-    
+
     public static function throwUnauthorizedError()
     {
         return static::respond('Unauthorized', [
@@ -560,7 +583,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             ],
         ]);
     }
-    
+
     public static function onRecordRequestNotHandled(ActiveRecord $Record, $action)
     {
         return static::respond('error', [
@@ -570,7 +593,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             ],
         ]);
     }
-    
+
 
 
     public static function getTemplateName($noun)
@@ -579,7 +602,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             return strtoupper($matches[1]);
         }, $noun);
     }
-    
+
     public static function applyRecordDelta(ActiveRecord $Record, $data)
     {
         if (is_array(static::$editableFields)) {
@@ -588,7 +611,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             $Record->setFields($data);
         }
     }
-    
+
     // event template functions
     protected static function onRecordCreated(ActiveRecord $Record, $data)
     {
@@ -605,7 +628,7 @@ abstract class RecordsRequestHandler extends RequestHandler
     protected static function onRecordSaved(ActiveRecord $Record, $data)
     {
     }
-    
+
     protected static function throwRecordNotFoundError()
     {
         return static::throwNotFoundError();

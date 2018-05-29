@@ -48,24 +48,24 @@ class ActiveRecord implements JsonSerializable
      * @var bool $autoCreateTables Set this to true if you want the table(s) to automatically be created when not found.
      */
     public static $autoCreateTables = true;
-    
+
     /**
      * @var string $tableName Name of table
      */
     public static $tableName = 'records';
-    
+
     /**
      *
      * @var string $singularNoun Noun to describe singular object
      */
     public static $singularNoun = 'record';
-    
+
     /**
      *
      * @var string $pluralNoun Noun to describe a plurality of objects
      */
     public static $pluralNoun = 'records';
-    
+
     /**
      *
      * @var array $fieldDefaults Defaults values for field definitions
@@ -74,18 +74,18 @@ class ActiveRecord implements JsonSerializable
         'type' => 'string',
         'notnull' => true,
     ];
-    
+
     /**
      * @var array $fields Field definitions
      */
     public static $fields = [];
-    
+
     /**
      * @var array $indexes Index definitions
      */
     public static $indexes = [];
-    
-    
+
+
     /**
     * @var array $validators Validation checks
     */
@@ -95,14 +95,14 @@ class ActiveRecord implements JsonSerializable
      * @var array $relationships Relationship definitions
      */
     public static $relationships = [];
-    
-    
+
+
     /**
      * Class names of possible contexts
      * @var array
      */
     public static $contextClasses;
-    
+
     /**
      *  @var string|null $primaryKey The primary key for this model. Optional. Defaults to ID
      */
@@ -112,7 +112,7 @@ class ActiveRecord implements JsonSerializable
      *  @var string $handleField Field which should be treated as unique but generated automatically.
      */
     public static $handleField = 'Handle';
-    
+
     /**
      *  @var null|string $rootClass The root class.
      */
@@ -127,7 +127,7 @@ class ActiveRecord implements JsonSerializable
      *  @var array $subClasses Array of class names providing valid classes you can use for this model.
      */
     public static $subClasses = [];
-    
+
     /**
      *  @var callable $beforeSave Runs inside the save() method before save actually happens.
      */
@@ -138,7 +138,7 @@ class ActiveRecord implements JsonSerializable
      */
     public static $afterSave;
 
-    
+
     // versioning
     public static $historyTable;
     public static $createRevisionOnDestroy = true;
@@ -171,7 +171,7 @@ class ActiveRecord implements JsonSerializable
      * @var array $_classAfterSave
      */
     protected static $_classAfterSave = [];
-    
+
     /**
      * Global registry of booleans that check if a given model has had it's fields defined in a static context. The key is a class name and the value is a simple true / false.
      *
@@ -190,7 +190,7 @@ class ActiveRecord implements JsonSerializable
      */
     protected static $_relationshipsDefined = [];
     protected static $_eventsDefined = [];
-    
+
     /**
      * @var array $_record Raw array data for this model.
      */
@@ -293,19 +293,19 @@ class ActiveRecord implements JsonSerializable
         $this->_isDirty = $this->_isPhantom || $isDirty;
         $this->_isNew = false;
         $this->_isUpdated = false;
-        
+
         $this->_isValid = true;
         $this->_validationErrors = [];
         $this->_originalValues = [];
 
         static::init();
-        
+
         // set Class
         if (static::fieldExists('Class') && !$this->Class) {
             $this->Class = get_class($this);
         }
     }
-    
+
     /**
      * __get Passthru to getValue($name)
      *
@@ -317,7 +317,7 @@ class ActiveRecord implements JsonSerializable
     {
         return $this->getValue($name);
     }
-    
+
     /**
      * Passthru to setValue($name,$value)
      *
@@ -330,7 +330,7 @@ class ActiveRecord implements JsonSerializable
     {
         return $this->setValue($name, $value);
     }
-    
+
     /**
      * Tests if a magic class attribute is set or not.
      *
@@ -343,7 +343,7 @@ class ActiveRecord implements JsonSerializable
         $value = $this->getValue($name);
         return isset($value);
     }
-    
+
     /**
      * Gets the primary key field for his model.
      *
@@ -367,7 +367,7 @@ class ActiveRecord implements JsonSerializable
             return $this->ID;
         }
     }
-    
+
     /**
      * init Initializes the model by checking the ancestor tree for the existence of various config fields and merges them.
      *
@@ -388,23 +388,23 @@ class ActiveRecord implements JsonSerializable
         if (!static::$_fieldsDefined[$className]) {
             static::_defineFields();
             static::_initFields();
-            
+
             static::$_fieldsDefined[$className] = true;
         }
         if (!static::$_relationshipsDefined[$className] && static::isRelational()) {
             static::_defineRelationships();
             static::_initRelationships();
-            
+
             static::$_relationshipsDefined[$className] = true;
         }
-        
+
         if (!static::$_eventsDefined[$className]) {
             static::_defineEvents();
-            
+
             static::$_eventsDefined[$className] = true;
         }
     }
-    
+
     /**
      * getValue Pass thru for __get
      *
@@ -417,31 +417,31 @@ class ActiveRecord implements JsonSerializable
         switch ($name) {
             case 'isDirty':
                 return $this->_isDirty;
-                
+
             case 'isPhantom':
                 return $this->_isPhantom;
 
             case 'wasPhantom':
                 return $this->_wasPhantom;
-                
+
             case 'isValid':
                 return $this->_isValid;
-                
+
             case 'isNew':
                 return $this->_isNew;
-                
+
             case 'isUpdated':
                 return $this->_isUpdated;
-                
+
             case 'validationErrors':
                 return array_filter($this->_validationErrors);
-                
+
             case 'data':
                 return $this->getData();
-                
+
             case 'originalValues':
                 return $this->_originalValues;
-                
+
             default:
             {
                 // handle field
@@ -463,7 +463,7 @@ class ActiveRecord implements JsonSerializable
         // undefined
         return null;
     }
-    
+
     /**
      * Sets a value on this model.
      *
@@ -482,7 +482,7 @@ class ActiveRecord implements JsonSerializable
             return false;
         }
     }
-    
+
     /**
      * Checks if this model is versioned.
      *
@@ -492,7 +492,7 @@ class ActiveRecord implements JsonSerializable
     {
         return in_array('Divergence\\Models\\Versioning', class_uses(get_called_class()));
     }
-    
+
     /**
      * Checks if this model is ready for relationships.
      *
@@ -502,7 +502,7 @@ class ActiveRecord implements JsonSerializable
     {
         return in_array('Divergence\\Models\\Relations', class_uses(get_called_class()));
     }
-    
+
     /**
      * Create a new object from this model.
      *
@@ -513,18 +513,18 @@ class ActiveRecord implements JsonSerializable
     public static function create($values = [], $save = false)
     {
         $className = get_called_class();
-        
+
         // create class
         $ActiveRecord = new $className();
         $ActiveRecord->setFields($values);
-        
+
         if ($save) {
             $ActiveRecord->save();
         }
-        
+
         return $ActiveRecord;
     }
-    
+
     /**
      * Checks if a model is a certain class.
      * @param string $class Check if the model matches this class.
@@ -534,7 +534,7 @@ class ActiveRecord implements JsonSerializable
     {
         return is_a($this, $class);
     }
-    
+
     /**
      * Used to instantiate a new model of a different class with this model's field's. Useful when you have similar classes or subclasses with the same parent.
      *
@@ -550,15 +550,15 @@ class ActiveRecord implements JsonSerializable
 
         $this->_record[static::_cn('Class')] = $className;
         $ActiveRecord = new $className($this->_record, true, $this->isPhantom);
-        
+
         if ($fieldValues) {
             $ActiveRecord->setFields($fieldValues);
         }
-        
+
         if (!$this->isPhantom) {
             $ActiveRecord->save();
         }
-        
+
         return $ActiveRecord;
     }
 
@@ -574,7 +574,7 @@ class ActiveRecord implements JsonSerializable
             $this->_setFieldValue($field, $value);
         }
     }
-    
+
     /**
      * Change one field in the model.
      *
@@ -586,7 +586,7 @@ class ActiveRecord implements JsonSerializable
     {
         $this->_setFieldValue($field, $value);
     }
-    
+
     /**
      * Implements JsonSerializable for this class.
      *
@@ -605,18 +605,18 @@ class ActiveRecord implements JsonSerializable
     public function getData()
     {
         $data = [];
-        
+
         foreach (static::$_classFields[get_called_class()] as $field => $options) {
             $data[$field] = $this->_getFieldValue($field);
         }
-        
+
         if ($this->validationErrors) {
             $data['validationErrors'] = $this->validationErrors;
         }
-        
+
         return $data;
     }
-    
+
     /**
      * Checks if a field has been changed from it's value when this object was created.
      *
@@ -627,12 +627,23 @@ class ActiveRecord implements JsonSerializable
     {
         return $this->isPhantom || array_key_exists($field, $this->_originalValues);
     }
-    
+
+    /**
+     * Gets values that this model was instantiated with for a given field.
+     *
+     * @param string $field Field name
+     * @return mixed
+     */
     public function getOriginalValue($field)
     {
         return $this->_originalValues[$field];
     }
 
+    /**
+     * Fires a DB::clearCachedRecord a key static::$tableName.'/'.static::getPrimaryKey()
+     *
+     * @return void
+     */
     public function clearCaches()
     {
         foreach ($this->getClassFields() as $field => $options) {
@@ -642,7 +653,7 @@ class ActiveRecord implements JsonSerializable
             }
         }
     }
-    
+
     /**
      * Runs the before save event function one at a time for any class that had $beforeSave configured in the ancestor tree.
      */
@@ -679,30 +690,30 @@ class ActiveRecord implements JsonSerializable
     {
         // run before save
         $this->beforeSave();
-        
+
         if (static::isVersioned()) {
             $this->beforeVersionedSave();
         }
-        
+
         // set created
         if (static::fieldExists('Created') && (!$this->Created || ($this->Created == 'CURRENT_TIMESTAMP'))) {
             $this->Created = time();
         }
-        
+
         // validate
         if (!$this->validate($deep)) {
             throw new Exception('Cannot save invalid record');
         }
-        
+
         $this->clearCaches();
 
         if ($this->isDirty) {
             // prepare record values
             $recordValues = $this->_prepareRecordValues();
-    
+
             // transform record to set array
             $set = static::_mapValuesToSet($recordValues);
-            
+
             // create new or update existing
             if ($this->_isPhantom) {
                 DB::nonQuery(
@@ -713,7 +724,7 @@ class ActiveRecord implements JsonSerializable
                     ],
                     [static::class,'handleError']
                 );
-                
+
                 $this->_record[static::$primaryKey ? static::$primaryKey : 'ID'] = DB::insertID();
                 $this->_isPhantom = false;
                 $this->_isNew = true;
@@ -728,21 +739,26 @@ class ActiveRecord implements JsonSerializable
                     ],
                     [static::class,'handleError']
                 );
-                
+
                 $this->_isUpdated = true;
             }
-            
+
             // update state
             $this->_isDirty = false;
-            
+
             if (static::isVersioned()) {
                 $this->afterVersionedSave();
             }
         }
         $this->afterSave();
     }
-    
-    
+
+
+    /**
+     * Deletes this object.
+     *
+     * @return bool True if database returns number of affected rows above 0. False otherwise.
+     */
     public function destroy()
     {
         if (static::isVersioned()) {
@@ -751,13 +767,13 @@ class ActiveRecord implements JsonSerializable
                 if ($this->fieldExists('Created')) {
                     $this->Created = time();
                 }
-                
+
                 $recordValues = $this->_prepareRecordValues();
                 $set = static::_mapValuesToSet($recordValues);
-            
+
                 DB::nonQuery(
                         'INSERT INTO `%s` SET %s',
-            
+
                     [
                                 static::getHistoryTable(),
                                 join(',', $set),
@@ -765,10 +781,16 @@ class ActiveRecord implements JsonSerializable
                 );
             }
         }
-        
+
         return static::delete($this->getPrimaryKeyValue());
     }
-    
+
+    /**
+     * Delete by ID
+     *
+     * @param id $id
+     * @return bool True if database returns number of affected rows above 0. False otherwise.
+     */
     public static function delete($id)
     {
         DB::nonQuery('DELETE FROM `%s` WHERE `%s` = %u', [
@@ -776,15 +798,15 @@ class ActiveRecord implements JsonSerializable
             static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'),
             $id,
         ], [static::class,'handleError']);
-        
+
         return DB::affectedRows() > 0;
     }
-    
+
     public static function getByContextObject(ActiveRecord $Record, $options = [])
     {
         return static::getByContext($Record::$rootClass, $Record->getPrimaryKeyValue(), $options);
     }
-    
+
     public static function getByContext($contextClass, $contextID, $options = [])
     {
         if (!static::fieldExists('ContextClass')) {
@@ -795,17 +817,17 @@ class ActiveRecord implements JsonSerializable
             'conditions' => [],
             'order' => false,
         ]);
-        
+
         $options['conditions']['ContextClass'] = $contextClass;
         $options['conditions']['ContextID'] = $contextID;
-    
+
         $record = static::getRecordByWhere($options['conditions'], $options);
 
         $className = static::_getRecordClass($record);
-        
+
         return $record ? new $className($record) : null;
     }
-    
+
     public static function getByHandle($handle)
     {
         if (static::fieldExists(static::$handleField)) {
@@ -815,21 +837,43 @@ class ActiveRecord implements JsonSerializable
         }
         return static::getByID($handle);
     }
-    
+
+    /**
+     * Get model object by primary key.
+     *
+     * @param int $id
+     * @return ActiveRecord|null
+     */
     public static function getByID($id)
     {
         $record = static::getRecordByField(static::$primaryKey ? static::$primaryKey : 'ID', $id, true);
-        
+
         return static::instantiateRecord($record);
     }
-        
+
+    /**
+     * Get model object by field.
+     *
+     * @param string $field Field name
+     * @param string $value Field value
+     * @param boolean $cacheIndex Optional. If we should cache the result or not. Default is false.
+     * @return ActiveRecord|null
+     */
     public static function getByField($field, $value, $cacheIndex = false)
     {
         $record = static::getRecordByField($field, $value, $cacheIndex);
-        
+
         return static::instantiateRecord($record);
     }
-    
+
+    /**
+     * Get record by field.
+     *
+     * @param string $field Field name
+     * @param string $value Field value
+     * @param boolean $cacheIndex Optional. If we should cache the result or not. Default is false.
+     * @return array|null Gets raw database data.
+     */
     public static function getRecordByField($field, $value, $cacheIndex = false)
     {
         $query = 'SELECT * FROM `%s` WHERE `%s` = "%s" LIMIT 1';
@@ -838,7 +882,7 @@ class ActiveRecord implements JsonSerializable
             static::_cn($field),
             DB::escape($value),
         ];
-    
+
         if ($cacheIndex) {
             $key = sprintf('%s/%s:%s', static::$tableName, $field, $value);
             return DB::oneRecordCached($key, $query, $params, [static::class,'handleError']);
@@ -846,20 +890,20 @@ class ActiveRecord implements JsonSerializable
             return DB::oneRecord($query, $params, [static::class,'handleError']);
         }
     }
-    
+
     public static function getByWhere($conditions, $options = [])
     {
         $record = static::getRecordByWhere($conditions, $options);
-        
+
         return static::instantiateRecord($record);
     }
-    
+
     public static function getRecordByWhere($conditions, $options = [])
     {
         if (!is_array($conditions)) {
             $conditions = [$conditions];
         }
-        
+
         $options = Util::prepareOptions($options, [
             'order' => false,
         ]);
@@ -867,20 +911,20 @@ class ActiveRecord implements JsonSerializable
         // initialize conditions and order
         $conditions = static::_mapConditions($conditions);
         $order = $options['order'] ? static::_mapFieldOrder($options['order']) : [];
-        
+
         return DB::oneRecord(
             'SELECT * FROM `%s` WHERE (%s) %s LIMIT 1',
-        
+
             [
                 static::$tableName,
                 join(') AND (', $conditions),
                 $order ? 'ORDER BY '.join(',', $order) : '',
             ],
-        
+
             [static::class,'handleError']
         );
     }
-    
+
     public static function getByQuery($query, $params = [])
     {
         return static::instantiateRecord(DB::oneRecord($query, $params, [static::class,'handleError']));
@@ -890,7 +934,7 @@ class ActiveRecord implements JsonSerializable
     {
         return static::getAllByField('Class', $className ? $className : get_called_class(), $options);
     }
-    
+
     public static function getAllByContextObject(ActiveRecord $Record, $options = [])
     {
         return static::getAllByContext($Record::$rootClass, $Record->getPrimaryKeyValue(), $options);
@@ -905,23 +949,23 @@ class ActiveRecord implements JsonSerializable
         $options = Util::prepareOptions($options, [
             'conditions' => [],
         ]);
-        
+
         $options['conditions']['ContextClass'] = $contextClass;
         $options['conditions']['ContextID'] = $contextID;
-    
+
         return static::instantiateRecords(static::getAllRecordsByWhere($options['conditions'], $options));
     }
-    
+
     public static function getAllByField($field, $value, $options = [])
     {
         return static::getAllByWhere([$field => $value], $options);
     }
-        
+
     public static function getAllByWhere($conditions = [], $options = [])
     {
         return static::instantiateRecords(static::getAllRecordsByWhere($conditions, $options));
     }
-    
+
     public static function buildExtraColumns($columns)
     {
         if (!empty($columns)) {
@@ -945,7 +989,7 @@ class ActiveRecord implements JsonSerializable
     public static function getAllRecordsByWhere($conditions = [], $options = [])
     {
         $className = get_called_class();
-    
+
         $options = Util::prepareOptions($options, [
             'indexField' => false,
             'order' => false,
@@ -955,70 +999,35 @@ class ActiveRecord implements JsonSerializable
             'extraColumns' => false,
             'having' => false,
         ]);
-        
+
         // initialize conditions
         if ($conditions) {
             if (is_string($conditions)) {
                 $conditions = [$conditions];
             }
-        
+
             $conditions = static::_mapConditions($conditions);
         }
-        
+
         // build query
         $query  = 'SELECT %1$s `%3$s`.*';
         $query .= static::buildExtraColumns($options['extraColumns']);
         $query .= ' FROM `%2$s` AS `%3$s`';
         $query .= ' WHERE (%4$s)';
-        
+
         $query .= static::buildHaving($options['having']);
-        
+
         $params = [
             $options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : '',
             static::$tableName,
             $className::$rootClass,
             $conditions ? join(') AND (', $conditions) : '1',
         ];
-        
+
         if ($options['order']) {
             $query .= ' ORDER BY ' . join(',', static::_mapFieldOrder($options['order']));
         }
-        
-        if ($options['limit']) {
-            $query .= sprintf(' LIMIT %u,%u', $options['offset'], $options['limit']);
-        }
-        
-        if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $query, $params, [static::class,'handleError']);
-        } else {
-            return DB::allRecords($query, $params, [static::class,'handleError']);
-        }
-    }
-    
-    public static function getAll($options = [])
-    {
-        return static::instantiateRecords(static::getAllRecords($options));
-    }
-    
-    public static function getAllRecords($options = [])
-    {
-        $options = Util::prepareOptions($options, [
-            'indexField' => false,
-            'order' => false,
-            'limit' => false,
-            'calcFoundRows' => false,
-            'offset' => 0,
-        ]);
-        
-        $query = 'SELECT '.($options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : '').'* FROM `%s`';
-        $params = [
-            static::$tableName,
-        ];
-        
-        if ($options['order']) {
-            $query .= ' ORDER BY ' . join(',', static::_mapFieldOrder($options['order']));
-        }
-        
+
         if ($options['limit']) {
             $query .= sprintf(' LIMIT %u,%u', $options['offset'], $options['limit']);
         }
@@ -1029,7 +1038,42 @@ class ActiveRecord implements JsonSerializable
             return DB::allRecords($query, $params, [static::class,'handleError']);
         }
     }
-    
+
+    public static function getAll($options = [])
+    {
+        return static::instantiateRecords(static::getAllRecords($options));
+    }
+
+    public static function getAllRecords($options = [])
+    {
+        $options = Util::prepareOptions($options, [
+            'indexField' => false,
+            'order' => false,
+            'limit' => false,
+            'calcFoundRows' => false,
+            'offset' => 0,
+        ]);
+
+        $query = 'SELECT '.($options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : '').'* FROM `%s`';
+        $params = [
+            static::$tableName,
+        ];
+
+        if ($options['order']) {
+            $query .= ' ORDER BY ' . join(',', static::_mapFieldOrder($options['order']));
+        }
+
+        if ($options['limit']) {
+            $query .= sprintf(' LIMIT %u,%u', $options['offset'], $options['limit']);
+        }
+
+        if ($options['indexField']) {
+            return DB::table(static::_cn($options['indexField']), $query, $params, [static::class,'handleError']);
+        } else {
+            return DB::allRecords($query, $params, [static::class,'handleError']);
+        }
+    }
+
     public static function getAllByQuery($query, $params = [])
     {
         return static::instantiateRecords(DB::allRecords($query, $params, [static::class,'handleError']));
@@ -1040,24 +1084,24 @@ class ActiveRecord implements JsonSerializable
         return static::instantiateRecords(DB::table($keyField, $query, $params, [static::class,'handleError']));
     }
 
-    
-    
+
+
     public static function instantiateRecord($record)
     {
         $className = static::_getRecordClass($record);
         return $record ? new $className($record) : null;
     }
-    
+
     public static function instantiateRecords($records)
     {
         foreach ($records as &$record) {
             $className = static::_getRecordClass($record);
             $record = new $className($record);
         }
-        
+
         return $records;
     }
-    
+
     public static function getUniqueHandle($text, $options = [])
     {
         // apply default options
@@ -1067,32 +1111,32 @@ class ActiveRecord implements JsonSerializable
             'alwaysSuffix' => false,
             'format' => '%s:%u',
         ]);
-        
+
         // transliterate accented characters
         $text = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
-    
+
         // strip bad characters
         $handle = $strippedText = preg_replace(
             ['/\s+/', '/_*[^a-zA-Z0-9\-_:]+_*/', '/:[-_]/', '/^[-_]+/', '/[-_]+$/'],
             ['_', '-', ':', '', ''],
             trim($text)
         );
-        
+
         $handle = trim($handle, '-_');
-        
+
         $incarnation = 0;
         do {
             // TODO: check for repeat posting here?
             $incarnation++;
-            
+
             if ($options['alwaysSuffix'] || $incarnation > 1) {
                 $handle = sprintf($options['format'], $strippedText, $incarnation);
             }
         } while (static::getByWhere(array_merge($options['domainConstraints'], [$options['handleField']=>$handle])));
-        
+
         return $handle;
     }
-    
+
 
     // TODO: make the handleField
     public static function generateRandomHandle($length = 32)
@@ -1100,23 +1144,23 @@ class ActiveRecord implements JsonSerializable
         do {
             $handle = substr(md5(mt_rand(0, mt_getrandmax())), 0, $length);
         } while (static::getByField(static::$handleField, $handle));
-        
+
         return $handle;
     }
-    
+
     public static function fieldExists($field)
     {
         static::init();
         return array_key_exists($field, static::$_classFields[get_called_class()]);
     }
-    
-    
+
+
     public static function getClassFields()
     {
         static::init();
         return static::$_classFields[get_called_class()];
     }
-    
+
     public static function getFieldOptions($field, $optionKey = false)
     {
         if ($optionKey) {
@@ -1137,25 +1181,25 @@ class ActiveRecord implements JsonSerializable
         if (!static::fieldExists($field)) {
             throw new Exception('getColumnName called on nonexisting column: ' . get_called_class().'->'.$field);
         }
-        
+
         return static::$_classFields[get_called_class()][$field]['columnName'];
     }
-    
+
     public static function mapFieldOrder($order)
     {
         return static::_mapFieldOrder($order);
     }
-    
+
     public static function mapConditions($conditions)
     {
         return static::_mapConditions($conditions);
     }
-    
+
     public function getRootClass()
     {
         return static::$rootClass;
     }
-    
+
     public function addValidationErrors($array)
     {
         foreach ($array as $field => $errorMessage) {
@@ -1168,7 +1212,7 @@ class ActiveRecord implements JsonSerializable
         $this->_isValid = false;
         $this->_validationErrors[$field] = $errorMessage;
     }
-    
+
     public function getValidationError($field)
     {
         // break apart path
@@ -1187,8 +1231,8 @@ class ActiveRecord implements JsonSerializable
         // return current value
         return $cur;
     }
-    
-    
+
+
     public function validate($deep = true)
     {
         $this->_isValid = true;
@@ -1203,7 +1247,7 @@ class ActiveRecord implements JsonSerializable
         foreach (static::$validators as $validator) {
             $this->_validator->validate($validator);
         }
-        
+
         $this->finishValidation();
 
         if ($deep) {
@@ -1212,8 +1256,8 @@ class ActiveRecord implements JsonSerializable
                 if (empty($this->_relatedObjects[$relationship])) {
                     continue;
                 }
-                
-                
+
+
                 if ($options['type'] == 'one-one') {
                     if ($this->_relatedObjects[$relationship]->isDirty) {
                         $this->_relatedObjects[$relationship]->validate();
@@ -1231,35 +1275,35 @@ class ActiveRecord implements JsonSerializable
                 }
             }
         }
-        
+
         return $this->_isValid;
     }
-    
+
     public static function handleError($query = null, $queryLog = null, $parameters = null)
     {
         $Connection = DB::getConnection();
-        
+
         if ($Connection->errorCode() == '42S02' && static::$autoCreateTables) {
             $CreateTable = SQL::getCreateTable(static::$rootClass);
-            
+
             // history versions table
             if (static::isVersioned()) {
                 $CreateTable .= SQL::getCreateTable(static::$rootClass, true);
             }
-            
+
             $Statement = $Connection->query($CreateTable);
-            
+
             // check for errors
             $ErrorInfo = $Statement->errorInfo();
-        
+
             // handle query error
             if ($ErrorInfo[0] != '00000') {
                 self::handleError($query, $queryLog);
             }
-            
+
             // clear buffer (required for the next query to work without running fetchAll first
             $Statement->closeCursor();
-            
+
             return $Connection->query($query); // now the query should finish with no error
         } else {
             return DB::handleError($query, $queryLog);
@@ -1275,7 +1319,7 @@ class ActiveRecord implements JsonSerializable
             if (preg_match('/^(\d{2})\D?(\d{2})\D?(\d{4}).*/', $value)) {
                 $value = preg_replace('/^(\d{2})\D?(\d{2})\D?(\d{4}).*/', '$3-$1-$2', $value);
             }
-            
+
             // trim time and any extra crap, or leave as-is if it doesn't fit the pattern
             $value = preg_replace('/^(\d{4})\D?(\d{2})\D?(\d{2}).*/', '$1-$2-$3', $value);
         } elseif (is_array($value) && count(array_filter($value))) {
@@ -1295,16 +1339,16 @@ class ActiveRecord implements JsonSerializable
         }
         return $value;
     }
-    
+
     protected static function _defineEvents()
     {
         // run before save
         $className = get_called_class();
-        
+
         // merge fields from first ancestor up
         $classes = class_parents($className);
         array_unshift($classes, $className);
-    
+
         while ($class = array_pop($classes)) {
             if (is_callable($class::$beforeSave)) {
                 if (!empty($class::$beforeSave)) {
@@ -1313,7 +1357,7 @@ class ActiveRecord implements JsonSerializable
                     }
                 }
             }
-            
+
             if (is_callable($class::$afterSave)) {
                 if (!empty($class::$afterSave)) {
                     if (!in_array($class::$afterSave, static::$_classAfterSave)) {
@@ -1323,7 +1367,7 @@ class ActiveRecord implements JsonSerializable
             }
         }
     }
-    
+
     /**
      * Called when a class is loaded to define fields before _initFields
      */
@@ -1335,25 +1379,25 @@ class ActiveRecord implements JsonSerializable
         if (isset(static::$_classFields[$className])) {
             return;
         }
-        
+
         // merge fields from first ancestor up
         $classes = class_parents($className);
         array_unshift($classes, $className);
-        
+
         static::$_classFields[$className] = [];
         while ($class = array_pop($classes)) {
             if (!empty($class::$fields)) {
                 static::$_classFields[$className] = array_merge(static::$_classFields[$className], $class::$fields);
             }
         }
-        
+
         // versioning
         if (static::isVersioned()) {
             static::$_classFields[$className] = array_merge(static::$_classFields[$className], static::$versioningFields);
         }
     }
 
-    
+
     /**
      * Called after _defineFields to initialize and apply defaults to the fields property
      * Must be idempotent as it may be applied multiple times up the inheritence chain
@@ -1372,11 +1416,11 @@ class ActiveRecord implements JsonSerializable
             'default' => null,
             'values' => null,
         ];
-        
+
         // apply default values to field definitions
         if (!empty(static::$_classFields[$className])) {
             $fields = [];
-            
+
             foreach (static::$_classFields[$className] as $field => $options) {
                 if (is_string($field)) {
                     if (is_array($options)) {
@@ -1390,21 +1434,21 @@ class ActiveRecord implements JsonSerializable
                     $field = $options;
                     $fields[$field] = array_merge($optionsMask, static::$fieldDefaults, ['columnName' => $field]);
                 }
-                
+
                 if ($field == 'Class') {
                     // apply Class enum values
                     $fields[$field]['values'] = static::$subClasses;
                 }
-                
+
                 if (!isset($fields[$field]['blankisnull']) && empty($fields[$field]['notnull'])) {
                     $fields[$field]['blankisnull'] = true;
                 }
-                
+
                 if ($fields[$field]['autoincrement']) {
                     $fields[$field]['primary'] = true;
                 }
             }
-            
+
             static::$_classFields[$className] = $fields;
         }
     }
@@ -1418,20 +1462,20 @@ class ActiveRecord implements JsonSerializable
     protected static function _getRecordClass($record)
     {
         $static = get_called_class();
-        
+
         if (!static::fieldExists('Class')) {
             return $static;
         }
-        
+
         $columnName = static::_cn('Class');
-        
+
         if (!empty($record[$columnName]) && is_subclass_of($record[$columnName], $static)) {
             return $record[$columnName];
         } else {
             return $static;
         }
     }
-    
+
     /**
      * Shorthand alias for _getColumnName
      * @param string $field name of field
@@ -1442,7 +1486,7 @@ class ActiveRecord implements JsonSerializable
         return static::getColumnName($field);
     }
 
-    
+
     /**
      * Retrieves given field's value
      * @param string $field Name of field
@@ -1451,17 +1495,17 @@ class ActiveRecord implements JsonSerializable
     protected function _getFieldValue($field, $useDefault = true)
     {
         $fieldOptions = static::$_classFields[get_called_class()][$field];
-    
+
         if (isset($this->_record[$fieldOptions['columnName']])) {
             $value = $this->_record[$fieldOptions['columnName']];
-            
+
             // apply type-dependent transformations
             switch ($fieldOptions['type']) {
                 case 'password':
                 {
                     return $value;
                 }
-                
+
                 case 'timestamp':
                 {
                     if (!isset($this->_convertedValues[$field])) {
@@ -1471,7 +1515,7 @@ class ActiveRecord implements JsonSerializable
                             $this->_convertedValues[$field] = null;
                         }
                     }
-                    
+
                     return $this->_convertedValues[$field];
                 }
                 case 'serialized':
@@ -1479,7 +1523,7 @@ class ActiveRecord implements JsonSerializable
                     if (!isset($this->_convertedValues[$field])) {
                         $this->_convertedValues[$field] = is_string($value) ? unserialize($value) : $value;
                     }
-                    
+
                     return $this->_convertedValues[$field];
                 }
                 case 'set':
@@ -1489,19 +1533,19 @@ class ActiveRecord implements JsonSerializable
                         $delim = empty($fieldOptions['delimiter']) ? ',' : $fieldOptions['delimiter'];
                         $this->_convertedValues[$field] = array_filter(preg_split('/\s*'.$delim.'\s*/', $value));
                     }
-                    
+
                     return $this->_convertedValues[$field];
                 }
-                
+
                 case 'boolean':
                 {
                     if (!isset($this->_convertedValues[$field])) {
                         $this->_convertedValues[$field] = (boolean)$value;
                     }
-                    
+
                     return $this->_convertedValues[$field];
                 }
-                
+
                 default:
                 {
                     return $value;
@@ -1524,7 +1568,7 @@ class ActiveRecord implements JsonSerializable
             }
         }
     }
-    
+
     protected function _setStringValue($fieldOptions, $value)
     {
         if (!$fieldOptions['notnull'] && $fieldOptions['blankisnull'] && ($value === '' || $value === null)) {
@@ -1600,7 +1644,7 @@ class ActiveRecord implements JsonSerializable
                 return false;
             }
         }
-        
+
         if (!static::fieldExists($field)) {
             return false;
         }
@@ -1620,19 +1664,19 @@ class ActiveRecord implements JsonSerializable
                 $value = $this->_setStringValue($fieldOptions, $value);
                 break;
             }
-            
+
             case 'boolean':
             {
                 $value = $this->_setBooleanValue($value);
                 break;
             }
-            
+
             case 'decimal':
             {
                 $value = $this->_setDecimalValue($value);
                 break;
             }
-            
+
             case 'int':
             case 'uint':
             case 'integer':
@@ -1640,19 +1684,19 @@ class ActiveRecord implements JsonSerializable
                 $value = $this->_setIntegerValue($fieldOptions, $value);
                 break;
             }
-            
+
             case 'timestamp':
             {
                 $value = $this->_setTimestampValue($value);
                 break;
             }
-            
+
             case 'date':
             {
                 $value = $this->_setDateValue($value);
                 break;
             }
-            
+
             // these types are converted to strings from another PHP type on save
             case 'serialized':
             {
@@ -1674,7 +1718,7 @@ class ActiveRecord implements JsonSerializable
                 break;
             }
         }
-        
+
         if ($forceDirty || ($this->_record[$field] !== $value)) {
             $columnName = static::_cn($field);
             if (isset($this->_record[$columnName])) {
@@ -1682,7 +1726,7 @@ class ActiveRecord implements JsonSerializable
             }
             $this->_record[$columnName] = $value;
             $this->_isDirty = true;
-            
+
             // unset invalidated relationships
             if (!empty($fieldOptions['relationships']) && static::isRelational()) {
                 foreach ($fieldOptions['relationships'] as $relationship => $isCached) {
@@ -1703,10 +1747,10 @@ class ActiveRecord implements JsonSerializable
 
         foreach (static::$_classFields[get_called_class()] as $field => $options) {
             $columnName = static::_cn($field);
-            
+
             if (array_key_exists($columnName, $this->_record)) {
                 $value = $this->_record[$columnName];
-                
+
                 if (!$value && !empty($options['blankisnull'])) {
                     $value = null;
                 }
@@ -1730,25 +1774,25 @@ class ActiveRecord implements JsonSerializable
             if (($options['type'] == 'serialized') && !is_string($value)) {
                 $value = serialize($value);
             }
-            
+
             if (($options['type'] == 'list') && is_array($value)) {
                 $delim = empty($options['delimiter']) ? ',' : $options['delimiter'];
                 $value = implode($delim, $value);
             }
-            
+
             $record[$field] = $value;
         }
 
         return $record;
     }
-    
+
     protected static function _mapValuesToSet($recordValues)
     {
         $set = [];
 
         foreach ($recordValues as $field => $value) {
             $fieldConfig = static::$_classFields[get_called_class()][$field];
-            
+
             if ($value === null) {
                 $set[] = sprintf('`%s` = NULL', $fieldConfig['columnName']);
             } elseif ($fieldConfig['type'] == 'timestamp' && $value == 'CURRENT_TIMESTAMP') {
@@ -1771,7 +1815,7 @@ class ActiveRecord implements JsonSerializable
             return [$order];
         } elseif (is_array($order)) {
             $r = [];
-            
+
             foreach ($order as $key => $value) {
                 if (is_string($key)) {
                     $columnName = static::_cn($key);
@@ -1780,20 +1824,20 @@ class ActiveRecord implements JsonSerializable
                     $columnName = static::_cn($value);
                     $direction = 'ASC';
                 }
-                
+
                 $r[] = sprintf('`%s` %s', $columnName, $direction);
             }
-            
+
             return $r;
         }
     }
-    
+
     protected static function _mapConditions($conditions)
     {
         foreach ($conditions as $field => &$condition) {
             if (is_string($field)) {
                 $fieldOptions = static::$_classFields[get_called_class()][$field];
-            
+
                 if ($condition === null || ($condition == '' && $fieldOptions['blankisnull'])) {
                     $condition = sprintf('`%s` IS NULL', static::_cn($field));
                 } elseif (is_array($condition)) {
@@ -1803,14 +1847,14 @@ class ActiveRecord implements JsonSerializable
                 }
             }
         }
-        
+
         return $conditions;
     }
-    
+
     protected function finishValidation()
     {
         $this->_isValid = $this->_isValid && !$this->_validator->hasErrors();
-        
+
         if (!$this->_isValid) {
             $this->_validationErrors = array_merge($this->_validationErrors, $this->_validator->getErrors());
         }
