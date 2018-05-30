@@ -788,7 +788,7 @@ class ActiveRecord implements JsonSerializable
     /**
      * Delete by ID
      *
-     * @param id $id
+     * @param int $id
      * @return bool True if database returns number of affected rows above 0. False otherwise.
      */
     public static function delete($id)
