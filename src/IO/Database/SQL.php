@@ -1,5 +1,4 @@
 <?php
-
 /*
  * This file is part of the Divergence package.
  *
@@ -25,13 +24,15 @@ class SQL
 {
     protected static $aggregateFieldConfigs;
 
+    /**
+     * This is how MySQL escapes it's string under the hood.
+     * Keep it. We don't need a database connection to escape strings.
+     *
+     * @param string $str String to escape.
+     * @return string Escaped string.
+     */
     public static function escape($str)
     {
-        /*
-         * This is how MySQL escapes it's string under the hood.
-         *
-         * Keep it. We don't need a database connection to escape strings.
-         */
         return str_replace(
             ["\\",  "\x00", "\n",  "\r",  "'",  '"', "\x1a"],
             ["\\\\","\\0","\\n", "\\r", "\'", '\"', "\\Z"],
@@ -39,50 +40,90 @@ class SQL
         );
     }
 
-    public static function getCreateTable($recordClass, $historyVariant = false)
+    public static function compileFields($recordClass,$historyVariant = false)
     {
-        $queryFields = [];
-        $indexes = $historyVariant ? [] : $recordClass::$indexes;
-        $fulltextColumns = [];
+        $queryString = [];
+        $fields = static::getAggregateFieldOptions($recordClass);
 
-        // history table revisionID field
-        if ($historyVariant) {
-            $queryFields[] = '`RevisionID` int(10) unsigned NOT NULL auto_increment';
-            $queryFields[] = 'PRIMARY KEY (`RevisionID`)';
-        }
-
-        // compile fields
-        foreach (static::getAggregateFieldOptions($recordClass) as $fieldId => $field) {
+        foreach ($fields as $fieldId => $field) {
             if ($field['columnName'] == 'RevisionID') {
                 continue;
             }
 
-            $queryFields[] = static::getFieldDefinition($recordClass, $fieldId, $historyVariant);
+            $queryString[] = static::getFieldDefinition($recordClass, $fieldId, $historyVariant);
 
             if (!empty($field['primary'])) {
                 if ($historyVariant) {
-                    $queryFields[] = 'KEY `'.$field['columnName'].'` (`'.$field['columnName'].'`)';
+                    $queryString[] = 'KEY `'.$field['columnName'].'` (`'.$field['columnName'].'`)';
                 } else {
-                    $queryFields[] = 'PRIMARY KEY (`'.$field['columnName'].'`)';
+                    $queryString[] = 'PRIMARY KEY (`'.$field['columnName'].'`)';
                 }
             }
 
             if (!empty($field['unique']) && !$historyVariant) {
-                $queryFields[] = 'UNIQUE KEY `'.$field['columnName'].'` (`'.$field['columnName'].'`)';
+                $queryString[] = 'UNIQUE KEY `'.$field['columnName'].'` (`'.$field['columnName'].'`)';
             }
 
             if (!empty($field['index']) && !$historyVariant) {
-                $queryFields[] = 'KEY `'.$field['columnName'].'` (`'.$field['columnName'].'`)';
+                $queryString[] = 'KEY `'.$field['columnName'].'` (`'.$field['columnName'].'`)';
+            }
+        }
+
+        return $queryString;
+    }
+
+    public static function getFullTextColumns($recordClass)
+    {
+        $fulltextColumns = [];
+        $fields = static::getAggregateFieldOptions($recordClass);
+
+        foreach ($fields as $fieldId => $field) {
+            if ($field['columnName'] == 'RevisionID') {
+                continue;
             }
 
-            if (!empty($field['fulltext']) && !$historyVariant) {
+            if (!empty($field['fulltext'])) {
                 $fulltextColumns[] = $field['columnName'];
             }
         }
 
-        // context index
-        if (!$historyVariant && $recordClass::fieldExists('ContextClass') && $recordClass::fieldExists('ContextID')) {
-            $queryFields[] = 'KEY `CONTEXT` (`'.$recordClass::getColumnName('ContextClass').'`,`'.$recordClass::getColumnName('ContextID').'`)';
+        return $fulltextColumns;
+    }
+
+    public static function getContextIndex($recordClass)
+    {
+        return 'KEY `CONTEXT` (`'.$recordClass::getColumnName('ContextClass').'`,`'.$recordClass::getColumnName('ContextID').'`)';
+    }
+
+    /**
+     * Generates a MySQL create table query from a Divergence\Models\ActiveRecord class.
+     *
+     * @param string $recordClass Class name
+     * @param boolean $historyVariant
+     * @return void
+     */
+    public static function getCreateTable($recordClass, $historyVariant = false)
+    {
+        $indexes = $historyVariant ? [] : $recordClass::$indexes;
+        $fulltextColumns = [];
+        $queryString = [];
+
+
+        // history table revisionID field
+        if ($historyVariant) {
+            $queryString[] = '`RevisionID` int(10) unsigned NOT NULL auto_increment';
+            $queryString[] = 'PRIMARY KEY (`RevisionID`)';
+        }
+
+        $queryString = array_merge($queryString,static::compileFields($recordClass, $historyVariant));
+
+        if(!$historyVariant) {
+            // If ContextClass && ContextID are members of this model let's index them
+            if ($recordClass::fieldExists('ContextClass') && $recordClass::fieldExists('ContextID')) {
+                $queryString[] = static::getContextIndex($recordClass);
+            }
+
+            $fulltextColumns = static::getFullTextColumns($recordClass);
         }
 
         // compile indexes
@@ -98,7 +139,7 @@ class SQL
                 continue;
             }
 
-            $queryFields[] = sprintf(
+            $queryString[] = sprintf(
                 '%s KEY `%s` (`%s`)',
                 !empty($index['unique']) ? 'UNIQUE' : '',
                 $indexName,
@@ -107,14 +148,14 @@ class SQL
         }
 
         if (!empty($fulltextColumns)) {
-            $queryFields[] = 'FULLTEXT KEY `FULLTEXT` (`'.join('`,`', $fulltextColumns).'`)';
+            $queryString[] = 'FULLTEXT KEY `FULLTEXT` (`'.join('`,`', $fulltextColumns).'`)';
         }
 
 
         $createSQL = sprintf(
             "CREATE TABLE IF NOT EXISTS `%s` (\n\t%s\n) ENGINE=MyISAM DEFAULT CHARSET=utf8;",
             $historyVariant ? $recordClass::getHistoryTable() : $recordClass::$tableName,
-            join("\n\t,", $queryFields)
+            join("\n\t,", $queryString)
         );
 
         // append history table SQL
