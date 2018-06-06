@@ -21,21 +21,85 @@ use \Divergence\App as App;
  */
 class MySQL
 {
-    // configurables
+    /**
+     * Timezones in TZ format
+     *
+     * @var string $Timezone
+     */
     public static $TimeZone;
 
+    /**
+     * Character encoding to use
+     *
+     * @var string $encoding
+     */
     public static $encoding = 'UTF-8';
+
+    /**
+     * Character set to use
+     *
+     * @var string $charset
+     */
     public static $charset = 'utf8';
 
+    /**
+     * Default config label to use in production
+     *
+     * @var string $defaultProductionLabel
+     */
     public static $defaultProductionLabel = 'mysql';
+
+    /**
+     * Default config label to use in development
+     *
+     * @var string $defaultDevLabel
+     */
     public static $defaultDevLabel = 'dev-mysql';
 
-    // protected static properties
+    /**
+     * Internal reference list of connections
+     *
+     * @var array $Connections
+     */
     protected static $Connections = [];
+
+    /**
+     * In-memory record cache
+     *
+     * @var array $_record_cache
+     */
     protected static $_record_cache = [];
+
+    /**
+     * An internal reference to the last PDO statement returned from a query.
+     *
+     * @var \PDOStatement $LastStatement
+     */
     protected static $LastStatement;
+
+    /**
+     * In-memory cache of the data in the global database config
+     *
+     * @var array $Config
+     */
     protected static $Config;
 
+    /**
+     * Attempts to make, store, and return a PDO connection.
+     * - By default will use the label provided by static::getDefaultLabel()
+     * - The label corresponds to a config in /config/db.php
+     * - Also sets timezone on the connection based on self::$Timezone
+     * - Sets self::$Connections[$label] with the connection after connecting.
+     * - If self::$Connections[$label] already exists it will return that.
+     *
+     * @param string|null $label A specific connection.
+     * @return PDO A PDO connection
+     *
+     * @uses self::$Connections
+     * @uses static::getDefaultLabel()
+     * @uses self::$Timezone
+     * @uses PDO
+     */
     public static function getConnection($label=null)
     {
         if (!$label) {
@@ -50,7 +114,7 @@ class MySQL
                 'port' => 3306,
             ], static::$Config[$label]);
 
-            if ($config['socket']) {
+            if (isset($config['socket'])) {
                 // socket connection
                 $DSN = 'mysql:unix_socket=' . $config['socket'] . ';dbname=' . $config['database'];
             } else {
@@ -73,7 +137,12 @@ class MySQL
         return self::$Connections[$label];
     }
 
-    // public static methods
+    /**
+     * Recursive escape for strings or arrays of strings.
+     *
+     * @param mixed $data If string will do a simple escape. If array will iterate over array members recursively and escape any found strings.
+     * @return mixed Same as $data input but with all found strings escaped in place.
+     */
     public static function escape($data)
     {
         if (is_string($data)) {
@@ -91,23 +160,48 @@ class MySQL
         return $data;
     }
 
-
+    /**
+     * Returns affected rows from the last query.
+     *
+     * @return int Affected row count.
+     */
     public static function affectedRows()
     {
         return self::$LastStatement->rowCount();
     }
 
+    /**
+     * Runs SELECT FOUND_ROWS() and returns the result.
+     * @see https://dev.mysql.com/doc/refman/8.0/en/information-functions.html#function_found-rows
+     *
+     * @return string|int An integer as a string.
+     */
     public static function foundRows()
     {
         return self::oneValue('SELECT FOUND_ROWS()');
     }
 
-
+    /**
+     * Returns the insert id from the last insert.
+     * @see http://php.net/manual/en/pdo.lastinsertid.php
+     * @return string An integer as a string usually.
+     */
     public static function insertID()
     {
         return self::getConnection()->lastInsertId();
     }
 
+    /**
+     * Formats a query with vsprintf if you pass an array and sprintf if you pass a string.
+     *
+     *  This is a public pass through for the private method preprocessQuery.
+     *
+     * @param string $query A database query.
+     * @param array|string $parameters Parameter(s) for vsprintf (array) or sprintf (string)
+     * @return string A formatted query.
+     *
+     * @uses static::preprocessQuery
+     */
     public static function prepareQuery($query, $parameters = [])
     {
         return self::preprocessQuery($query, $parameters);
@@ -314,7 +408,13 @@ class MySQL
         }
     }
 
-    // protected static methods
+    /**
+     * Formats a query with vsprintf if you pass an array and sprintf if you pass a string.
+     *
+     * @param string $query A database query.
+     * @param array|string $parameters Parameter(s) for vsprintf (array) or sprintf (string)
+     * @return string A formatted query.
+     */
     protected static function preprocessQuery($query, $parameters = [])
     {
         if (is_array($parameters) && count($parameters)) {

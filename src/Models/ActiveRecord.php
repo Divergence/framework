@@ -385,20 +385,20 @@ class ActiveRecord implements JsonSerializable
     public static function init()
     {
         $className = get_called_class();
-        if (!static::$_fieldsDefined[$className]) {
+        if (empty(static::$_fieldsDefined[$className])) {
             static::_defineFields();
             static::_initFields();
 
             static::$_fieldsDefined[$className] = true;
         }
-        if (!static::$_relationshipsDefined[$className] && static::isRelational()) {
+        if (empty(static::$_relationshipsDefined[$className]) && static::isRelational()) {
             static::_defineRelationships();
             static::_initRelationships();
 
             static::$_relationshipsDefined[$className] = true;
         }
 
-        if (!static::$_eventsDefined[$className]) {
+        if (empty(static::$_eventsDefined[$className])) {
             static::_defineEvents();
 
             static::$_eventsDefined[$className] = true;
@@ -1406,29 +1406,31 @@ class ActiveRecord implements JsonSerializable
 
         if ($deep) {
             // validate relationship objects
-            foreach (static::$_classRelationships[get_called_class()] as $relationship => $options) {
-                if (empty($this->_relatedObjects[$relationship])) {
-                    continue;
-                }
-
-
-                if ($options['type'] == 'one-one') {
-                    if ($this->_relatedObjects[$relationship]->isDirty) {
-                        $this->_relatedObjects[$relationship]->validate();
-                        $this->_isValid = $this->_isValid && $this->_relatedObjects[$relationship]->isValid;
-                        $this->_validationErrors[$relationship] = $this->_relatedObjects[$relationship]->validationErrors;
+            if(!empty(static::$_classRelationships[get_called_class()])) {
+                foreach (static::$_classRelationships[get_called_class()] as $relationship => $options) {
+                    if (empty($this->_relatedObjects[$relationship])) {
+                        continue;
                     }
-                } elseif ($options['type'] == 'one-many') {
-                    foreach ($this->_relatedObjects[$relationship] as $i => $object) {
-                        if ($object->isDirty) {
-                            $object->validate();
-                            $this->_isValid = $this->_isValid && $object->isValid;
-                            $this->_validationErrors[$relationship][$i] = $object->validationErrors;
+
+
+                    if ($options['type'] == 'one-one') {
+                        if ($this->_relatedObjects[$relationship]->isDirty) {
+                            $this->_relatedObjects[$relationship]->validate();
+                            $this->_isValid = $this->_isValid && $this->_relatedObjects[$relationship]->isValid;
+                            $this->_validationErrors[$relationship] = $this->_relatedObjects[$relationship]->validationErrors;
+                        }
+                    } elseif ($options['type'] == 'one-many') {
+                        foreach ($this->_relatedObjects[$relationship] as $i => $object) {
+                            if ($object->isDirty) {
+                                $object->validate();
+                                $this->_isValid = $this->_isValid && $object->isValid;
+                                $this->_validationErrors[$relationship][$i] = $object->validationErrors;
+                            }
                         }
                     }
-                }
-            }
-        }
+                } // foreach
+            } // if
+        } // if ($deep)
 
         return $this->_isValid;
     }
@@ -1593,7 +1595,10 @@ class ActiveRecord implements JsonSerializable
 
     /**
      * Called after _defineFields to initialize and apply defaults to the fields property
-     * Must be idempotent as it may be applied multiple times up the inheritence chain
+     * Must be idempotent as it may be applied multiple times up the inheritance chain
+     * @return void
+     *
+     * @uses static::$_classFields
      */
     protected static function _initFields()
     {
@@ -1912,7 +1917,7 @@ class ActiveRecord implements JsonSerializable
             }
         }
 
-        if ($forceDirty || ($this->_record[$field] !== $value)) {
+        if ($forceDirty || (!isset($this->_record[$field]) && $value) || ($this->_record[$field] !== $value)) {
             $columnName = static::_cn($field);
             if (isset($this->_record[$columnName])) {
                 $this->_originalValues[$field] = $this->_record[$columnName];
@@ -2029,7 +2034,9 @@ class ActiveRecord implements JsonSerializable
     {
         foreach ($conditions as $field => &$condition) {
             if (is_string($field)) {
-                $fieldOptions = static::$_classFields[get_called_class()][$field];
+                if(isset(static::$_classFields[get_called_class()][$field])) {
+                    $fieldOptions = static::$_classFields[get_called_class()][$field];
+                }
 
                 if ($condition === null || ($condition == '' && $fieldOptions['blankisnull'])) {
                     $condition = sprintf('`%s` IS NULL', static::_cn($field));
