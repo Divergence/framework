@@ -1917,7 +1917,7 @@ class ActiveRecord implements JsonSerializable
             }
         }
 
-        if ($forceDirty || (!isset($this->_record[$field]) && $value) || ($this->_record[$field] !== $value)) {
+        if ($forceDirty || (empty($this->_record[$field]) && isset($value)) || ($this->_record[$field] !== $value)) {
             $columnName = static::_cn($field);
             if (isset($this->_record[$columnName])) {
                 $this->_originalValues[$field] = $this->_record[$columnName];

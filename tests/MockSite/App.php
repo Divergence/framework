@@ -15,7 +15,7 @@ class App extends \Divergence\App
 {
     public static function setUp()
     {
-        ini_set('error_reporting', E_ALL ^ E_NOTICE ^ E_WARNING); // or error_reporting(E_ALL);
+        ini_set('error_reporting', E_ALL); // or error_reporting(E_ALL);
         ini_set('display_errors', '1');
         ini_set('display_startup_errors', '1');
 
@@ -31,7 +31,7 @@ class App extends \Divergence\App
                 ['Tag'=>'Encryption','Slug' => 'encryption'],
                 ['Tag'=>'Canaries','Slug'=> 'canaries'],
             ];
-            
+
             foreach ($Tags as &$Tag) {
                 $Tag = Tag::create($Tag);
                 $Tag->save();
@@ -42,7 +42,7 @@ class App extends \Divergence\App
             $Canaries = [];
             while (count($Canaries) < 10) {
                 $Canary = Canary::create(Canary::avis());
-                
+
                 $Canary->save();
                 array_push($Canaries, $Canary);
             }

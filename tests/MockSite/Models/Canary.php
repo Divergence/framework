@@ -15,7 +15,7 @@ class Canary extends \Divergence\Models\Model
 {
     use Versioning;
     //use \Divergence\Models\Relations;
-    
+
     // support subclassing
     public static $rootClass = __CLASS__;
     public static $defaultClass = __CLASS__;
@@ -26,7 +26,7 @@ class Canary extends \Divergence\Models\Model
     public static $tableName = 'canaries';
     public static $singularNoun = 'canary';
     public static $pluralNoun = 'canaries';
-    
+
     // versioning
     public static $historyTable = 'canaries_history';
     public static $createRevisionOnDestroy = true;
@@ -164,8 +164,10 @@ class Canary extends \Divergence\Models\Model
         $allowedColors = static::$fields['Colors']['values'];
 
         $colors = array_rand($allowedColors, mt_rand(1, 5));
-        foreach ($colors as &$color) {
-            $color = $allowedColors[$color];
+        if(is_array($colors)) {
+            foreach ($colors as &$color) {
+                $color = $allowedColors[$color];
+            }
         }
 
         $EyeColors = [$allowedColors[array_rand($allowedColors)],$allowedColors[array_rand($allowedColors)]];
