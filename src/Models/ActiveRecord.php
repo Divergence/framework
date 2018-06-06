@@ -872,7 +872,7 @@ class ActiveRecord implements JsonSerializable
      * @param string $field Field name
      * @param string $value Field value
      * @param boolean $cacheIndex Optional. If we should cache the result or not. Default is false.
-     * @return array|null Gets raw database data.
+     * @return array|null First database result.
      */
     public static function getRecordByField($field, $value, $cacheIndex = false)
     {
@@ -891,6 +891,13 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * Get the first result instantiated as a model from a simple select query with a where clause you can provide.
+     *
+     * @param array|string $conditions If passed as a string a database Where clause. If an array of field/value pairs will convert to a series of `field`='value' conditions joined with an AND operator.
+     * @param array|string $options Only takes 'order' option. A raw database string that will be inserted into the OR clause of the query or an array of field/direction pairs.
+     * @return ActiveRecord|null Single model instantiated from the first database result
+     */
     public static function getByWhere($conditions, $options = [])
     {
         $record = static::getRecordByWhere($conditions, $options);
@@ -898,6 +905,13 @@ class ActiveRecord implements JsonSerializable
         return static::instantiateRecord($record);
     }
 
+    /**
+     * Get the first result as an array from a simple select query with a where clause you can provide.
+     *
+     * @param array|string $conditions If passed as a string a database Where clause. If an array of field/value pairs will convert to a series of `field`='value' conditions joined with an AND operator.
+     * @param array|string $options Only takes 'order' option. A raw database string that will be inserted into the OR clause of the query or an array of field/direction pairs.
+     * @return array|null First database result.
+     */
     public static function getRecordByWhere($conditions, $options = [])
     {
         if (!is_array($conditions)) {
@@ -925,20 +939,42 @@ class ActiveRecord implements JsonSerializable
         );
     }
 
+    /**
+     * Get the first result instantiated as a model from a simple select query you can provide.
+     *
+     * @param string $query Database query. The passed in string will be passed through vsprintf or sprintf with $params.
+     * @param array|string $params If an array will be passed through vsprintf as the second parameter with the query as the first. If a string will be used with sprintf instead. If nothing provided you must provide your own query.
+     * @return ActiveRecord|null Single model instantiated from the first database result
+     */
     public static function getByQuery($query, $params = [])
     {
         return static::instantiateRecord(DB::oneRecord($query, $params, [static::class,'handleError']));
     }
 
+    /**
+     * Get all models in the database by class name. This is a subclass utility method. Requires a Class field on the model.
+     *
+     * @param boolean $className The full name of the class including namespace. Optional. Will use the name of the current class if none provided.
+     * @param array $options
+     * @return ActiveRecord[]|null Array of instantiated ActiveRecord models returned from the database result.
+     */
     public static function getAllByClass($className = false, $options = [])
     {
         return static::getAllByField('Class', $className ? $className : get_called_class(), $options);
     }
 
+    /**
+     * Get all models in the database by passing in an ActiveRecord model which has a 'ContextClass' field by the passed in records primary key.
+     *
+     * @param ActiveRecord $Record
+     * @param array $options
+     * @return ActiveRecord[]|null Array of instantiated ActiveRecord models returned from the database result.
+     */
     public static function getAllByContextObject(ActiveRecord $Record, $options = [])
     {
         return static::getAllByContext($Record::$rootClass, $Record->getPrimaryKeyValue(), $options);
     }
+
 
     public static function getAllByContext($contextClass, $contextID, $options = [])
     {
@@ -956,16 +992,37 @@ class ActiveRecord implements JsonSerializable
         return static::instantiateRecords(static::getAllRecordsByWhere($options['conditions'], $options));
     }
 
+    /**
+     * Get model objects by field and value.
+     *
+     * @param string $field Field name
+     * @param string $value Field value
+     * @param array $options
+     * @return ActiveRecord[]|null Array of models instantiated from the database result.
+     */
     public static function getAllByField($field, $value, $options = [])
     {
         return static::getAllByWhere([$field => $value], $options);
     }
 
+    /**
+     * Gets instantiated models as an array from a simple select query with a where clause you can provide.
+     *
+     * @param array|string $conditions If passed as a string a database Where clause. If an array of field/value pairs will convert to a series of `field`='value' conditions joined with an AND operator.
+     * @param array|string $options
+     * @return ActiveRecord[]|null Array of models instantiated from the database result.
+     */
     public static function getAllByWhere($conditions = [], $options = [])
     {
         return static::instantiateRecords(static::getAllRecordsByWhere($conditions, $options));
     }
 
+    /**
+     * Builds the extra columns you might want to add to a database select query after the initial list of model fields.
+     *
+     * @param array|string $columns An array of keys and values or a string which will be added to a list of fields after the query's SELECT clause.
+     * @return string|null Extra columns to add after a SELECT clause in a query. Always starts with a comma.
+     */
     public static function buildExtraColumns($columns)
     {
         if (!empty($columns)) {
@@ -979,6 +1036,12 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * Builds the HAVING clause of a MySQL database query.
+     *
+     * @param array|string $having Same as conditions. Can provide a string to use or an array of field/value pairs which will be joined by the AND operator.
+     * @return string|null
+     */
     public static function buildHaving($having)
     {
         if (!empty($having)) {
@@ -986,6 +1049,13 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * Gets database results as array from a simple select query with a where clause you can provide.
+     *
+     * @param array|string $conditions If passed as a string a database Where clause. If an array of field/value pairs will convert to a series of `field`='value' conditions joined with an AND operator.
+     * @param array|string $options
+     * @return array[]|null Array of records from the database result.
+     */
     public static function getAllRecordsByWhere($conditions = [], $options = [])
     {
         $className = get_called_class();
@@ -1039,11 +1109,23 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * Attempts to get all database records for this class and return them as an array of instantiated models.
+     *
+     * @param array $options
+     * @return ActiveRecord[]|null
+     */
     public static function getAll($options = [])
     {
         return static::instantiateRecords(static::getAllRecords($options));
     }
 
+    /**
+     * Attempts to get all database records for this class and returns them as is from the database.
+     *
+     * @param array $options
+     * @return array[]|null
+     */
     public static function getAllRecords($options = [])
     {
         $options = Util::prepareOptions($options, [
@@ -1074,6 +1156,13 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * Gets all records by a query you provide and then instantiates the results as an array of models.
+     *
+     * @param string $query Database query. The passed in string will be passed through vsprintf or sprintf with $params.
+     * @param array|string $params If an array will be passed through vsprintf as the second parameter with the query as the first. If a string will be used with sprintf instead. If nothing provided you must provide your own query.
+     * @return ActiveRecord[]|null Array of models instantiated from the first database result
+     */
     public static function getAllByQuery($query, $params = [])
     {
         return static::instantiateRecords(DB::allRecords($query, $params, [static::class,'handleError']));
@@ -1085,13 +1174,24 @@ class ActiveRecord implements JsonSerializable
     }
 
 
-
+    /**
+     * Converts database record array to a model. Will attempt to use the record's Class field value to as the class to instantiate as or the name of this class if none is provided.
+     *
+     * @param array $record Database row as an array.
+     * @return ActiveRecord|null An instantiated ActiveRecord model from the provided data.
+     */
     public static function instantiateRecord($record)
     {
         $className = static::_getRecordClass($record);
         return $record ? new $className($record) : null;
     }
 
+    /**
+     * Converts an array of database records to a model corresponding to each record. Will attempt to use the record's Class field value to as the class to instantiate as or the name of this class if none is provided.
+     *
+     * @param array $record An array of database rows.
+     * @return ActiveRecord|null An array of instantiated ActiveRecord models from the provided data.
+     */
     public static function instantiateRecords($records)
     {
         foreach ($records as &$record) {
@@ -1102,6 +1202,13 @@ class ActiveRecord implements JsonSerializable
         return $records;
     }
 
+    /**
+     * Generates a unique string based on the provided text making sure that nothing it returns already exists in the database for the given handleField option. If none is provided the static config $handleField will be used.
+     *
+     * @param string $text
+     * @param array $options
+     * @return string A unique handle.
+     */
     public static function getUniqueHandle($text, $options = [])
     {
         // apply default options
@@ -1148,19 +1255,36 @@ class ActiveRecord implements JsonSerializable
         return $handle;
     }
 
+    /**
+     * Checks of a field exists for this model in the fields config.
+     *
+     * @param string $field Name of the field
+     * @return bool True if the field exists. False otherwise.
+     */
     public static function fieldExists($field)
     {
         static::init();
         return array_key_exists($field, static::$_classFields[get_called_class()]);
     }
 
-
+    /**
+     * Returns the current configuration of class fields for the called class.
+     *
+     * @return array Current configuration of class fields for the called class.
+     */
     public static function getClassFields()
     {
         static::init();
         return static::$_classFields[get_called_class()];
     }
 
+    /**
+     * Returns either a field option or an array of all the field options.
+     *
+     * @param string $field Name of the field.
+     * @param boolean $optionKey
+     * @return void
+     */
     public static function getFieldOptions($field, $optionKey = false)
     {
         if ($optionKey) {
@@ -1195,11 +1319,22 @@ class ActiveRecord implements JsonSerializable
         return static::_mapConditions($conditions);
     }
 
+    /**
+     * Returns static::$rootClass for the called class.
+     *
+     * @return string static::$rootClass for the called class.
+     */
     public function getRootClass()
     {
         return static::$rootClass;
     }
 
+    /**
+     * Sets an array of validation errors for this object.
+     *
+     * @param array $array Validation errors in the form Field Name => error message
+     * @return void
+     */
     public function addValidationErrors($array)
     {
         foreach ($array as $field => $errorMessage) {
@@ -1207,12 +1342,25 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * Sets a validation error for this object. Sets $this->_isValid to false.
+     *
+     * @param string $field
+     * @param string $errorMessage
+     * @return void
+     */
     public function addValidationError($field, $errorMessage)
     {
         $this->_isValid = false;
         $this->_validationErrors[$field] = $errorMessage;
     }
 
+    /**
+     * Get a validation error for a given field.
+     *
+     * @param string $field Name of the field.
+     * @return string|null A validation error for the field. Null is no validation error found.
+     */
     public function getValidationError($field)
     {
         // break apart path
@@ -1232,7 +1380,13 @@ class ActiveRecord implements JsonSerializable
         return $cur;
     }
 
-
+    /**
+     * Validates the model. Instantiates a new RecordValidator object and sets it to $this->_validator.
+     * Then validates against the set validators in this model. Returns $this->_isValid
+     *
+     * @param boolean $deep If true will attempt to validate any already loaded relationship members.
+     * @return bool $this->_isValid which could be set to true or false depending on what happens with the RecordValidator.
+     */
     public function validate($deep = true)
     {
         $this->_isValid = true;
@@ -1279,6 +1433,16 @@ class ActiveRecord implements JsonSerializable
         return $this->_isValid;
     }
 
+    /**
+     * Handle any errors that come from the database client in the process of running a query.
+     * If the error code from MySQL 42S02 (table not found) is thrown this method will attempt to create the table before running the original query and returning.
+     * Other errors will be routed through to DB::handleError
+     *
+     * @param string $query
+     * @param array $queryLog
+     * @param array|string $parameters
+     * @return mixed Retried query result or the return from DB::handleError
+     */
     public static function handleError($query = null, $queryLog = null, $parameters = null)
     {
         $Connection = DB::getConnection();
@@ -1310,6 +1474,18 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * Parses a potential date value.
+     * - If passed a number will assume it's a unix timestamp and convert to Y-m-d based on the provided timestamp.
+     * - If passed a string will attempt to match m/d/y format.
+     * - If not valid will then attempt  Y/m/d
+     * - If passed an array will attempt to look for numeric values in the keys 'yyyy' for year, 'mm' for month, and 'dd' for day.
+     * - If none of the above worked will attempt to use PHP's strtotime.
+     * - Otherwise null.
+     *
+     * @param string|int|array $value Date or timestamp in various formats.
+     * @return null|string Date formatted as Y-m-d
+     */
     public function _setDateValue($value)
     {
         if (is_numeric($value)) {
