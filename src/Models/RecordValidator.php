@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * This file is part of the Divergence package.
  *
  * (c) Henry Paradiz <henry.paradiz@gmail.com>
@@ -11,6 +11,8 @@ namespace Divergence\Models;
 
 use Exception;
 
+use Divergence\Helpers\Validate;
+
 /**
  * RecordValidator.
  *
@@ -19,8 +21,6 @@ use Exception;
  * @author  Chris Alfano <themightychris@gmail.com>
  *
  */
-use Divergence\Helpers\Validate;
-
 class RecordValidator
 {
     // configurables
