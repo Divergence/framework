@@ -174,7 +174,7 @@ class MySQL
      * Runs SELECT FOUND_ROWS() and returns the result.
      * @see https://dev.mysql.com/doc/refman/8.0/en/information-functions.html#function_found-rows
      *
-     * @return string|int An integer as a string.
+     * @return string|int|false An integer as a string.
      */
     public static function foundRows()
     {
@@ -207,6 +207,16 @@ class MySQL
         return self::preprocessQuery($query, $parameters);
     }
 
+    /**
+     * Run a query that returns no data (like update or insert)
+     *
+     * This method will still set static::$LastStatement
+     *
+     * @param string $query A MySQL query
+     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @return void
+     */
     public static function nonQuery($query, $parameters = [], $errorHandler = null)
     {
         $query = self::preprocessQuery($query, $parameters);
@@ -242,6 +252,14 @@ class MySQL
         self::finishQueryLog($queryLog);
     }
 
+    /**
+     * Run a query and returns a PDO statement
+     *
+     * @param string $query A MySQL query
+     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @return \PDOStatement
+     */
     public static function query($query, $parameters = [], $errorHandler = null)
     {
         $query = self::preprocessQuery($query, $parameters);
@@ -291,6 +309,14 @@ class MySQL
         return $records;
     }
 
+    /**
+     * Runs a query and returns all results as an associative array.
+     *
+     * @param string $query A MySQL query
+     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @return array Result from query or an empty array if nothing found.
+     */
     public static function allRecords($query, $parameters = [], $errorHandler = null)
     {
         // execute query
