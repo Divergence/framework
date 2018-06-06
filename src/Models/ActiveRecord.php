@@ -1516,6 +1516,17 @@ class ActiveRecord implements JsonSerializable
         return $value;
     }
 
+    /**
+     * Iterates through all static::$beforeSave and static::$afterSave in this class and any of it's parent classes.
+     * Checks if they are callables and if they are adds them to static::$_classBeforeSave[] and static::$_classAfterSave[]
+     *
+     * @return void
+     *
+     * @uses static::$beforeSave
+     * @uses static::$afterSave
+     * @uses static::$_classBeforeSave
+     * @uses static::$_classAfterSave
+     */
     protected static function _defineEvents()
     {
         // run before save
@@ -1545,7 +1556,13 @@ class ActiveRecord implements JsonSerializable
     }
 
     /**
-     * Called when a class is loaded to define fields before _initFields
+     * Merges all static::$_classFields in this class and any of it's parent classes.
+     * Sets the merged value to static::$_classFields[get_called_class()]
+     *
+     * @return void
+     *
+     * @uses static::$_classFields
+     * @uses static::$_classFields
      */
     protected static function _defineFields()
     {
