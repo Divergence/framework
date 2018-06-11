@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * This file is part of the Divergence package.
  *
  * (c) Henry Paradiz <henry.paradiz@gmail.com>
@@ -94,6 +94,8 @@ class MySQL
      *
      * @param string|null $label A specific connection.
      * @return PDO A PDO connection
+     *
+     * @throws \Exception
      *
      * @uses self::$Connections
      * @uses static::getDefaultLabel()
@@ -296,6 +298,16 @@ class MySQL
      *  Uses $tableKey instead of primaryKey (usually ID) as the PHP array index
      *      Only do this with unique indexed fields. This is a helper method for that exact situation.
      */
+    /**
+     * Runs a query and returns all results as an associative array with $tableKey as the index instead of auto assignment in order of appearance by PHP.
+     *
+     * @param string $tableKey A column to use as an index for the returned array.
+     * @param string $query A MySQL query
+     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param string $nullKey Optional fallback column to use as an index if the $tableKey param isn't found in a returned record.
+     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @return array Result from query or an empty array if nothing found.
+     */
     public static function table($tableKey, $query, $parameters = [], $nullKey = '', $errorHandler = null)
     {
         // execute query
@@ -331,6 +343,15 @@ class MySQL
     }
 
 
+    /**
+     * Gets you some column from every record.
+     *
+     * @param string $valueKey The name of the column you want.
+     * @param string $query A MySQL query
+     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @return array The column provided in $valueKey from each found record combined as an array. Will be an empty array if no records are found.
+     */
     public static function allValues($valueKey, $query, $parameters = [], $errorHandler = null)
     {
         // execute query
@@ -344,12 +365,32 @@ class MySQL
         return $records;
     }
 
-
+    /**
+     * Unsets self::$_record_cache[$cacheKey]
+     *
+     * @param string $cacheKey
+     * @return void
+     *
+     * @uses self::$_record_cache
+     */
     public static function clearCachedRecord($cacheKey)
     {
         unset(self::$_record_cache[$cacheKey]);
     }
 
+    /**
+     * Returns the first database record from a query with caching
+     *
+     * It is recommended that you LIMIT 1 any records you want out of this to avoid having the database doing any work.
+     *
+     * @param string $cacheKey A key for the cache to use for this query. If the key is found in the existing cache will return that instead of running the query.
+     * @param string $query A MySQL query
+     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @return array Result from query or an empty array if nothing found.
+     *
+     * @uses self::$_record_cache
+     */
     public static function oneRecordCached($cacheKey, $query, $parameters = [], $errorHandler = null)
     {
 
@@ -375,6 +416,16 @@ class MySQL
     }
 
 
+    /**
+     * Returns the first database record from a query.
+     *
+     * It is recommended that you LIMIT 1 any records you want out of this to avoid having the database doing any work.
+     *
+     * @param string $query A MySQL query
+     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @return array Result from query or an empty array if nothing found.
+     */
     public static function oneRecord($query, $parameters = [], $errorHandler = null)
     {
         // preprocess and execute query
@@ -387,19 +438,39 @@ class MySQL
         return $record;
     }
 
-
+    /**
+     * Returns the first value of the first database record from a query.
+     *
+     * @param string $query A MySQL query
+     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @return string|false First field from the first record from a query or false if nothing found.
+     */
     public static function oneValue($query, $parameters = [], $errorHandler = null)
     {
+        // get the first record
         $record = self::oneRecord($query, $parameters, $errorHandler);
 
         if ($record) {
-            // return record
+            // return first value of the record
             return array_shift($record);
         } else {
             return false;
         }
     }
 
+    /**
+     * Handles any errors that are thrown by PDO
+     *
+     * If App::$Config['environment'] is 'dev' this method will attempt to hook into whoops and provide it with information about this query.
+     *
+     * @throws \RuntimeException Database error!
+     *
+     * @param string $query The query which caused the error.
+     * @param boolean $queryLog An array created by startQueryLog containing logging information about this query.
+     * @param callable $errorHandler An array handler to use instead of this one. If you pass this in it will run first and return directly.
+     * @return void|mixed If $errorHandler is set to a callable it will try to run it and return anything that it returns. Otherwise void
+     */
     public static function handleError($query = '', $queryLog = false, $errorHandler = null)
     {
         if (is_callable($errorHandler, false, $callable)) {
@@ -454,7 +525,12 @@ class MySQL
         }
     }
 
-
+    /**
+     * Creates an associative array containing the query and time_start
+     *
+     * @param string $query The query you want to start logging.
+     * @return false|array If App::$Config['environment']!='dev' this will return false. Otherwise an array containing 'query' and 'time_start' members.
+     */
     protected static function startQueryLog($query)
     {
         if (App::$Config['environment']!='dev') {
@@ -467,6 +543,17 @@ class MySQL
         ];
     }
 
+    /**
+     * Uses the log array created by startQueryLog and sets 'time_finish' on it as well as 'time_duration_ms'
+     *
+     * If a PDO result is passed it will also set 'result_fields' and 'result_rows' on the passed in array.
+     *
+     * Probably gonna remove this entirely. Query logging should be done via services like New Relic.
+     *
+     * @param array $queryLog Passed by reference. The query log array created by startQueryLog
+     * @param object|false $result The result from
+     * @return void
+     */
     protected static function finishQueryLog(&$queryLog, $result = false)
     {
         if ($queryLog == false) {
@@ -490,6 +577,14 @@ class MySQL
         // monolog here
     }
 
+    /**
+     * Gets the database config and sets it to static::$Config
+     *
+     * @uses static::$Config
+     * @uses App::config
+     *
+     * @return void
+     */
     protected static function config()
     {
         if (!static::$Config) {
@@ -499,6 +594,15 @@ class MySQL
         return static::$Config;
     }
 
+    /**
+     * Gets the label we should use in the current run time based on App::$Config['environment']
+     *
+     * @uses App::$Config
+     * @uses static::$defaultProductionLabel
+     * @uses static::$defaultDevLabel
+     *
+     * @return string The SQL config to use in the config based on the current environment.
+     */
     protected static function getDefaultLabel()
     {
         if (App::$Config['environment'] == 'production') {
