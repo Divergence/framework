@@ -215,7 +215,7 @@ class MySQL
      * This method will still set static::$LastStatement
      *
      * @param string $query A MySQL query
-     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
      * @return void
      */
@@ -258,7 +258,7 @@ class MySQL
      * Run a query and returns a PDO statement
      *
      * @param string $query A MySQL query
-     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
      * @return \PDOStatement
      */
@@ -303,7 +303,7 @@ class MySQL
      *
      * @param string $tableKey A column to use as an index for the returned array.
      * @param string $query A MySQL query
-     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param string $nullKey Optional fallback column to use as an index if the $tableKey param isn't found in a returned record.
      * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
      * @return array Result from query or an empty array if nothing found.
@@ -325,7 +325,7 @@ class MySQL
      * Runs a query and returns all results as an associative array.
      *
      * @param string $query A MySQL query
-     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
      * @return array Result from query or an empty array if nothing found.
      */
@@ -348,7 +348,7 @@ class MySQL
      *
      * @param string $valueKey The name of the column you want.
      * @param string $query A MySQL query
-     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
      * @return array The column provided in $valueKey from each found record combined as an array. Will be an empty array if no records are found.
      */
@@ -385,7 +385,7 @@ class MySQL
      *
      * @param string $cacheKey A key for the cache to use for this query. If the key is found in the existing cache will return that instead of running the query.
      * @param string $query A MySQL query
-     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
      * @return array Result from query or an empty array if nothing found.
      *
@@ -422,7 +422,7 @@ class MySQL
      * It is recommended that you LIMIT 1 any records you want out of this to avoid having the database doing any work.
      *
      * @param string $query A MySQL query
-     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
      * @return array Result from query or an empty array if nothing found.
      */
@@ -442,7 +442,7 @@ class MySQL
      * Returns the first value of the first database record from a query.
      *
      * @param string $query A MySQL query
-     * @param array $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
      * @return string|false First field from the first record from a query or false if nothing found.
      */
