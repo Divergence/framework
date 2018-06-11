@@ -73,7 +73,7 @@ class MySQL
     /**
      * An internal reference to the last PDO statement returned from a query.
      *
-     * @var \PDOStatement $LastStatement
+     * @var \PDOStatement|false|null $LastStatement
      */
     protected static $LastStatement;
 
@@ -467,7 +467,7 @@ class MySQL
      * @throws \RuntimeException Database error!
      *
      * @param string $query The query which caused the error.
-     * @param boolean $queryLog An array created by startQueryLog containing logging information about this query.
+     * @param boolean|array $queryLog An array created by startQueryLog containing logging information about this query.
      * @param callable $errorHandler An array handler to use instead of this one. If you pass this in it will run first and return directly.
      * @return void|mixed If $errorHandler is set to a callable it will try to run it and return anything that it returns. Otherwise void
      */
@@ -550,9 +550,9 @@ class MySQL
      *
      * Probably gonna remove this entirely. Query logging should be done via services like New Relic.
      *
-     * @param array $queryLog Passed by reference. The query log array created by startQueryLog
+     * @param array|false $queryLog Passed by reference. The query log array created by startQueryLog
      * @param object|false $result The result from
-     * @return void
+     * @return void|false
      */
     protected static function finishQueryLog(&$queryLog, $result = false)
     {
@@ -583,7 +583,7 @@ class MySQL
      * @uses static::$Config
      * @uses App::config
      *
-     * @return void
+     * @return array static::$Config
      */
     protected static function config()
     {
