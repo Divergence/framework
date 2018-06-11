@@ -1103,7 +1103,7 @@ class ActiveRecord implements JsonSerializable
         }
 
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $query, $params, [static::class,'handleError']);
+            return DB::table(static::_cn($options['indexField']), $query, $params, null, [static::class,'handleError']);
         } else {
             return DB::allRecords($query, $params, [static::class,'handleError']);
         }
@@ -1150,7 +1150,7 @@ class ActiveRecord implements JsonSerializable
         }
 
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $query, $params, [static::class,'handleError']);
+            return DB::table(static::_cn($options['indexField']), $query, $params, null, [static::class,'handleError']);
         } else {
             return DB::allRecords($query, $params, [static::class,'handleError']);
         }
