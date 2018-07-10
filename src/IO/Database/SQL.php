@@ -38,7 +38,7 @@ class SQL
         );
     }
 
-    public static function compileFields($recordClass,$historyVariant = false)
+    public static function compileFields($recordClass, $historyVariant = false)
     {
         $queryString = [];
         $fields = static::getAggregateFieldOptions($recordClass);
@@ -113,9 +113,9 @@ class SQL
             $queryString[] = 'PRIMARY KEY (`RevisionID`)';
         }
 
-        $queryString = array_merge($queryString,static::compileFields($recordClass, $historyVariant));
+        $queryString = array_merge($queryString, static::compileFields($recordClass, $historyVariant));
 
-        if(!$historyVariant) {
+        if (!$historyVariant) {
             // If ContextClass && ContextID are members of this model let's index them
             if ($recordClass::fieldExists('ContextClass') && $recordClass::fieldExists('ContextID')) {
                 $queryString[] = static::getContextIndex($recordClass);

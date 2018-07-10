@@ -1406,7 +1406,7 @@ class ActiveRecord implements JsonSerializable
 
         if ($deep) {
             // validate relationship objects
-            if(!empty(static::$_classRelationships[get_called_class()])) {
+            if (!empty(static::$_classRelationships[get_called_class()])) {
                 foreach (static::$_classRelationships[get_called_class()] as $relationship => $options) {
                     if (empty($this->_relatedObjects[$relationship])) {
                         continue;
@@ -2034,7 +2034,7 @@ class ActiveRecord implements JsonSerializable
     {
         foreach ($conditions as $field => &$condition) {
             if (is_string($field)) {
-                if(isset(static::$_classFields[get_called_class()][$field])) {
+                if (isset(static::$_classFields[get_called_class()][$field])) {
                     $fieldOptions = static::$_classFields[get_called_class()][$field];
                 }
 

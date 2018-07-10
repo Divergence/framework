@@ -4,6 +4,7 @@
 /.gitignore         export-ignore
 /.travis.yml        export-ignore
 /phpunit.xml        export-ignore
+/phpdoc.xml         export-ignore
 /.php_cs.dist       export-ignore
 /.coveralls.yml     export-ignore
 /tests              export-ignore

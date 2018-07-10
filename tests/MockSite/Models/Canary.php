@@ -164,7 +164,7 @@ class Canary extends \Divergence\Models\Model
         $allowedColors = static::$fields['Colors']['values'];
 
         $colors = array_rand($allowedColors, mt_rand(1, 5));
-        if(is_array($colors)) {
+        if (is_array($colors)) {
             foreach ($colors as &$color) {
                 $color = $allowedColors[$color];
             }
