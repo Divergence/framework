@@ -20,6 +20,7 @@ before_install:
 
 install:
     # Install composer packages
+  - travis_retry composer update --no-interaction --no-suggest
   - travis_retry composer install --no-interaction --no-suggest
   # Install coveralls.phar
   - wget -c -nc --retry-connrefused --tries=0 https://github.com/php-coveralls/php-coveralls/releases/download/v2.0.0/php-coveralls.phar -O coveralls.phar
