@@ -1,6 +1,7 @@
 <?php
 namespace Divergence\Controllers;
 
+use Exception;
 use Divergence\Helpers\JSON;
 use Divergence\Models\Media\Media;
 use Divergence\Models\ActiveRecord;
@@ -144,24 +145,24 @@ class MediaRequestHandler extends RecordsRequestHandler
 
             // check upload
             if (empty($_FILES[$options['fieldName']])) {
-                return static::throwError('You did not select a file to upload');
+                return static::throwUploadError('You did not select a file to upload');
             }
 
             // handle upload errors
             if ($_FILES[$options['fieldName']]['error'] != UPLOAD_ERR_OK) {
                 switch ($_FILES[$options['fieldName']]['error']) {
                     case UPLOAD_ERR_NO_FILE:
-                        return static::throwError('You did not select a file to upload');
+                        return static::throwUploadError('You did not select a file to upload');
 
                     case UPLOAD_ERR_INI_SIZE:
                     case UPLOAD_ERR_FORM_SIZE:
-                        return static::throwError('Your file exceeds the maximum upload size. Please try again with a smaller file.');
+                        return static::throwUploadError('Your file exceeds the maximum upload size. Please try again with a smaller file.');
 
                     case UPLOAD_ERR_PARTIAL:
-                        return static::throwError('Your file was only partially uploaded, please try again.');
+                        return static::throwUploadError('Your file was only partially uploaded, please try again.');
 
                     default:
-                        return static::throwError('There was an unknown problem while processing your upload, please try again.');
+                        return static::throwUploadError('There was an unknown problem while processing your upload, please try again.');
                 }
             }
 
@@ -178,7 +179,7 @@ class MediaRequestHandler extends RecordsRequestHandler
             try {
                 $Media = Media::createFromUpload($_FILES[$options['fieldName']]['tmp_name'], $options);
             } catch (Exception $e) {
-                return static::throwInvalidRequestError('The file you uploaded is not of a supported media format');
+                return static::throwUploadError('The file you uploaded is not of a supported media format');
             }
         } elseif ($_SERVER['REQUEST_METHOD'] == 'PUT') {
             $put = fopen("php://input", "r"); // open input stream
@@ -199,7 +200,7 @@ class MediaRequestHandler extends RecordsRequestHandler
             try {
                 $Media = Media::createFromFile($tmp, $options);
             } catch (Exception $e) {
-                return static::throwInvalidRequestError('The file you uploaded is not of a supported media format');
+                return static::throwUploadError('The file you uploaded is not of a supported media format');
             }
         } else {
             return static::respond('upload');
@@ -215,9 +216,9 @@ class MediaRequestHandler extends RecordsRequestHandler
             if (!is_subclass_of($_REQUEST['ContextClass'], ActiveRecord::class)
                 || !in_array($_REQUEST['ContextClass']::getStaticRootClass(), Media::$fields['ContextClass']['values'])
                 || !is_numeric($_REQUEST['ContextID'])) {
-                return static::throwError('Context is invalid');
+                return static::throwUploadError('Context is invalid');
             } elseif (!$Media->Context = $_REQUEST['ContextClass']::getByID($_REQUEST['ContextID'])) {
-                return static::throwError('Context class not found');
+                return static::throwUploadError('Context class not found');
             }
 
             $Media->save();
@@ -241,7 +242,7 @@ class MediaRequestHandler extends RecordsRequestHandler
         try {
             $Media = Media::getById($mediaID);
         } catch (Exception $e) {
-            return static::throwUnauthorizedError('You are not authorized to download this media');
+            return static::throwUnauthorizedError();
         }
 
         if (!$Media) {
@@ -249,7 +250,7 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         if (!static::checkReadAccess($Media)) {
-            return static::throwUnauthorizedError();
+            return static::throwNotFoundError();
         }
 
         if (static::$responseMode == 'json' || $_SERVER['HTTP_ACCEPT'] == 'application/json') {
@@ -262,7 +263,7 @@ class MediaRequestHandler extends RecordsRequestHandler
             // determine variant
             if ($variant = static::shiftPath()) {
                 if (!$Media->isVariantAvailable($variant)) {
-                    return static::throwNotFoundError('Requested variant is not available');
+                    return static::throwNotFoundError();
                 }
             } else {
                 $variant = 'original';
@@ -352,18 +353,18 @@ class MediaRequestHandler extends RecordsRequestHandler
     public static function handleInfoRequest($mediaID)
     {
         if (empty($mediaID) || !is_numeric($mediaID)) {
-            static::throwError('Missing or invalid mediaID');
+            static::throwNotFoundError();
         }
 
         // get media
         try {
             $Media = Media::getById($mediaID);
         } catch (Exception $e) {
-            return static::throwUnauthorizedError('You are not authorized to download this media');
+            return static::throwUnauthorizedError();
         }
 
         if (!$Media) {
-            static::throwNotFoundError('Media ID #%u was not found', $mediaID);
+            static::throwNotFoundError();
         }
 
         if (!static::checkReadAccess($Media)) {
@@ -376,19 +377,19 @@ class MediaRequestHandler extends RecordsRequestHandler
     public static function handleDownloadRequest($media_id, $filename = false)
     {
         if (empty($media_id) || !is_numeric($media_id)) {
-            static::throwError('Missing or invalid media_id');
+            static::throwNotFoundError();
         }
 
         // get media
         try {
             $Media = Media::getById($media_id);
         } catch (Exception $e) {
-            return static::throwUnauthorizedError('You are not authorized to download this media');
+            return static::throwUnauthorizedError();
         }
 
 
         if (!$Media) {
-            static::throwNotFoundError('Media ID #%u was not found', $media_id);
+            static::throwNotFoundError();
         }
 
         if (!static::checkReadAccess($Media)) {
@@ -419,19 +420,19 @@ class MediaRequestHandler extends RecordsRequestHandler
         $GLOBALS['Session']->requireAccountLevel('Staff');
 
         if (empty($media_id) || !is_numeric($media_id)) {
-            static::throwError('Missing or invalid media_id');
+            static::throwNotFoundError();
         }
 
         // get media
         try {
             $Media = Media::getById($media_id);
         } catch (Exception $e) {
-            return static::throwUnauthorizedError('You are not authorized to download this media');
+            return static::throwUnauthorizedError();
         }
 
 
         if (!$Media) {
-            static::throwNotFoundError('Media ID #%u was not found', $media_id);
+            static::throwNotFoundError();
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -465,14 +466,14 @@ class MediaRequestHandler extends RecordsRequestHandler
         $deleted = [];
         foreach ($mediaIDs as $mediaID) {
             if (!is_numeric($mediaID)) {
-                static::throwError('Invalid mediaID');
+                continue;
             }
 
             // get media
             $Media = Media::getByID($mediaID);
 
             if (!$Media) {
-                static::throwNotFoundError('Media ID #%u was not found', $mediaID);
+                static::throwNotFoundError();
             }
 
             if ($Media->destroy()) {
@@ -510,9 +511,9 @@ class MediaRequestHandler extends RecordsRequestHandler
         // get media
         if (!$Media) {
             if (!$mediaID = static::shiftPath()) {
-                return static::throwError('Invalid request');
+                return static::throwNotFoundError();
             } elseif (!$Media = Media::getByID($mediaID)) {
-                return static::throwNotFoundError('Media not found');
+                return static::throwNotFoundError();
             }
         }
 
@@ -555,7 +556,7 @@ class MediaRequestHandler extends RecordsRequestHandler
                 )
             ));*/
 
-            return static::throwServerError('Thumbnail unavailable');
+            return static::throwNotFoundError();
         }
 
 
@@ -585,7 +586,7 @@ class MediaRequestHandler extends RecordsRequestHandler
         if (!empty($_REQUEST['tag'])) {
             // get tag
             if (!$Tag = Tag::getByHandle($_REQUEST['tag'])) {
-                return static::throwNotFoundError('Tag not found');
+                return static::throwNotFoundError();
             }
 
             $conditions[] = 'ID IN (SELECT ContextID FROM tag_items WHERE TagID = '.$Tag->ID.' AND ContextClass = "Product")';
@@ -640,14 +641,14 @@ class MediaRequestHandler extends RecordsRequestHandler
     {
         // sanity check
         if (empty($_REQUEST['media']) || !is_array($_REQUEST['media'])) {
-            static::throwError('Invalid request');
+            static::throwNotFoundError();
         }
 
         // retrieve photos
         $media_array = [];
         foreach ($_REQUEST['media'] as $media_id) {
             if (!is_numeric($media_id)) {
-                static::throwError('Invalid request');
+                static::throwNotFoundError();
             }
 
             if ($Media = Media::getById($media_id)) {
@@ -670,6 +671,16 @@ class MediaRequestHandler extends RecordsRequestHandler
         return static::respond('mediaDeleted', [
             'success' => true
             ,'deleted' => $deleted,
+        ]);
+    }
+
+    public static function throwUploadError($error)
+    {
+        return static::respond('error', [
+            'success' => false,
+            'failed' => [
+                'errors'	=>	$error,
+            ],
         ]);
     }
 }

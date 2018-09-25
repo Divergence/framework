@@ -1,9 +1,26 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * @author Henry Paradiz <henry.paradiz@gmail.com>
+ * @copyright 2018 Henry Paradiz <henry.paradiz@gmail.com>
+ * @license MIT For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
+ *
+ * @since 1.1
+ */
 namespace Divergence\Models\Auth;
 
 use Divergence\Models\Model;
 use Divergence\Models\Relations;
 
+/**
+ * Session object
+ *
+ * @author Henry Paradiz <henry.paradiz@gmail.com>
+ * @author  Chris Alfano <themightychris@gmail.com>
+ *
+ * {@inheritDoc}
+ */
 class Session extends Model
 {
     use Relations;
