@@ -35,6 +35,9 @@
         "mikey179/vfsStream": "1.6.5",
         "fzaninotto/faker": "1.7.1"
     },
+    "suggest": {
+        "divergence/cli": "Lets you initialize a new project as well as create, edit, and test database configurations via CLI."
+    },
     "scripts": {
         "fix-code": "php-cs-fixer fix",
         "test": "vendor/bin/phpunit --coverage-clover build/logs/clover.xml"
