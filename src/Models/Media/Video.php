@@ -62,18 +62,6 @@ class Video extends Media
     ];
 
 
-    // magic methods
-    public static function __classLoaded()
-    {
-        $className = get_called_class();
-
-        Media::$mimeHandlers['video/x-flv'] = $className;
-        Media::$mimeHandlers['video/mp4'] = $className;
-        Media::$mimeHandlers['video/quicktime'] = $className;
-
-        parent::__classLoaded();
-    }
-
 
     public function getValue($name)
     {

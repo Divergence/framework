@@ -27,18 +27,6 @@ class Audio extends Media
     public static $previewDuration = 30;
     public static $iconPath = '/site-root/img/icons/filetypes/mp3.png';
 
-
-    // magic methods
-    public static function __classLoaded()
-    {
-        $className = get_called_class();
-
-        Media::$mimeHandlers['audio/mpeg'] = $className;
-
-        parent::__classLoaded();
-    }
-
-
     public function getValue($name)
     {
         switch ($name) {

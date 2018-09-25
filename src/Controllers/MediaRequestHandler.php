@@ -345,8 +345,6 @@ class MediaRequestHandler extends RecordsRequestHandler
             }
 
             fclose($fp);
-
-            Site::finishRequest();
         }
     }
 

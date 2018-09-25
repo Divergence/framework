@@ -25,21 +25,6 @@ class Image extends Media
     // configurables
     public static $jpegCompression = 90;
 
-    // magic methods
-    public static function __classLoaded()
-    {
-        $className = get_called_class();
-
-        Media::$mimeHandlers['image/gif'] = $className;
-        Media::$mimeHandlers['image/jpeg'] = $className;
-        Media::$mimeHandlers['image/png'] = $className;
-        Media::$mimeHandlers['image/tiff'] = $className;
-        Media::$mimeHandlers['application/psd'] = $className;
-
-        parent::__classLoaded();
-    }
-
-
     public function getValue($name)
     {
         switch ($name) {

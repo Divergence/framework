@@ -118,7 +118,20 @@ class Media extends Model
     public static $useFaceDetection = true;
     public static $faceDetectionTimeLimit = 10;
 
-    public static $mimeHandlers = [];
+    public static $mimeHandlers = [
+        'image/gif' => Image::class,
+        'image/jpeg' => Image::class,
+        'image/png' => Image::class,
+        'image/tiff' => Image::class,
+        'application/psd' => Image::class,
+        'audio/mpeg' => Audio::class,
+        'application/pdf' => PDF::class,
+        'application/postscript' => PDF::class,
+        'image/svg+xml' => PDF::class,
+        'video/x-flv' => Video::class,
+        'video/mp4' => Video::class,
+        'video/quicktime' => Video::class,
+    ];
 
     public static $mimeRewrites = [
         'image/photoshop'               => 'application/psd'
@@ -612,9 +625,7 @@ class Media extends Model
 
         // determine handler
         $staticClass = get_called_class();
-
-        if (!isset(static::$mimeHandlers[$mediaInfo['mimeType']]) || $staticClass != 'Media') {
-            // MICS::dump(static::$mimeHandlers, 'MIME Handlers');
+        if (!isset(static::$mimeHandlers[$mediaInfo['mimeType']]) || $staticClass != __CLASS__) {
             // throw new Exception('No class registered for mime type "' . $mediaInfo['mimeType'] . '"');
 
             $mediaInfo['className'] = $staticClass;
