@@ -538,13 +538,14 @@ class Media extends Model
 
             return $Media;
         } catch (Exception $e) {
-            \Emergence\Logger::general_warning('Caught exception while processing media upload, aborting upload and returning null', [
+            throw $e;
+            /*\Emergence\Logger::general_warning('Caught exception while processing media upload, aborting upload and returning null', [
                 'exceptionClass' => get_class($e)
                 ,'exceptionMessage' => $e->getMessage()
                 ,'exceptionCode' => $e->getCode()
                 ,'recordData' => $Media ? $Media->getData() : null
                 ,'mediaInfo' => $mediaInfo,
-            ]);
+            ]);*/
             // fall through to cleanup below
         }
 
