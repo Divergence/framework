@@ -286,7 +286,7 @@ class MediaRequestHandler extends RecordsRequestHandler
             $filePath = $Media->getFilesystemPath($variant);
             $fp = fopen($filePath, 'rb');
             $size = filesize($filePath);
-            $length = $filesize;
+            $length = $size;
             $start = 0;
             $end = $size - 1;
 
