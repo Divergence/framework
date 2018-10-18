@@ -88,18 +88,18 @@ class MySQL
      * Attempts to make, store, and return a PDO connection.
      * - By default will use the label provided by static::getDefaultLabel()
      * - The label corresponds to a config in /config/db.php
-     * - Also sets timezone on the connection based on self::$Timezone
-     * - Sets self::$Connections[$label] with the connection after connecting.
-     * - If self::$Connections[$label] already exists it will return that.
+     * - Also sets timezone on the connection based on static::$Timezone
+     * - Sets static::$Connections[$label] with the connection after connecting.
+     * - If static::$Connections[$label] already exists it will return that.
      *
      * @param string|null $label A specific connection.
      * @return PDO A PDO connection
      *
      * @throws \Exception
      *
-     * @uses self::$Connections
+     * @uses static::$Connections
      * @uses static::getDefaultLabel()
-     * @uses self::$Timezone
+     * @uses static::$Timezone
      * @uses PDO
      */
     public static function getConnection($label=null)
@@ -108,7 +108,7 @@ class MySQL
             $label = static::getDefaultLabel();
         }
 
-        if (!isset(self::$Connections[$label])) {
+        if (!isset(static::$Connections[$label])) {
             static::config();
 
             $config = array_merge([
@@ -126,17 +126,17 @@ class MySQL
 
             try {
                 // try to initiate connection
-                self::$Connections[$label] = new PDO($DSN, $config['username'], $config['password']);
+                static::$Connections[$label] = new PDO($DSN, $config['username'], $config['password']);
             } catch (\PDOException $e) {
                 throw new \Exception('PDO failed to connect on config "'.$label.'" '.$DSN);
             }
 
             // set timezone
-            $q = self::$Connections[$label]->prepare('SET time_zone=?');
-            $q->execute([self::$TimeZone]);
+            $q = static::$Connections[$label]->prepare('SET time_zone=?');
+            $q->execute([static::$TimeZone]);
         }
 
-        return self::$Connections[$label];
+        return static::$Connections[$label];
     }
 
     /**
@@ -169,7 +169,7 @@ class MySQL
      */
     public static function affectedRows()
     {
-        return self::$LastStatement->rowCount();
+        return static::$LastStatement->rowCount();
     }
 
     /**
@@ -180,7 +180,7 @@ class MySQL
      */
     public static function foundRows()
     {
-        return self::oneValue('SELECT FOUND_ROWS()');
+        return static::oneValue('SELECT FOUND_ROWS()');
     }
 
     /**
@@ -190,7 +190,7 @@ class MySQL
      */
     public static function insertID()
     {
-        return self::getConnection()->lastInsertId();
+        return static::getConnection()->lastInsertId();
     }
 
     /**
@@ -206,7 +206,7 @@ class MySQL
      */
     public static function prepareQuery($query, $parameters = [])
     {
-        return self::preprocessQuery($query, $parameters);
+        return static::preprocessQuery($query, $parameters);
     }
 
     /**
@@ -216,18 +216,18 @@ class MySQL
      *
      * @param string $query A MySQL query
      * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleError
      * @return void
      */
     public static function nonQuery($query, $parameters = [], $errorHandler = null)
     {
-        $query = self::preprocessQuery($query, $parameters);
+        $query = static::preprocessQuery($query, $parameters);
 
         // start query log
-        $queryLog = self::startQueryLog($query);
+        $queryLog = static::startQueryLog($query);
 
         // execute query
-        $Statement = self::getConnection()->query($query);
+        $Statement = static::getConnection()->query($query);
 
         if ($Statement) {
 
@@ -236,22 +236,22 @@ class MySQL
 
             // handle query error
             if ($ErrorInfo[0] != '00000') {
-                self::handleError($query, $queryLog, $errorHandler);
+                static::handleError($query, $queryLog, $errorHandler);
             }
         } else {
             // check for errors
-            $ErrorInfo = self::getConnection()->errorInfo();
+            $ErrorInfo = static::getConnection()->errorInfo();
 
             // handle query error
             if ($ErrorInfo[0] != '00000') {
-                self::handleError($query, $queryLog, $errorHandler);
+                static::handleError($query, $queryLog, $errorHandler);
             }
         }
 
         static::$LastStatement = $Statement;
 
         // finish query log
-        self::finishQueryLog($queryLog);
+        static::finishQueryLog($queryLog);
     }
 
     /**
@@ -259,26 +259,26 @@ class MySQL
      *
      * @param string $query A MySQL query
      * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleError
      * @return \PDOStatement
      */
     public static function query($query, $parameters = [], $errorHandler = null)
     {
-        $query = self::preprocessQuery($query, $parameters);
+        $query = static::preprocessQuery($query, $parameters);
 
         // start query log
-        $queryLog = self::startQueryLog($query);
+        $queryLog = static::startQueryLog($query);
 
         // execute query
-        $Statement = self::getConnection()->query($query);
+        $Statement = static::getConnection()->query($query);
 
         if (!$Statement) {
             // check for errors
-            $ErrorInfo = self::getConnection()->errorInfo();
+            $ErrorInfo = static::getConnection()->errorInfo();
 
             // handle query error
             if ($ErrorInfo[0] != '00000') {
-                $ErrorOutput = self::handleError($query, $queryLog, $errorHandler);
+                $ErrorOutput = static::handleError($query, $queryLog, $errorHandler);
 
                 if (is_a($ErrorOutput, 'PDOStatement')) {
                     $Statement = $ErrorOutput;
@@ -289,7 +289,7 @@ class MySQL
         static::$LastStatement = $Statement;
 
         // finish query log
-        self::finishQueryLog($queryLog);
+        static::finishQueryLog($queryLog);
 
         return $Statement;
     }
@@ -305,13 +305,13 @@ class MySQL
      * @param string $query A MySQL query
      * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param string $nullKey Optional fallback column to use as an index if the $tableKey param isn't found in a returned record.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleError
      * @return array Result from query or an empty array if nothing found.
      */
     public static function table($tableKey, $query, $parameters = [], $nullKey = '', $errorHandler = null)
     {
         // execute query
-        $result = self::query($query, $parameters, $errorHandler);
+        $result = static::query($query, $parameters, $errorHandler);
 
         $records = [];
         while ($record = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -326,13 +326,13 @@ class MySQL
      *
      * @param string $query A MySQL query
      * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleError
      * @return array Result from query or an empty array if nothing found.
      */
     public static function allRecords($query, $parameters = [], $errorHandler = null)
     {
         // execute query
-        $result = self::query($query, $parameters, $errorHandler);
+        $result = static::query($query, $parameters, $errorHandler);
 
         $records = [];
         while ($record = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -349,13 +349,13 @@ class MySQL
      * @param string $valueKey The name of the column you want.
      * @param string $query A MySQL query
      * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleError
      * @return array The column provided in $valueKey from each found record combined as an array. Will be an empty array if no records are found.
      */
     public static function allValues($valueKey, $query, $parameters = [], $errorHandler = null)
     {
         // execute query
-        $result = self::query($query, $parameters, $errorHandler);
+        $result = static::query($query, $parameters, $errorHandler);
 
         $records = [];
         while ($record = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -366,16 +366,16 @@ class MySQL
     }
 
     /**
-     * Unsets self::$_record_cache[$cacheKey]
+     * Unsets static::$_record_cache[$cacheKey]
      *
      * @param string $cacheKey
      * @return void
      *
-     * @uses self::$_record_cache
+     * @uses static::$_record_cache
      */
     public static function clearCachedRecord($cacheKey)
     {
-        unset(self::$_record_cache[$cacheKey]);
+        unset(static::$_record_cache[$cacheKey]);
     }
 
     /**
@@ -386,29 +386,29 @@ class MySQL
      * @param string $cacheKey A key for the cache to use for this query. If the key is found in the existing cache will return that instead of running the query.
      * @param string $query A MySQL query
      * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleError
      * @return array Result from query or an empty array if nothing found.
      *
-     * @uses self::$_record_cache
+     * @uses static::$_record_cache
      */
     public static function oneRecordCached($cacheKey, $query, $parameters = [], $errorHandler = null)
     {
 
         // check for cached record
-        if (array_key_exists($cacheKey, self::$_record_cache)) {
+        if (array_key_exists($cacheKey, static::$_record_cache)) {
             // return cache hit
-            return self::$_record_cache[$cacheKey];
+            return static::$_record_cache[$cacheKey];
         }
 
         // preprocess and execute query
-        $result = self::query($query, $parameters, $errorHandler);
+        $result = static::query($query, $parameters, $errorHandler);
 
         // get record
         $record = $result->fetch(PDO::FETCH_ASSOC);
 
         // save record to cache
         if ($cacheKey) {
-            self::$_record_cache[$cacheKey] = $record;
+            static::$_record_cache[$cacheKey] = $record;
         }
 
         // return record
@@ -423,13 +423,13 @@ class MySQL
      *
      * @param string $query A MySQL query
      * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleError
      * @return array Result from query or an empty array if nothing found.
      */
     public static function oneRecord($query, $parameters = [], $errorHandler = null)
     {
         // preprocess and execute query
-        $result = self::query($query, $parameters, $errorHandler);
+        $result = static::query($query, $parameters, $errorHandler);
 
         // get record
         $record = $result->fetch(PDO::FETCH_ASSOC);
@@ -443,13 +443,13 @@ class MySQL
      *
      * @param string $query A MySQL query
      * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of self::handleError
+     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleError
      * @return string|false First field from the first record from a query or false if nothing found.
      */
     public static function oneValue($query, $parameters = [], $errorHandler = null)
     {
         // get the first record
-        $record = self::oneRecord($query, $parameters, $errorHandler);
+        $record = static::oneRecord($query, $parameters, $errorHandler);
 
         if ($record) {
             // return first value of the record
@@ -481,7 +481,7 @@ class MySQL
         if ($queryLog) {
             $error = static::getConnection()->errorInfo();
             $queryLog['error'] = $error[2];
-            self::finishQueryLog($queryLog);
+            static::finishQueryLog($queryLog);
         }
 
         // get error message
@@ -494,7 +494,7 @@ class MySQL
             $Handler->addDataTable("Query Information", [
                 'Query'     	=>	$query,
                 'Error'		=>	$message,
-                'ErrorCode'	=>	self::getConnection()->errorCode(),
+                'ErrorCode'	=>	static::getConnection()->errorCode(),
             ]);
 
             \Divergence\App::$whoops->pushHandler($Handler);
