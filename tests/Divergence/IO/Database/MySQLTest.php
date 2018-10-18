@@ -79,6 +79,17 @@ class MySQLTest extends TestCase
     }
 
     /**
+     * @covers Divergence\IO\Database\MySQL::setConnection
+     */
+    public function testSetConnection()
+    {
+        TestUtils::requireDB($this);
+        DB::setConnection('tests-mysql-socket');
+        $this->assertEquals('tests-mysql-socket',DB::$currentConnection);
+        DB::setConnection('tests-mysql');
+    }
+
+    /**
      * @covers Divergence\IO\Database\MySQL::escape
      *
      * I hope you had as much fun reading this code as I had writing it.
@@ -96,7 +107,7 @@ class MySQLTest extends TestCase
 
         $littleBobbyTables = 'Robert\'); DROP TABLE Students;--';
         $safeLittleBobbyTables = $z($littleBobbyTables);
-        
+
         $arrayOfBobbies = [
             'lorum ipsum',
             $littleBobbyTables,
@@ -107,7 +118,7 @@ class MySQLTest extends TestCase
         foreach ($arrayOfBobbies as $oneBob) {
             $safeArrayOfBobbies[] = $z($oneBob);
         }
-        
+
         $this->assertEquals($safeLittleBobbyTables, DB::escape($littleBobbyTables));
         $this->assertEquals($safeArrayOfBobbies, DB::escape($arrayOfBobbies));
         $this->assertEquals(new \stdClass(), DB::escape(new \stdClass()));
@@ -126,7 +137,7 @@ class MySQLTest extends TestCase
 
         $this->assertEquals(2, DB::affectedRows());
     }
-    
+
     /**
      * @covers Divergence\IO\Database\MySQL::foundRows
      * @covers Divergence\IO\Database\MySQL::oneValue
@@ -139,7 +150,7 @@ class MySQLTest extends TestCase
         $tags = DB::allRecords('select SQL_CALC_FOUND_ROWS * from `tags` LIMIT 1;');
         $foundRows = DB::oneValue('SELECT FOUND_ROWS()');
         $tagsCount = DB::oneValue('SELECT COUNT(*) as `Count` FROM `tags`');
-        
+
         $this->assertEquals($tagsCount, $foundRows);
         $this->assertCount(1, $tags);
 
@@ -149,7 +160,7 @@ class MySQLTest extends TestCase
         // valid query. no records found
         $this->assertFalse(DB::oneValue('SELECT * FROM `tags` WHERE 1=0'));
     }
-    
+
     /**
     * @covers Divergence\IO\Database\MySQL::insertID
     * @covers Divergence\IO\Database\MySQL::oneRecord
@@ -335,7 +346,7 @@ class MySQLTest extends TestCase
     public function testNonQueryHandledException()
     {
         TestUtils::requireDB($this);
-        
+
         $Context = $this;
         // another bad query but this time we handle the problem
         DB::nonQuery('UPDATE `%s` SET fake`=%d WHERE `ID`=%d', [
@@ -366,7 +377,7 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         $tables = DB::allRecords('SHOW TABLES');
-        
+
         $this->assertCount(9, $tables);
         foreach ($tables as $table) {
             $this->assertNotEmpty($table['Tables_in_test']);
@@ -409,7 +420,7 @@ class MySQLTest extends TestCase
             'Tag',
             'Linux',
         ];
-        
+
         $key = sprintf('%s/%s:%s', Tag::$tableName, 'Tag', 'Linux');
         $record = testableDB::oneRecordCached($key, $query, $params);
         $cache = testableDB::getProtected('_record_cache');
@@ -418,7 +429,7 @@ class MySQLTest extends TestCase
         $cache = testableDB::getProtected('_record_cache');
         $this->assertNull($cache[$key]);
     }
-    
+
     /**
      * @covers Divergence\IO\Database\MySQL::oneRecordCached
      *
@@ -433,7 +444,7 @@ class MySQLTest extends TestCase
             'Tag',
             'Linux',
         ];
-        
+
         $key = sprintf('%s/%s:%s', Tag::$tableName, 'Tag', 'Linux');
         $record = testableDB::oneRecordCached($key, $query, $params);
         $cache = testableDB::getProtected('_record_cache');
@@ -504,7 +515,7 @@ class MySQLTest extends TestCase
         $result->num_rows = 5;
 
         testableDB::_finishQueryLog($x, $result);
-        
+
         $expected_time_duration_ms = ($x['time_finish'] - $x['time_start']) * 1000;
 
         $this->assertEquals('SELECT corgies', $x['query']);
@@ -539,7 +550,7 @@ class MySQLTest extends TestCase
     public function testGetDefaultLabel()
     {
         TestUtils::requireDB($this);
-        
+
         $this->assertEquals(testableDB::$defaultProductionLabel, testableDB::_getDefaultLabel());
         App::$Config['environment'] = 'dev';
         $this->assertEquals(testableDB::$defaultDevLabel, testableDB::_getDefaultLabel());

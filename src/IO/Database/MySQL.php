@@ -9,8 +9,9 @@
  */
 namespace Divergence\IO\Database;
 
-use \PDO as PDO;
-use \Divergence\App as App;
+use PDO as PDO;
+use Exception;
+use Divergence\App as App;
 
 /**
  * MySQL.
@@ -57,6 +58,13 @@ class MySQL
     public static $defaultDevLabel = 'dev-mysql';
 
     /**
+     * Current connection label
+     *
+     * @var string|null $currentConnection
+     */
+    public static $currentConnection = null;
+
+    /**
      * Internal reference list of connections
      *
      * @var array $Connections
@@ -84,6 +92,28 @@ class MySQL
      */
     protected static $Config;
 
+
+    /**
+     * Sets the connection that should be returned by getConnection when $label is null
+     *
+     * @param string $label
+     * @return void
+     */
+    public static function setConnection(string $label=null)
+    {
+        if ($label === null && static::$currentConnection === null) {
+            static::$currentConnection = static::getDefaultLabel();
+            return;
+        }
+
+        $config = static::config();
+        if (isset($config[$label])) {
+            static::$currentConnection = $label;
+        } else {
+            throw new Exception('The provided label does not exist in the config.');
+        }
+    }
+
     /**
      * Attempts to make, store, and return a PDO connection.
      * - By default will use the label provided by static::getDefaultLabel()
@@ -95,7 +125,7 @@ class MySQL
      * @param string|null $label A specific connection.
      * @return PDO A PDO connection
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @uses static::$Connections
      * @uses static::getDefaultLabel()
@@ -104,8 +134,11 @@ class MySQL
      */
     public static function getConnection($label=null)
     {
-        if (!$label) {
-            $label = static::getDefaultLabel();
+        if ($label === null) {
+            if (static::$currentConnection === null) {
+                static::setConnection();
+            }
+            $label = static::$currentConnection;
         }
 
         if (!isset(static::$Connections[$label])) {
@@ -128,7 +161,7 @@ class MySQL
                 // try to initiate connection
                 static::$Connections[$label] = new PDO($DSN, $config['username'], $config['password']);
             } catch (\PDOException $e) {
-                throw new \Exception('PDO failed to connect on config "'.$label.'" '.$DSN);
+                throw new Exception('PDO failed to connect on config "'.$label.'" '.$DSN);
             }
 
             // set timezone

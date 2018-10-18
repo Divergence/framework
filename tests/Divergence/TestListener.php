@@ -24,7 +24,7 @@ class TestListener implements PHPUnit_TestListener
     {
         //printf("Warning while running test '%s'.\n", $test->getName());
     }
-    
+
 
     public function addFailure(Test $test, \PHPUnit\Framework\AssertionFailedError $e, float $time): void
     {
@@ -60,8 +60,8 @@ class TestListener implements PHPUnit_TestListener
     {
         //printf("TestSuite '%s' started.\n", $suite->getName());
         if ($suite->getName() == 'all') {
-            MySQL::$defaultProductionLabel = 'tests-mysql';
             App::init(__DIR__.'/../../');
+            MySQL::setConnection('tests-mysql');
             App::setUp();
             fwrite(STDERR, 'Starting Divergence Mock Environment for PHPUnit'."\n");
         }
