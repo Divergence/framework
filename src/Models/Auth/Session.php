@@ -17,9 +17,11 @@ use Divergence\Models\Relations;
  * Session object
  *
  * @author Henry Paradiz <henry.paradiz@gmail.com>
- * @author  Chris Alfano <themightychris@gmail.com>
- *
- * {@inheritDoc}
+ * @author Chris Alfano <themightychris@gmail.com>
+ * @inheritDoc
+ * @property string $Handle Unique identifier for this session used by the cookie.
+ * @property string $LastRequest Timestamp of the last time this session was updated.
+ * @property string $Binary Actually raw binary in the string
  */
 class Session extends Model
 {
@@ -59,18 +61,13 @@ class Session extends Model
     ];
 
 
-    // Session
-    public static function __classLoaded()
-    {
-        parent::__classLoaded();
-
-        // auto-detect cookie domain
-        if (empty(static::$cookieDomain)) {
-            static::$cookieDomain = preg_replace('/^www\.([^.]+\.[^.]+)$/i', '$1', $_SERVER['HTTP_HOST']);
-        }
-    }
-
-
+    /**
+     * Gets or sets up a session based on current cookies.
+     * Will always update the current session's LastIP and LastRequest fields.
+     *
+     * @param boolean $create
+     * @return static|false
+     */
     public static function getFromRequest($create = true)
     {
         $sessionData = [
@@ -129,6 +126,12 @@ class Session extends Model
         }
     }
 
+    /**
+     * Gets by handle.
+     *
+     * @param string $handle
+     * @return static
+     */
     public static function getByHandle($handle)
     {
         return static::getByField('Handle', $handle, true);
@@ -142,6 +145,15 @@ class Session extends Model
         ]);
     }
 
+    /**
+     * @inheritDoc
+     *
+     * Saves the session to the database and sets the session cookie.
+     * Will generate a unique handle for the session if none exists.
+     *
+     * @param boolean $deep
+     * @return void
+     */
     public function save($deep = true)
     {
         // set handle
@@ -163,6 +175,13 @@ class Session extends Model
         );
     }
 
+    /**
+     * Attempts to unset the cookie.
+     * Unsets the variable from the $_COOKIE global.
+     * Deletes session from database.
+     *
+     * @return void
+     */
     public function terminate()
     {
         setcookie(static::$cookieName, '', time() - 3600);
@@ -173,11 +192,20 @@ class Session extends Model
 
 
 
+    /**
+     * Makes a random 32 digit string by generating 16 random bytes
+     * Is cryptographically secure.
+     * @see http://php.net/manual/en/function.random-bytes.php
+     *
+     * @return void
+     */
     public static function generateUniqueHandle()
     {
         do {
-            $handle = md5(mt_rand(0, mt_getrandmax()));
+            $handle = bin2hex(random_bytes(16));
         } while (static::getByHandle($handle));
+        // just in case checks if the handle exists in the database and if it does makes a new one.
+        // chance of happening is 1 in 2^128 though so might want to remove the database call
 
         return $handle;
     }

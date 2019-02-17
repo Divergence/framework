@@ -19,7 +19,9 @@ use Divergence\IO\Database\MySQL as DB;
  *
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
- *
+ * @inheritDoc
+ * @property int $RevisionID ID of revision in the history table.
+ * @property static[] $History All revisions for this object. This is hooked in the Relations trait.
  */
 trait Versioning
 {
@@ -33,39 +35,62 @@ trait Versioning
             'notnull' => false,
         ],
     ];
-    
+
     public static $versioningRelationships = [
         'History' => [
             'type' => 'history',
             'order' => ['RevisionID' => 'DESC'],
         ],
     ];
-    
-    
+
+    /**
+     * Returns static::$historyTable
+     *
+     * @throws Exception If static::$historyTable is not set.
+     * @return string
+     */
     public static function getHistoryTable()
     {
         if (!static::$historyTable) {
             throw new Exception('Static variable $historyTable must be defined to use model versioning.');
         }
-        
+
         return static::$historyTable;
     }
-    
-    /*
-     * Implement specialized getters
+
+    /**
+     * The history table allows multiple records with the same ID.
+     * The primary key becomes RevisionID.
+     * This returns all the revisions by ID so you will get the history of that object.
+     *
+     * @return static[] Revisions by ID
      */
     public static function getRevisionsByID($ID, $options = [])
     {
         $options['conditions'][static::getPrimaryKey()] = $ID;
-        
+
         return static::getRevisions($options);
     }
 
+    /**
+     * Gets all versions of all objects for this object.
+     *
+     * Use getRevisionsByID instead.
+     *
+     * @param array $options Query options
+     * @return static[] Revisions
+     */
     public static function getRevisions($options = [])
     {
         return static::instantiateRecords(static::getRevisionRecords($options));
     }
-    
+
+    /**
+     * Gets raw revision data from the database and constructs a query
+     *
+     * @param array $options Query options
+     * @return array
+     */
     public static function getRevisionRecords($options = [])
     {
         $options = Util::prepareOptions($options, [
@@ -75,22 +100,22 @@ trait Versioning
             'limit' => false,
             'offset' => 0,
         ]);
-                
+
         $query = 'SELECT * FROM `%s` WHERE (%s)';
         $params = [
             static::getHistoryTable(),
             count($options['conditions']) ? join(') AND (', static::_mapConditions($options['conditions'])) : 1,
         ];
-        
+
         if ($options['order']) {
             $query .= ' ORDER BY ' . join(',', static::_mapFieldOrder($options['order']));
         }
-        
+
         if ($options['limit']) {
             $query .= sprintf(' LIMIT %u,%u', $options['offset'], $options['limit']);
         }
-        
-        
+
+
         if ($options['indexField']) {
             return DB::table(static::_cn($options['indexField']), $query, $params);
         } else {
@@ -98,6 +123,11 @@ trait Versioning
         }
     }
 
+    /**
+     * Sets wasDirty, isDirty, Created for the object before save
+     *
+     * @return void
+     */
     public function beforeVersionedSave()
     {
         $this->wasDirty = false;
@@ -108,6 +138,11 @@ trait Versioning
         }
     }
 
+    /**
+     * After save to regular database this saves to the history table
+     *
+     * @return void
+     */
     public function afterVersionedSave()
     {
         if ($this->wasDirty && static::$createRevisionOnSave) {

@@ -34,11 +34,6 @@ class Media extends Model
     public static $subClasses = [__CLASS__, Image::class, PDF::class, Video::class, Audio::class];
     public static $collectionRoute = '/media';
 
-    // get rid of these??
-    public static $Namespaces = [];
-    public static $Types = [];
-
-
     public static $tableName = 'media';
 
     public static $fields = [

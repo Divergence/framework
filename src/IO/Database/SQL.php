@@ -197,6 +197,8 @@ class SQL
                 return 'text';
             case 'blob':
                 return 'blob';
+            case 'binary':
+                return 'binary';
 
             case 'timestamp':
                 return 'timestamp';
