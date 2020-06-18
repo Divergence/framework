@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * This file is part of the Divergence package.
  *
  * (c) Henry Paradiz <henry.paradiz@gmail.com>
@@ -225,7 +225,6 @@ trait Relations
                     array_merge($rel['conditions'], [
                         $rel['foreign'] => $this->_getFieldValue($rel['local']),
                     ]),
-                
                     [
                         'indexField' => $rel['indexField'],
                         'order' => $rel['order'],
@@ -248,7 +247,6 @@ trait Relations
             
                 $this->_relatedObjects[$relationship] = $rel['class']::getAllByWhere(
                     $conditions,
-            
                     [
                         'indexField' => $rel['indexField'],
                         'order' => $rel['order'],
@@ -273,7 +271,6 @@ trait Relations
                 
                 $this->_relatedObjects[$relationship] = $rel['class']::getAllByQuery(
                     'SELECT Related.* FROM `%s` Link JOIN `%s` Related ON (Related.`%s` = Link.%s) WHERE Link.`%s` = %u AND %s',
-                
                     [
                         $rel['linkClass']::$tableName,
                         $rel['class']::$tableName,

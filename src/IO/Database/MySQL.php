@@ -9,8 +9,8 @@
  */
 namespace Divergence\IO\Database;
 
-use PDO as PDO;
 use Exception;
+use PDO as PDO;
 use Divergence\App as App;
 
 /**
@@ -161,7 +161,8 @@ class MySQL
                 // try to initiate connection
                 static::$Connections[$label] = new PDO($DSN, $config['username'], $config['password']);
             } catch (\PDOException $e) {
-                throw new Exception('PDO failed to connect on config "'.$label.'" '.$DSN);
+                throw $e;
+                //throw new Exception('PDO failed to connect on config "'.$label.'" '.$DSN);
             }
 
             // set timezone
@@ -495,7 +496,7 @@ class MySQL
     /**
      * Handles any errors that are thrown by PDO
      *
-     * If App::$Config['environment'] is 'dev' this method will attempt to hook into whoops and provide it with information about this query.
+     * If App::$App->Config['environment'] is 'dev' this method will attempt to hook into whoops and provide it with information about this query.
      *
      * @throws \RuntimeException Database error!
      *
@@ -521,17 +522,15 @@ class MySQL
         $error = static::getConnection()->errorInfo();
         $message = $error[2];
 
-        if (App::$Config['environment']=='dev') {
-            $Handler = \Divergence\App::$whoops->popHandler();
+        if (App::$App->Config['environment']=='dev') {
+            $Handler = \Divergence\App::$App->whoops->popHandler();
 
             $Handler->addDataTable("Query Information", [
                 'Query'     	=>	$query,
                 'Error'		=>	$message,
                 'ErrorCode'	=>	static::getConnection()->errorCode(),
             ]);
-
-            \Divergence\App::$whoops->pushHandler($Handler);
-
+            \Divergence\App::$App->whoops->pushHandler($Handler);
             throw new \RuntimeException("Database error!");
         } else {
             throw new \RuntimeException("Database error!");
@@ -566,7 +565,7 @@ class MySQL
      */
     protected static function startQueryLog($query)
     {
-        if (App::$Config['environment']!='dev') {
+        if (App::$App->Config['environment']!='dev') {
             return false;
         }
 
@@ -621,7 +620,7 @@ class MySQL
     protected static function config()
     {
         if (!static::$Config) {
-            static::$Config = App::config('db');
+            static::$Config = App::$App->config('db');
         }
 
         return static::$Config;
@@ -638,9 +637,9 @@ class MySQL
      */
     protected static function getDefaultLabel()
     {
-        if (App::$Config['environment'] == 'production') {
+        if (App::$App->Config['environment'] == 'production') {
             return static::$defaultProductionLabel;
-        } elseif (App::$Config['environment'] == 'dev') {
+        } elseif (App::$App->Config['environment'] == 'dev') {
             return static::$defaultDevLabel;
         }
     }

@@ -2,12 +2,10 @@
 /**
  * This file is part of the Divergence package.
  *
- * @author Henry Paradiz <henry.paradiz@gmail.com>
- * @copyright 2018 Henry Paradiz <henry.paradiz@gmail.com>
- * @license MIT For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
  *
- * @since 1.0
- * @link https://github.com/Divergence/docs/blob/master/orm.md
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 namespace Divergence\Models;
 
@@ -515,6 +513,7 @@ class ActiveRecord implements JsonSerializable
         $className = get_called_class();
 
         // create class
+        /** @var ActiveRecord */
         $ActiveRecord = new $className();
         $ActiveRecord->setFields($values);
 
@@ -713,7 +712,6 @@ class ActiveRecord implements JsonSerializable
 
             // transform record to set array
             $set = static::_mapValuesToSet($recordValues);
-
             // create new or update existing
             if ($this->_isPhantom) {
                 DB::nonQuery(
@@ -724,7 +722,6 @@ class ActiveRecord implements JsonSerializable
                     ],
                     [static::class,'handleError']
                 );
-
                 $this->_record[static::$primaryKey ? static::$primaryKey : 'ID'] = DB::insertID();
                 $this->_isPhantom = false;
                 $this->_isNew = true;
@@ -745,7 +742,6 @@ class ActiveRecord implements JsonSerializable
 
             // update state
             $this->_isDirty = false;
-
             if (static::isVersioned()) {
                 $this->afterVersionedSave();
             }
@@ -772,8 +768,7 @@ class ActiveRecord implements JsonSerializable
                 $set = static::_mapValuesToSet($recordValues);
 
                 DB::nonQuery(
-                        'INSERT INTO `%s` SET %s',
-
+                    'INSERT INTO `%s` SET %s',
                     [
                                 static::getHistoryTable(),
                                 join(',', $set),
@@ -928,13 +923,11 @@ class ActiveRecord implements JsonSerializable
 
         return DB::oneRecord(
             'SELECT * FROM `%s` WHERE (%s) %s LIMIT 1',
-
             [
                 static::$tableName,
                 join(') AND (', $conditions),
                 $order ? 'ORDER BY '.join(',', $order) : '',
             ],
-
             [static::class,'handleError']
         );
     }

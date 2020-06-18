@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Tests\IO\Database;
 
 use Divergence\Tests\TestUtils;
@@ -85,7 +93,7 @@ class MySQLTest extends TestCase
     {
         TestUtils::requireDB($this);
         DB::setConnection('tests-mysql-socket');
-        $this->assertEquals('tests-mysql-socket',DB::$currentConnection);
+        $this->assertEquals('tests-mysql-socket', DB::$currentConnection);
         DB::setConnection('tests-mysql');
     }
 

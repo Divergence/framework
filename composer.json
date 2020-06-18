@@ -13,10 +13,14 @@
         }
     ],
     "require": {
-        "php": ">=7.1",
-        "dwoo/dwoo": "1.3.6",
+        "php": ">=7.4",
+        "twig/twig": "*",
         "filp/whoops": "*",
-        "symfony/var-dumper": "^3.0"
+        "symfony/var-dumper": "^4.0",
+        "psr/http-server-handler": "^1.0",
+        "psr/http-message": "^1.0",
+        "guzzlehttp/psr7": "^1.6",
+        "twig/extra-bundle": "^3.0"
     },
     "autoload": {
 	    "psr-4": {
@@ -32,7 +36,7 @@
     "require-dev": {
         "phpunit/phpunit": "^7.0",
         "friendsofphp/php-cs-fixer": "*",
-        "mikey179/vfsStream": "1.6.5",
+        "mikey179/vfsstream": "1.6.5",
         "fzaninotto/faker": "1.7.1"
     },
     "suggest": {

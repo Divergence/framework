@@ -2,11 +2,10 @@
 /**
  * This file is part of the Divergence package.
  *
- * @author Henry Paradiz <henry.paradiz@gmail.com>
- * @copyright 2018 Henry Paradiz <henry.paradiz@gmail.com>
- * @license MIT For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
  *
- * @since 1.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 namespace Divergence\Models\Media;
 
@@ -434,7 +433,7 @@ class Media extends Model
             // resize photo to thumbnail
             if ($cropped) {
                 imagecopyresampled(
-                      $image,
+                    $image,
                     $srcImage,
                     ($thumbWidth - $scaledWidth) / 2,
                     ($thumbHeight - $scaledHeight) / 2,
@@ -447,7 +446,7 @@ class Media extends Model
                 );
             } else {
                 imagecopyresampled(
-                      $image,
+                    $image,
                     $srcImage,
                     round(($thumbWidth - $scaledWidth) / 2),
                     round(($thumbHeight - $scaledHeight) / 2),

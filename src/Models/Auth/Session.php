@@ -2,11 +2,10 @@
 /**
  * This file is part of the Divergence package.
  *
- * @author Henry Paradiz <henry.paradiz@gmail.com>
- * @copyright 2018 Henry Paradiz <henry.paradiz@gmail.com>
- * @license MIT For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
  *
- * @since 1.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 namespace Divergence\Models\Auth;
 
@@ -82,7 +81,6 @@ class Session extends Model
                 $Session = static::updateSession($Session, $sessionData);
             }
         }
-
         // try to load from any request method
         if (empty($Session) && !empty($_REQUEST[static::$cookieName])) {
             if ($Session = static::getByHandle($_REQUEST[static::$cookieName])) {
@@ -90,7 +88,6 @@ class Session extends Model
                 $Session = static::updateSession($Session, $sessionData);
             }
         }
-
         if (!empty($Session)) {
             // session found
             return $Session;
@@ -105,7 +102,6 @@ class Session extends Model
 
     public static function updateSession(Session $Session, $sessionData)
     {
-
         // check timestamp
         if ($Session->LastRequest < (time() - static::$timeout)) {
             $Session->terminate();
