@@ -10,11 +10,15 @@
 namespace Divergence\Controllers;
 
 use Exception;
-
 use Divergence\Helpers\JSON;
-use Divergence\Helpers\JSONP;
-use Divergence\Helpers\Util as Util;
+use Divergence\Responders\Response;
+use Divergence\Responders\JsonBuilder;
+use Divergence\Responders\TwigBuilder;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\Responders\JsonpBuilder;
+use Psr\Http\Message\ResponseInterface;
+use Divergence\Responders\ResponseBuilder;
+use Psr\Http\Message\ServerRequestInterface;
 use Divergence\Models\ActiveRecord as ActiveRecord;
 
 /**
@@ -26,22 +30,25 @@ use Divergence\Models\ActiveRecord as ActiveRecord;
  */
 abstract class RecordsRequestHandler extends RequestHandler
 {
-    public static $config;
+    public $config;
 
-    // configurables
-    public static $recordClass;
-    public static $accountLevelRead = false;
-    public static $accountLevelBrowse = 'Staff';
-    public static $accountLevelWrite = 'Staff';
-    public static $accountLevelAPI = false;
-    public static $browseOrder = false;
-    public static $browseConditions = false;
-    public static $browseLimitDefault = false;
-    public static $editableFields = false;
-    public static $searchConditions = false;
+    public $recordClass;
+    public $accountLevelRead = false;
+    public $accountLevelBrowse = 'Staff';
+    public $accountLevelWrite = 'Staff';
+    public $accountLevelAPI = false;
+    public $browseOrder = false;
+    public $browseConditions = false;
+    public $browseLimitDefault = false;
+    public $editableFields = false;
+    public $searchConditions = false;
+    public $calledClass = __CLASS__;
+    public string $responseBuilder;
 
-    public static $calledClass = __CLASS__;
-    public static $responseMode = 'dwoo';
+    public function __construct()
+    {
+        $this->responseBuilder = TwigBuilder::class;
+    }
 
     /**
      * Start of routing for this controller.
@@ -50,113 +57,116 @@ abstract class RecordsRequestHandler extends RequestHandler
      *
      * @return void
      */
-    public static function handleRequest()
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         // save static class
-        static::$calledClass = get_called_class();
+        $this->calledClass = get_called_class();
 
         // handle JSON requests
-        if (static::peekPath() == 'json') {
+        if ($this->peekPath() == 'json') {
+            $this->shiftPath();
+
             // check access for API response modes
-            static::$responseMode = static::shiftPath();
-            if (in_array(static::$responseMode, ['json','jsonp'])) {
-                if (!static::checkAPIAccess()) {
-                    return static::throwAPIUnAuthorizedError();
+            $this->responseBuilder = JsonBuilder::class;
+
+            if (in_array($this->responseBuilder, [JsonBuilder::class,JsonpBuilder::class])) {
+                if (!$this->checkAPIAccess()) {
+                    return $this->throwAPIUnAuthorizedError();
                 }
             }
         }
 
-        return static::handleRecordsRequest();
+        return $this->handleRecordsRequest();
     }
 
-    public static function handleRecordsRequest($action = false)
+    public function handleRecordsRequest($action = false): ResponseInterface
     {
-        switch ($action ? $action : $action = static::shiftPath()) {
+        switch ($action ? $action : $action = $this->shiftPath()) {
             case 'save':
             {
-                return static::handleMultiSaveRequest();
+                return $this->handleMultiSaveRequest();
             }
 
             case 'destroy':
             {
-                return static::handleMultiDestroyRequest();
+                return $this->handleMultiDestroyRequest();
             }
 
             case 'create':
             {
-                return static::handleCreateRequest();
+                return $this->handleCreateRequest();
             }
 
             case '':
             case false:
             {
-                return static::handleBrowseRequest();
+                return $this->handleBrowseRequest();
             }
 
             default:
             {
-                if ($Record = static::getRecordByHandle($action)) {
-                    return static::handleRecordRequest($Record);
+                if ($Record = $this->getRecordByHandle($action)) {
+                    return $this->handleRecordRequest($Record);
                 } else {
-                    return static::throwRecordNotFoundError();
+                    return $this->throwRecordNotFoundError();
                 }
             }
         }
     }
 
-    public static function getRecordByHandle($handle)
+    public function getRecordByHandle($handle)
     {
-        $className = static::$recordClass;
+        $className = $this->recordClass;
 
         if (method_exists($className, 'getByHandle')) {
             return $className::getByHandle($handle);
         }
     }
 
-    public static function prepareBrowseConditions($conditions = [])
+    public function prepareBrowseConditions($conditions = [])
     {
-        if (static::$browseConditions) {
-            if (!is_array(static::$browseConditions)) {
-                static::$browseConditions = [static::$browseConditions];
+        if ($this->browseConditions) {
+            if (!is_array($this->browseConditions)) {
+                $this->browseConditions = [$this->browseConditions];
             }
-            $conditions = array_merge(static::$browseConditions, $conditions);
+            $conditions = array_merge($this->browseConditions, $conditions);
         }
         return $conditions;
     }
 
-    public static function prepareDefaultBrowseOptions()
+    public function prepareDefaultBrowseOptions()
     {
         if (empty($_REQUEST['offset']) && is_numeric($_REQUEST['start'])) {
             $_REQUEST['offset'] = $_REQUEST['start'];
         }
 
-        $limit = !empty($_REQUEST['limit']) && is_numeric($_REQUEST['limit']) ? $_REQUEST['limit'] : static::$browseLimitDefault;
+        $limit = !empty($_REQUEST['limit']) && is_numeric($_REQUEST['limit']) ? $_REQUEST['limit'] : $this->browseLimitDefault;
         $offset = !empty($_REQUEST['offset']) && is_numeric($_REQUEST['offset']) ? $_REQUEST['offset'] : false;
 
         $options = [
             'limit' =>  $limit,
             'offset' => $offset,
-            'order' => static::$browseOrder,
+            'order' => $this->browseOrder,
         ];
 
         return $options;
     }
 
-    public static function handleBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = [])
+    public function handleBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = [])
     {
-        if (!static::checkBrowseAccess(func_get_args())) {
-            return static::throwUnauthorizedError();
+        if (!$this->checkBrowseAccess(func_get_args())) {
+            return $this->throwUnauthorizedError();
         }
 
-        $conditions = static::prepareBrowseConditions($conditions);
+        $conditions = $this->prepareBrowseConditions($conditions);
 
-        $options = static::prepareDefaultBrowseOptions();
+        $options = $this->prepareDefaultBrowseOptions();
 
         // process sorter
         if (!empty($_REQUEST['sort'])) {
             $sort = json_decode($_REQUEST['sort'], true);
             if (!$sort || !is_array($sort)) {
-                return static::respond('error', [
+                return $this->respond('error', [
                     'success' => false,
                     'failed' => [
                         'errors'	=>	'Invalid sorter.',
@@ -175,7 +185,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (!empty($_REQUEST['filter'])) {
             $filter = json_decode($_REQUEST['filter'], true);
             if (!$filter || !is_array($filter)) {
-                return static::respond('error', [
+                return $this->respond('error', [
                     'success' => false,
                     'failed' => [
                         'errors'	=>	'Invalid filter.',
@@ -188,10 +198,10 @@ abstract class RecordsRequestHandler extends RequestHandler
             }
         }
 
-        $className = static::$recordClass;
+        $className = $this->recordClass;
 
-        return static::respond(
-            isset($responseID) ? $responseID : static::getTemplateName($className::$pluralNoun),
+        return $this->respond(
+            isset($responseID) ? $responseID : $this->getTemplateName($className::$pluralNoun),
             array_merge($responseData, [
                 'success' => true,
                 'data' => $className::getAllByWhere($conditions, $options),
@@ -204,19 +214,19 @@ abstract class RecordsRequestHandler extends RequestHandler
     }
 
 
-    public static function handleRecordRequest(ActiveRecord $Record, $action = false)
+    public function handleRecordRequest(ActiveRecord $Record, $action = false)
     {
-        if (!static::checkReadAccess($Record)) {
-            return static::throwUnauthorizedError();
+        if (!$this->checkReadAccess($Record)) {
+            return $this->throwUnauthorizedError();
         }
 
-        switch ($action ? $action : $action = static::shiftPath()) {
+        switch ($action ? $action : $action = $this->shiftPath()) {
             case '':
             case false:
             {
-                $className = static::$recordClass;
+                $className = $this->recordClass;
 
-                return static::respond(static::getTemplateName($className::$singularNoun), [
+                return $this->respond($this->getTemplateName($className::$singularNoun), [
                     'success' => true,
                     'data' => $Record,
                 ]);
@@ -224,25 +234,25 @@ abstract class RecordsRequestHandler extends RequestHandler
 
             case 'edit':
             {
-                return static::handleEditRequest($Record);
+                return $this->handleEditRequest($Record);
             }
 
             case 'delete':
             {
-                return static::handleDeleteRequest($Record);
+                return $this->handleDeleteRequest($Record);
             }
 
             default:
             {
-                return static::onRecordRequestNotHandled($Record, $action);
+                return $this->onRecordRequestNotHandled($Record, $action);
             }
         }
     }
 
 
-    public static function prepareResponseModeJSON($methods = [])
+    public function prepareResponseModeJSON($methods = [])
     {
-        if (static::$responseMode == 'json' && in_array($_SERVER['REQUEST_METHOD'], $methods)) {
+        if ($this->responseBuilder === JsonBuilder::class && in_array($_SERVER['REQUEST_METHOD'], $methods)) {
             $JSONData = JSON::getRequestData();
             if (is_array($JSONData)) {
                 $_REQUEST = $JSONData;
@@ -250,13 +260,13 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
     }
 
-    public static function getDatumRecord($datum)
+    public function getDatumRecord($datum)
     {
-        $className = static::$recordClass;
+        $className = $this->recordClass;
         $PrimaryKey = $className::getPrimaryKey();
         if (empty($datum[$PrimaryKey])) {
             $record = new $className::$defaultClass();
-            static::onRecordCreated($record, $datum);
+            $this->onRecordCreated($record, $datum);
         } else {
             if (!$record = $className::getByID($datum[$PrimaryKey])) {
                 throw new Exception('Record not found');
@@ -265,31 +275,31 @@ abstract class RecordsRequestHandler extends RequestHandler
         return $record;
     }
 
-    public static function processDatumSave($datum)
+    public function processDatumSave($datum)
     {
         // get record
-        $Record = static::getDatumRecord($datum);
+        $Record = $this->getDatumRecord($datum);
 
         // check write access
-        if (!static::checkWriteAccess($Record)) {
+        if (!$this->checkWriteAccess($Record)) {
             throw new Exception('Write access denied');
         }
 
         // apply delta
-        static::applyRecordDelta($Record, $datum);
+        $this->applyRecordDelta($Record, $datum);
 
         // call template function
-        static::onBeforeRecordValidated($Record, $datum);
+        $this->onBeforeRecordValidated($Record, $datum);
 
         // try to save record
         try {
             // call template function
-            static::onBeforeRecordSaved($Record, $datum);
+            $this->onBeforeRecordSaved($Record, $datum);
 
             $Record->save();
 
             // call template function
-            static::onRecordSaved($Record, $datum);
+            $this->onRecordSaved($Record, $datum);
 
             return (!$Record::fieldExists('Class') || get_class($Record) == $Record->Class) ? $Record : $Record->changeClass();
         } catch (Exception $e) {
@@ -297,18 +307,18 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
     }
 
-    public static function handleMultiSaveRequest()
+    public function handleMultiSaveRequest(): ResponseInterface
     {
-        $className = static::$recordClass;
+        $className = $this->recordClass;
 
-        static::prepareResponseModeJSON(['POST','PUT']);
+        $this->prepareResponseModeJSON(['POST','PUT']);
 
         if ($className::fieldExists(key($_REQUEST['data']))) {
             $_REQUEST['data'] = [$_REQUEST['data']];
         }
 
         if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
-            return static::respond('error', [
+            return $this->respond('error', [
                 'success' => false,
                 'failed' => [
                     'errors'	=>	'Save expects "data" field as array of records.',
@@ -321,7 +331,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
         foreach ($_REQUEST['data'] as $datum) {
             try {
-                $results[] = static::processDatumSave($datum);
+                $results[] = $this->processDatumSave($datum);
             } catch (Exception $e) {
                 $failed[] = [
                     'record' => $datum,
@@ -332,16 +342,16 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
 
 
-        return static::respond(static::getTemplateName($className::$pluralNoun).'Saved', [
+        return $this->respond($this->getTemplateName($className::$pluralNoun).'Saved', [
             'success' => count($results) || !count($failed),
             'data' => $results,
             'failed' => $failed,
         ]);
     }
 
-    public static function processDatumDestroy($datum)
+    public function processDatumDestroy($datum)
     {
-        $className = static::$recordClass;
+        $className = $this->recordClass;
         $PrimaryKey = $className::getPrimaryKey();
 
         // get record
@@ -358,7 +368,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
 
         // check write access
-        if (!static::checkWriteAccess($Record)) {
+        if (!$this->checkWriteAccess($Record)) {
             throw new Exception('Write access denied');
         }
 
@@ -369,18 +379,18 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
     }
 
-    public static function handleMultiDestroyRequest()
+    public function handleMultiDestroyRequest(): ResponseInterface
     {
-        $className = static::$recordClass;
+        $className = $this->recordClass;
 
-        static::prepareResponseModeJSON(['POST','PUT','DELETE']);
+        $this->prepareResponseModeJSON(['POST','PUT','DELETE']);
 
         if ($className::fieldExists(key($_REQUEST['data']))) {
             $_REQUEST['data'] = [$_REQUEST['data']];
         }
 
         if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
-            return static::respond('error', [
+            return $this->respond('error', [
                 'success' => false,
                 'failed' => [
                     'errors'	=>	'Save expects "data" field as array of records.',
@@ -393,7 +403,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
         foreach ($_REQUEST['data'] as $datum) {
             try {
-                $results[] = static::processDatumDestroy($datum);
+                $results[] = $this->processDatumDestroy($datum);
             } catch (Exception $e) {
                 $failed[] = [
                     'record' => $datum,
@@ -403,7 +413,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             }
         }
 
-        return static::respond(static::getTemplateName($className::$pluralNoun).'Destroyed', [
+        return $this->respond($this->getTemplateName($className::$pluralNoun).'Destroyed', [
             'success' => count($results) || !count($failed),
             'data' => $results,
             'failed' => $failed,
@@ -411,32 +421,32 @@ abstract class RecordsRequestHandler extends RequestHandler
     }
 
 
-    public static function handleCreateRequest(ActiveRecord $Record = null)
+    public function handleCreateRequest(ActiveRecord $Record = null): ResponseInterface
     {
         // save static class
-        static::$calledClass = get_called_class();
+        $this->calledClass = get_called_class();
 
         if (!$Record) {
-            $className = static::$recordClass;
+            $className = $this->recordClass;
             $Record = new $className::$defaultClass();
         }
 
         // call template function
-        static::onRecordCreated($Record, $_REQUEST);
+        $this->onRecordCreated($Record, $_REQUEST);
 
-        return static::handleEditRequest($Record);
+        return $this->handleEditRequest($Record);
     }
 
-    public static function handleEditRequest(ActiveRecord $Record)
+    public function handleEditRequest(ActiveRecord $Record): ResponseInterface
     {
-        $className = static::$recordClass;
+        $className = $this->recordClass;
 
-        if (!static::checkWriteAccess($Record)) {
-            return static::throwUnauthorizedError();
+        if (!$this->checkWriteAccess($Record)) {
+            return $this->throwUnauthorizedError();
         }
 
         if (in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT'])) {
-            if (static::$responseMode == 'json') {
+            if ($this->responseBuilder === JsonBuilder::class) {
                 $_REQUEST = JSON::getRequestData();
                 if (is_array($_REQUEST['data'])) {
                     $_REQUEST = $_REQUEST['data'];
@@ -445,21 +455,21 @@ abstract class RecordsRequestHandler extends RequestHandler
             $_REQUEST = $_REQUEST ? $_REQUEST : $_POST;
 
             // apply delta
-            static::applyRecordDelta($Record, $_REQUEST);
+            $this->applyRecordDelta($Record, $_REQUEST);
 
             // call template function
-            static::onBeforeRecordValidated($Record, $_REQUEST);
+            $this->onBeforeRecordValidated($Record, $_REQUEST);
 
             // validate
             if ($Record->validate()) {
                 // call template function
-                static::onBeforeRecordSaved($Record, $_REQUEST);
+                $this->onBeforeRecordSaved($Record, $_REQUEST);
 
                 try {
                     // save session
                     $Record->save();
                 } catch (Exception $e) {
-                    return static::respond('Error', [
+                    return $this->respond('Error', [
                         'success' => false,
                         'failed' => [
                             'errors'	=>	$e->getMessage(),
@@ -468,36 +478,36 @@ abstract class RecordsRequestHandler extends RequestHandler
                 }
 
                 // call template function
-                static::onRecordSaved($Record, $_REQUEST);
+                $this->onRecordSaved($Record, $_REQUEST);
 
                 // fire created response
-                $responseID = static::getTemplateName($className::$singularNoun).'Saved';
+                $responseID = $this->getTemplateName($className::$singularNoun).'Saved';
                 $responseData = [
                     'success' => true,
                     'data' => $Record,
                 ];
-                return static::respond($responseID, $responseData);
+                return $this->respond($responseID, $responseData);
             }
 
             // fall through back to form if validation failed
         }
 
-        $responseID = static::getTemplateName($className::$singularNoun).'Edit';
+        $responseID = $this->getTemplateName($className::$singularNoun).'Edit';
         $responseData = [
             'success' => false,
             'data' => $Record,
         ];
 
-        return static::respond($responseID, $responseData);
+        return $this->respond($responseID, $responseData);
     }
 
 
-    public static function handleDeleteRequest(ActiveRecord $Record)
+    public function handleDeleteRequest(ActiveRecord $Record): ResponseInterface
     {
-        $className = static::$recordClass;
+        $className = $this->recordClass;
 
-        if (!static::checkWriteAccess($Record)) {
-            return static::throwUnauthorizedError();
+        if (!$this->checkWriteAccess($Record)) {
+            return $this->throwUnauthorizedError();
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -505,56 +515,52 @@ abstract class RecordsRequestHandler extends RequestHandler
             $Record->destroy();
 
             // call cleanup function after delete
-            static::onRecordDeleted($Record, $data);
+            $this->onRecordDeleted($Record, $data);
 
             // fire created response
-            return static::respond(static::getTemplateName($className::$singularNoun).'Deleted', [
+            return $this->respond($this->getTemplateName($className::$singularNoun).'Deleted', [
                 'success' => true,
                 'data' => $Record,
             ]);
         }
 
-        return static::respond('confirm', [
+        return $this->respond('confirm', [
             'question' => 'Are you sure you want to delete this '.$className::$singularNoun.'?',
             'data' => $Record,
         ]);
     }
 
 
-    public static function respond($responseID, $responseData = [], $responseMode = false)
+    public function respond($responseID, $responseData = []): ResponseInterface
     {
-        // default to static property
-        if (!$responseMode) {
-            $responseMode = static::$responseMode;
-        }
-
-        return parent::respond($responseID, $responseData, $responseMode);
+        $className = $this->responseBuilder;
+        return new Response(new $className($responseID, $responseData));
     }
 
     // access control template functions
-    public static function checkBrowseAccess($arguments)
+    public function checkBrowseAccess($arguments)
     {
         return true;
     }
 
-    public static function checkReadAccess(ActiveRecord $Record)
+    public function checkReadAccess(ActiveRecord $Record)
     {
         return true;
     }
 
-    public static function checkWriteAccess(ActiveRecord $Record)
+    public function checkWriteAccess(ActiveRecord $Record)
     {
         return true;
     }
 
-    public static function checkAPIAccess()
+    public function checkAPIAccess()
     {
         return true;
     }
 
-    public static function throwUnauthorizedError()
+    public function throwUnauthorizedError()
     {
-        return static::respond('Unauthorized', [
+        return $this->respond('Unauthorized', [
             'success' => false,
             'failed' => [
                 'errors'	=>	'Login required.',
@@ -562,9 +568,9 @@ abstract class RecordsRequestHandler extends RequestHandler
         ]);
     }
 
-    public static function throwAPIUnAuthorizedError()
+    public function throwAPIUnAuthorizedError()
     {
-        return static::respond('Unauthorized', [
+        return $this->respond('Unauthorized', [
             'success' => false,
             'failed' => [
                 'errors'	=>	'API access required.',
@@ -572,9 +578,9 @@ abstract class RecordsRequestHandler extends RequestHandler
         ]);
     }
 
-    public static function throwNotFoundError()
+    public function throwNotFoundError()
     {
-        return static::respond('error', [
+        return $this->respond('error', [
             'success' => false,
             'failed' => [
                 'errors'	=>	'Record not found.',
@@ -582,9 +588,9 @@ abstract class RecordsRequestHandler extends RequestHandler
         ]);
     }
 
-    public static function onRecordRequestNotHandled(ActiveRecord $Record, $action)
+    public function onRecordRequestNotHandled(ActiveRecord $Record, $action)
     {
-        return static::respond('error', [
+        return $this->respond('error', [
             'success' => false,
             'failed' => [
                 'errors'	=>	'Malformed request.',
@@ -594,41 +600,41 @@ abstract class RecordsRequestHandler extends RequestHandler
 
 
 
-    public static function getTemplateName($noun)
+    public function getTemplateName($noun)
     {
         return preg_replace_callback('/\s+([a-zA-Z])/', function ($matches) {
             return strtoupper($matches[1]);
         }, $noun);
     }
 
-    public static function applyRecordDelta(ActiveRecord $Record, $data)
+    public function applyRecordDelta(ActiveRecord $Record, $data)
     {
-        if (is_array(static::$editableFields)) {
-            $Record->setFields(array_intersect_key($data, array_flip(static::$editableFields)));
+        if (is_array($this->editableFields)) {
+            $Record->setFields(array_intersect_key($data, array_flip($this->editableFields)));
         } else {
             $Record->setFields($data);
         }
     }
 
     // event template functions
-    protected static function onRecordCreated(ActiveRecord $Record, $data)
+    protected function onRecordCreated(ActiveRecord $Record, $data)
     {
     }
-    protected static function onBeforeRecordValidated(ActiveRecord $Record, $data)
+    protected function onBeforeRecordValidated(ActiveRecord $Record, $data)
     {
     }
-    protected static function onBeforeRecordSaved(ActiveRecord $Record, $data)
+    protected function onBeforeRecordSaved(ActiveRecord $Record, $data)
     {
     }
-    protected static function onRecordDeleted(ActiveRecord $Record, $data)
+    protected function onRecordDeleted(ActiveRecord $Record, $data)
     {
     }
-    protected static function onRecordSaved(ActiveRecord $Record, $data)
+    protected function onRecordSaved(ActiveRecord $Record, $data)
     {
     }
 
-    protected static function throwRecordNotFoundError()
+    protected function throwRecordNotFoundError()
     {
-        return static::throwNotFoundError();
+        return $this->throwNotFoundError();
     }
 }
