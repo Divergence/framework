@@ -20,6 +20,6 @@ class JsonBuilder extends ResponseBuilder
     public function getBody(): StreamInterface
     {
         $output = json_encode(JSON::translateObjects($this->data));
-        return new Stream($output);
+        return \GuzzleHttp\Psr7\stream_for($output);
     }
 }

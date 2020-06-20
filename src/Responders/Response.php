@@ -96,8 +96,9 @@ class Response implements ResponseInterface
     public function __construct(ResponseBuilder $responseBuilder)
     {
         $this
-        ->withDefaults(200, [], $responseBuilder->getBody())
-        ->withHeader('Content-Type', $responseBuilder->getContentType());
+        ->withDefaults(200, [
+            'Content-Type' => $responseBuilder->getContentType(),
+        ], $responseBuilder->getBody());
     }
 
     /**
