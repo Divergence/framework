@@ -134,7 +134,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public function prepareDefaultBrowseOptions()
     {
-        if (isset($_REQUEST['offset'])) {
+        if (!isset($_REQUEST['offset'])) {
             if (isset($_REQUEST['start'])) {
                 if (is_numeric($_REQUEST['start'])) {
                     $_REQUEST['offset'] = $_REQUEST['start'];

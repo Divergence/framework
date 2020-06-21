@@ -15,6 +15,7 @@ use ReflectionClass;
 use Twig\Error\LoaderError;
 
 use PHPUnit\Framework\TestCase;
+use Divergence\Responders\Emitter;
 use Divergence\Responders\Response;
 use Divergence\Responders\JsonBuilder;
 use Divergence\Responders\TwigBuilder;
@@ -68,7 +69,8 @@ class RequestHandlerTest extends TestCase
         $tpl = realpath(__DIR__.'/../../../views').'/testTwig.twig';
         file_put_contents($tpl, $wabam);
         $controller = new testableRequestHandler();
-        $controller->respond('testTwig.twig');
+        $response = $controller->respond('testTwig.twig');
+        (new Emitter($response))->emit();
         $this->expectOutputString($wabam);
         unlink($tpl);
     }

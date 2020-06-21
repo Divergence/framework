@@ -10,13 +10,14 @@
 namespace Divergence\Tests\MockSite;
 
 use Faker\Provider\Lorem;
+use Divergence\Routing\Path;
 use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\MockSite\Models\Forum\Post;
-use Divergence\Tests\MockSite\Models\Forum\Thread;
 
+use Divergence\Tests\MockSite\Models\Forum\Thread;
 use Divergence\Tests\MockSite\Models\Forum\Category;
 
 class App extends \Divergence\App
@@ -130,10 +131,5 @@ class App extends \Divergence\App
                 DB::nonQuery("DROP TABLE `{$table}`");
             }
         }
-    }
-
-    public function init($Path)
-    {
-        return parent::init($Path);
     }
 }

@@ -9,9 +9,8 @@
  */
 namespace Divergence\Tests;
 
-use Divergence\App;
-
 use PHPUnit\Framework\TestCase;
+use Divergence\Tests\MockSite\App;
 
 class AppTest extends TestCase
 {
@@ -69,6 +68,10 @@ class AppTest extends TestCase
     public function doInit()
     {
         $this->App = new App($this->ApplicationPath);
+        $this->App->Config = [
+            'environment' => 'production',
+            'debug' => false
+        ];
         //$this->App->init($this->ApplicationPath);
     }
 
