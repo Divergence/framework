@@ -298,7 +298,7 @@ class Media extends Model
             $thumbFormat .= '.cropped';
         }
 
-        $thumbPath = App::$ApplicationPath.'/media/'.$thumbFormat.'/'.$this->Filename;
+        $thumbPath = App::$App->ApplicationPath.'/media/'.$thumbFormat.'/'.$this->Filename;
 
         // look for cached thumbnail
         if (!file_exists($thumbPath)) {
@@ -685,7 +685,7 @@ class Media extends Model
             return null;
         }
 
-        return App::$ApplicationPath.'/media/'.$variant.'/'.($filename ?: $this->getFilename($variant));
+        return App::$App->ApplicationPath.'/media/'.$variant.'/'.($filename ?: $this->getFilename($variant));
     }
 
     public function getFilename($variant = 'original')
