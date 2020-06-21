@@ -44,7 +44,8 @@ class RequestHandlerTest extends TestCase
         $json = '{"array":[1,2,3],"boolean":true,"null":null,"number":123,"object":{"a":"b","c":"d","e":"f"},"string":"Hello World"}';
         $controller = new testableRequestHandler();
         $controller->responseBuilder = JsonBuilder::class;
-        $controller->respond('nothere', json_decode($json, true), 'json');
+        $response = $controller->respond('nothere', json_decode($json, true), 'json');
+        (new Emitter($response))->emit();
         $this->expectOutputString($json);
     }
 
@@ -56,7 +57,8 @@ class RequestHandlerTest extends TestCase
         $json = '{"array":[1,2,3],"boolean":true,"null":null,"number":123,"object":{"a":"b","c":"d","e":"f"},"string":"Hello World"}';
         $controller = new testableRequestHandler();
         $controller->responseBuilder = JsonpBuilder::class;
-        $controller->respond('nothere', json_decode($json, true), 'jsonp');
+        $response = $controller->respond('nothere', json_decode($json, true), 'jsonp');
+        (new Emitter($response))->emit();
         $this->expectOutputString('var data = '.$json);
     }
 

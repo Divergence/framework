@@ -433,7 +433,6 @@ class RecordsRequestHandlerTest extends TestCase
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
-        $_SERVER['REQUEST_URI'] = '/json/';
         $_REQUEST = [];
         $_REQUEST['limit'] = $expected['limit'];
         $_REQUEST['start'] = $expected['offset'];
@@ -460,6 +459,7 @@ class RecordsRequestHandlerTest extends TestCase
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
+        $_REQUEST = [];
         $controller = new TagRequestHandler();
         $controller->browseConditions = $expected['conditions'];
         ob_start();
@@ -730,6 +730,7 @@ class RecordsRequestHandlerTest extends TestCase
 
     public function testHandleMultiDestroyRequestWithError()
     {
+        $_REQUEST = [];
         $_SERVER['REQUEST_METHOD'] = 'POST';
         ob_start();
         $this->emit(CanaryRequestHandler::class, '/json/destroy');
