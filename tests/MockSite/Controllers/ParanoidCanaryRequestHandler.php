@@ -16,22 +16,22 @@ use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 
 class ParanoidCanaryRequestHandler extends SecureCanaryRequestHandler
 {
-    public static function checkBrowseAccess($arguments)
+    public function checkBrowseAccess($arguments)
     {
         return false;
     }
 
-    public static function checkReadAccess(ActiveRecord $Record)
+    public function checkReadAccess(ActiveRecord $Record)
     {
         return false;
     }
-    
-    public static function checkWriteAccess(ActiveRecord $Record)
+
+    public function checkWriteAccess(ActiveRecord $Record)
     {
         return false;
     }
-    
-    public static function checkAPIAccess()
+
+    public function checkAPIAccess()
     {
         return false;
     }

@@ -68,9 +68,10 @@ class TestListener implements PHPUnit_TestListener
     {
         //printf("TestSuite '%s' started.\n", $suite->getName());
         if ($suite->getName() == 'all') {
-            App::init(__DIR__.'/../../');
+            $_SERVER['REQUEST_URI'] = '/';
+            $suite->app = new App(__DIR__.'/../../');
             MySQL::setConnection('tests-mysql');
-            App::setUp();
+            $suite->app->setUp();
             fwrite(STDERR, 'Starting Divergence Mock Environment for PHPUnit'."\n");
         }
     }

@@ -69,8 +69,8 @@ class MySQLTest extends TestCase
 
     public function setUp()
     {
-        $this->ApplicationPath = realpath(__DIR__.'/../../../../');
-        App::init($this->ApplicationPath);
+        //$this->ApplicationPath = realpath(__DIR__.'/../../../../');
+        //App::init($this->ApplicationPath);
     }
 
     /**
@@ -307,12 +307,12 @@ class MySQLTest extends TestCase
      */
     public function testHandleErrorDevelopment()
     {
-        App::$Config['environment']='dev';
+        App::$App->Config['environment']='dev';
         DB::$defaultDevLabel = 'tests-mysql';
-        $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$whoops->getHandlers()[0]);
+        $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$App->whoops->getHandlers()[0]);
         $this->expectExceptionMessage('Database error!');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
-        App::$Config['environment']='production';
+        App::$App->Config['environment']='production';
     }
 
     /**
@@ -337,12 +337,12 @@ class MySQLTest extends TestCase
     {
         TestUtils::requireDB($this);
 
-        App::$Config['environment'] = 'dev';
+        App::$App->Config['environment'] = 'dev';
         DB::$defaultDevLabel = 'tests-mysql';
 
         $this->expectException(\RunTimeException::class);
         $this->expectExceptionMessage('Database error!');
-        App::$Config['environment'] = 'production';
+        App::$App->Config['environment'] = 'production';
         DB::nonQuery('SELECT malformed query');
     }
 
@@ -497,13 +497,13 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         $this->assertFalse(testableDB::_startQueryLog(null));
-        App::$Config['environment'] = 'dev';
+        App::$App->Config['environment'] = 'dev';
         $x = testableDB::_startQueryLog('SELECT corgies');
         $this->assertEquals('SELECT corgies', $x['query']);
 
         $s = explode('.', $x['time_start']);
         $this->assertLessThan(2, $s[0] - time());
-        App::$Config['environment'] = 'production';
+        App::$App->Config['environment'] = 'production';
     }
 
     /**
@@ -514,7 +514,7 @@ class MySQLTest extends TestCase
     {
         TestUtils::requireDB($this);
 
-        App::$Config['environment'] = 'dev';
+        App::$App->Config['environment'] = 'dev';
         $x = testableDB::_startQueryLog('SELECT corgies');
         usleep(5000);
 
@@ -532,7 +532,7 @@ class MySQLTest extends TestCase
         $this->assertEquals($expected_time_duration_ms, $x['time_duration_ms']);
         $fake = false;
         $this->assertFalse(testableDB::_finishQueryLog($fake));
-        App::$Config['environment'] = 'production';
+        App::$App->Config['environment'] = 'production';
     }
 
     /**
@@ -560,10 +560,10 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         $this->assertEquals(testableDB::$defaultProductionLabel, testableDB::_getDefaultLabel());
-        App::$Config['environment'] = 'dev';
+        App::$App->Config['environment'] = 'dev';
         $this->assertEquals(testableDB::$defaultDevLabel, testableDB::_getDefaultLabel());
-        App::$Config['environment'] = 'nothing';
+        App::$App->Config['environment'] = 'nothing';
         $this->assertNull(testableDB::_getDefaultLabel());
-        App::$Config['environment'] = 'production';
+        App::$App->Config['environment'] = 'production';
     }
 }

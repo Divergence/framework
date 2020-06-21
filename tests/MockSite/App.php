@@ -21,14 +21,14 @@ use Divergence\Tests\MockSite\Models\Forum\Category;
 
 class App extends \Divergence\App
 {
-    public static function setUp()
+    public function setUp()
     {
         ini_set('error_reporting', E_ALL); // or error_reporting(E_ALL);
         ini_set('display_errors', '1');
         ini_set('display_startup_errors', '1');
 
-        if (static::isDatabaseTestingEnabled()) {
-            static::clean();
+        if ($this->isDatabaseTestingEnabled()) {
+            $this->clean();
 
             $Tags = [
                 ['Tag'=>'Linux','Slug' => 'linux'],
@@ -113,7 +113,7 @@ class App extends \Divergence\App
             }
         }
     }
-    public static function isDatabaseTestingEnabled()
+    public function isDatabaseTestingEnabled()
     {
         try {
             return is_a(DB::getConnection(), \PDO::class);
@@ -122,7 +122,7 @@ class App extends \Divergence\App
         }
     }
 
-    public static function clean()
+    public function clean()
     {
         $tables = DB::allRecords('Show tables;');
         foreach ($tables as $data) {
@@ -132,7 +132,7 @@ class App extends \Divergence\App
         }
     }
 
-    public static function init($Path)
+    public function init($Path)
     {
         return parent::init($Path);
     }

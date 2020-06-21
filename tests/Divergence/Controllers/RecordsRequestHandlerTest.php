@@ -11,16 +11,18 @@ namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
 use ReflectionClass;
+use Twig\Error\LoaderError;
 use Divergence\Helpers\JSON;
+use Divergence\Routing\Path;
 use org\bovigo\vfs\vfsStream;
-
 use PHPUnit\Framework\TestCase;
+use Divergence\Responders\Emitter;
+use GuzzleHttp\Psr7\ServerRequest;
 use org\bovigo\vfs\vfsStreamWrapper;
-
-
+use Divergence\Responders\JsonBuilder;
 use Divergence\IO\Database\MySQL as DB;
-
 use Divergence\Tests\MockSite\Models\Tag;
+use Divergence\Controllers\RequestHandler;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\Models\Testables\fakeCanary;
 use Divergence\Tests\Models\Testables\relationalCanary;
@@ -52,7 +54,8 @@ class RecordsRequestHandlerTest extends TestCase
 {
     public function setUp()
     {
-        App::$Config['environment'] = 'production';
+
+        //$this->App->Config['environment'] = 'production';
     }
 
     public function tearDown()
@@ -60,6 +63,17 @@ class RecordsRequestHandlerTest extends TestCase
         if (in_array($this->getName(), ['testProcessDatumDestroyFailed','testEditWithError'])) {
             DB::nonQuery('UNLOCK TABLES');
         }
+    }
+
+    public function emit($controller, $path)
+    {
+        $ctrl = is_a($controller, RequestHandler::class) ? $controller : new $controller();
+
+
+        $_SERVER['REQUEST_URI'] = $path;
+        App::$App->Path = new Path($path);
+        $response = $ctrl->handle(ServerRequest::fromGlobals());
+        (new Emitter($response))->emit();
     }
 
     public function testHandleRequestJSON()
@@ -79,28 +93,26 @@ class RecordsRequestHandlerTest extends TestCase
         }
         $expected['total'] = count($Records)."";
         $expected = json_encode($expected);
-        
-        
+
+
         $this->expectOutputString($expected);
 
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/';
-        TagRequestHandler::handleRequest();
+
+        $this->emit(TagRequestHandler::class, '/json/');
     }
 
     public function testGetByHandleWithNoHandleFieldOnObject()
     {
         TagRequestHandler::$recordClass = \StdObject::class;
-        $this->assertNull(TagRequestHandler::getRecordByHandle('nada'));
+        $controller = new TagRequestHandler();
+        $this->assertNull($controller->getRecordByHandle('nada'));
         TagRequestHandler::$recordClass = Tag::class;
     }
 
     public function testHandleRequest()
     {
-        $this->expectException('Dwoo\\Exception');
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/';
-        TagRequestHandler::handleRequest();
+        $this->expectException(LoaderError::class);
+        $this->emit(TagRequestHandler::class, '/');
     }
 
     public function testHandleRequestOneValidRecord()
@@ -111,10 +123,9 @@ class RecordsRequestHandlerTest extends TestCase
         ];
         $expected = json_encode($expected);
 
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/1';
-        TagRequestHandler::handleRequest();
         $this->expectOutputString($expected);
+
+        $this->emit(TagRequestHandler::class, '/json/1');
     }
 
     public function testHandleRequestOneValidRecordByHandle()
@@ -126,10 +137,9 @@ class RecordsRequestHandlerTest extends TestCase
         ];
         $expected = json_encode($expected);
 
-        CanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$Object->Handle;
-        CanaryRequestHandler::handleRequest();
         $this->expectOutputString($expected);
+
+        $this->emit(TagRequestHandler::class, '/json/'.$Object->Handle);
     }
 
     public function testHandleRequestOneValidRecordByHandleWithNoHandleField()
@@ -142,9 +152,7 @@ class RecordsRequestHandlerTest extends TestCase
         ];
         $expected = json_encode($expected);
 
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/Linux';
-        TagRequestHandler::handleRequest();
+        $this->emit(TagRequestHandler::class, '/json/Linux');
         $this->expectOutputString($expected);
     }
 
@@ -158,9 +166,7 @@ class RecordsRequestHandlerTest extends TestCase
         ];
         $expected = json_encode($expected);
 
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/999';
-        TagRequestHandler::handleRequest();
+        $this->emit(TagRequestHandler::class, '/json/999');
         $this->expectOutputString($expected);
     }
 
@@ -174,9 +180,8 @@ class RecordsRequestHandlerTest extends TestCase
         ];
         $expected = json_encode($expected);
 
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/1/notvalid';
-        TagRequestHandler::handleRequest();
+
+        $this->emit(TagRequestHandler::class, '/json/1/notvalid');
         $this->expectOutputString($expected);
     }
 
@@ -190,10 +195,9 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        CanaryRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/json/create';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/create');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
         $this->assertArraySubset($MockData, $x['data']);
@@ -211,10 +215,8 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        CanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/edit');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
         $this->assertArraySubset($MockData, $x['data']);
@@ -232,11 +234,9 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        CanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
         ob_start();
         DB::nonQuery('LOCK TABLES `canaries` READ');
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/edit');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('Database error!', $x['failed']['errors']);
@@ -254,23 +254,20 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        CanaryRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/'.$ID.'/edit';
-        $this->expectExceptionMessage('Template "canaryEdit" could not be found in any of your include path(s)');
-        CanaryRequestHandler::handleRequest();
+        $this->expectException(\Exception::class);
+        $this->emit(CanaryRequestHandler::class, '/'.$ID.'/edit');
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
-    
+
     // delete
     public function testDelete()
     {
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
         $Canary = Canary::getByID($ID);
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        CanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/delete');
         $x = json_decode(ob_get_clean(), true);
         $expected = $Canary->data;
         $expected['Created'] = $x['data']['Created'];
@@ -286,10 +283,8 @@ class RecordsRequestHandlerTest extends TestCase
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
         $Canary = Canary::getByID($ID);
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        CanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/delete');
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals('Are you sure you want to delete this '.Canary::$singularNoun.'?', $x['question']);
         $this->assertArraySubset($Canary->data, $x['data']); // delete should return the record
@@ -306,19 +301,18 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'PUT';
-        CanaryRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/json/create';
         vfsStream::setup('input', null, ['data' => json_encode($PUT)]);
         JSON::$inputStream = 'vfs://input/data';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/create');
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
-    
+
     public function testEditFromJSON()
     {
         // edit
@@ -330,12 +324,10 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'PUT';
-        CanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
         vfsStream::setup('input', null, ['data' => json_encode($PUT)]);
         JSON::$inputStream = 'vfs://input/data';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/edit');
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
@@ -359,7 +351,6 @@ class RecordsRequestHandlerTest extends TestCase
         }
         $expected['total'] = count($Records)."";
 
-        TagRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/json/';
         $_REQUEST['sort'] = json_encode([
             [
@@ -368,7 +359,7 @@ class RecordsRequestHandlerTest extends TestCase
             ],
         ]);
         ob_start();
-        TagRequestHandler::handleRequest();
+        $this->emit(TagRequestHandler::class, '/json/');
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals($expected, $x);
     }
@@ -391,7 +382,6 @@ class RecordsRequestHandlerTest extends TestCase
         }
         $expected['total'] = count($Records)."";
 
-        TagRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/json/';
         $_REQUEST['filter'] = json_encode([
             [
@@ -400,7 +390,7 @@ class RecordsRequestHandlerTest extends TestCase
             ],
         ]);
         ob_start();
-        TagRequestHandler::handleRequest();
+        $this->emit(TagRequestHandler::class, '/json/');
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals($expected, $x);
     }
@@ -420,12 +410,11 @@ class RecordsRequestHandlerTest extends TestCase
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
-        TagRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/json/';
         $_REQUEST['limit'] = $expected['limit'];
         $_REQUEST['offset'] = $expected['offset'];
         ob_start();
-        TagRequestHandler::handleRequest();
+        $this->emit(TagRequestHandler::class, '/json/');
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals($expected, $x);
     }
@@ -445,12 +434,11 @@ class RecordsRequestHandlerTest extends TestCase
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
-        TagRequestHandler::clear();
         $_SERVER['REQUEST_URI'] = '/json/';
         $_REQUEST['limit'] = $expected['limit'];
         $_REQUEST['start'] = $expected['offset'];
         ob_start();
-        TagRequestHandler::handleRequest();
+        $this->emit(TagRequestHandler::class, '/json/');
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals($expected, $x);
     }
@@ -472,11 +460,10 @@ class RecordsRequestHandlerTest extends TestCase
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/';
-        TagRequestHandler::$browseConditions = $expected['conditions'];
+        $controller = new TagRequestHandler();
+        $controller->browseConditions = $expected['conditions'];
         ob_start();
-        TagRequestHandler::handleRequest();
+        $this->emit($controller, '/json/');
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals($expected, $x);
     }
@@ -498,11 +485,10 @@ class RecordsRequestHandlerTest extends TestCase
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/';
-        TagRequestHandler::$browseConditions = $expected['conditions'][0];
+        $controller = new TagRequestHandler();
+        $controller->browseConditions = $expected['conditions'][0];
         ob_start();
-        TagRequestHandler::handleRequest();
+        $this->emit($controller, '/json/');
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals($expected, $x);
     }
@@ -515,11 +501,9 @@ class RecordsRequestHandlerTest extends TestCase
                 'errors'	=>	'Invalid filter.',
             ],
         ];
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/';
         $_REQUEST['filter'] = 'fail';
         ob_start();
-        TagRequestHandler::handleRequest();
+        $this->emit(TagRequestHandler::class, '/json/');
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals($expected, $x);
     }
@@ -532,11 +516,9 @@ class RecordsRequestHandlerTest extends TestCase
                 'errors'	=>	'Invalid sorter.',
             ],
         ];
-        TagRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/';
         $_REQUEST['sort'] = 'fail';
         ob_start();
-        TagRequestHandler::handleRequest();
+        $this->emit(TagRequestHandler::class, '/json/');
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals($expected, $x);
     }
@@ -551,11 +533,9 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        CanaryRequestHandler::clear();
         $_REQUEST = ['data'=>$MockData];
-        $_SERVER['REQUEST_URI'] = '/json/save';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/save');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
         $this->assertArraySubset($MockData, $x['data'][0]);
@@ -574,11 +554,9 @@ class RecordsRequestHandlerTest extends TestCase
             $x++;
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        CanaryRequestHandler::clear();
         $_REQUEST = ['data'=>$MockData];
-        $_SERVER['REQUEST_URI'] = '/json/save';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/save');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
         $this->assertArraySubset($MockData[0], $x['data'][0]);
@@ -590,11 +568,9 @@ class RecordsRequestHandlerTest extends TestCase
     public function testMultiSaveRequestWithBadData()
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        CanaryRequestHandler::clear();
         $_REQUEST = ['nothing'=>'whatever','someweirdstuff'];
-        $_SERVER['REQUEST_URI'] = '/json/save';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/save');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('Save expects "data" field as array of records.', $x['failed']['errors']);
@@ -613,13 +589,11 @@ class RecordsRequestHandlerTest extends TestCase
             $x++;
         }
         $_SERVER['REQUEST_METHOD'] = 'PUT';
-        CanaryRequestHandler::clear();
         $_PUT = ['data'=>$MockData];
-        $_SERVER['REQUEST_URI'] = '/json/save';
         vfsStream::setup('input', null, ['data' => json_encode($_PUT)]);
         JSON::$inputStream = 'vfs://input/data';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/save');
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
@@ -648,15 +622,13 @@ class RecordsRequestHandlerTest extends TestCase
         ];
 
         $Existing[1]->destroy();
-        
+
         $_SERVER['REQUEST_METHOD'] = 'PUT';
-        CanaryRequestHandler::clear();
         $_PUT = ['data'=>$MockData];
-        $_SERVER['REQUEST_URI'] = '/json/save';
         vfsStream::setup('input', null, ['data' => json_encode($_PUT)]);
         JSON::$inputStream = 'vfs://input/data';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/save');
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
@@ -692,19 +664,17 @@ class RecordsRequestHandlerTest extends TestCase
         ];
 
         $Existing[1]->destroy();
-        
+
         $_SERVER['REQUEST_METHOD'] = 'PUT';
-        CanaryRequestHandler::clear();
         $_PUT = ['data'=>$MockData];
-        $_SERVER['REQUEST_URI'] = '/json/destroy';
         vfsStream::setup('input', null, ['data' => json_encode($_PUT)]);
         JSON::$inputStream = 'vfs://input/data';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/destroy');
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
-    
+
 
 
         $expect[0]['Created'] = $x['data'][0]['Created'];
@@ -735,19 +705,17 @@ class RecordsRequestHandlerTest extends TestCase
         ];
 
         $Existing[1]->destroy();
-        
+
         $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        CanaryRequestHandler::clear();
         $_PUT = ['data'=>$MockData];
-        $_SERVER['REQUEST_URI'] = '/json/destroy';
         vfsStream::setup('input', null, ['data' => json_encode($_PUT)]);
         JSON::$inputStream = 'vfs://input/data';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/destroy');
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
-    
+
 
 
         $expect[0]['Created'] = $x['data'][0]['Created'];
@@ -763,51 +731,53 @@ class RecordsRequestHandlerTest extends TestCase
     public function testHandleMultiDestroyRequestWithError()
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        CanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/destroy';
         ob_start();
-        CanaryRequestHandler::handleRequest();
+        $this->emit(CanaryRequestHandler::class, '/json/destroy');
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
-        
+
         $this->assertEquals(['success'=>false,'failed'=>['errors'=>'Save expects "data" field as array of records.']], $x);
-        
+
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
     public function testThrowUnauthorizedError()
     {
         ob_start();
-        CanaryRequestHandler::throwUnauthorizedError();
+        $controller = new CanaryRequestHandler();
+        $controller->responseBuilder = JsonBuilder::class;
+        $response = $controller->throwUnauthorizedError();
+        (new Emitter($response))->emit();
         $x = json_decode(ob_get_clean(), true);
         $this->assertEquals(['success'=>false,'failed'=>['errors'=>'Login required.']], $x);
     }
 
     public function testGetTemplate()
     {
-        $this->assertEquals('someString', CanaryRequestHandler::getTemplateName('some string'));
-        $this->assertEquals('somestring', CanaryRequestHandler::getTemplateName('somestring'));
+        $controller = new CanaryRequestHandler();
+        $this->assertEquals('someString', $controller->getTemplateName('some string'));
+        $this->assertEquals('somestring', $controller->getTemplateName('somestring'));
     }
 
     public function testApplyRecordDelta()
     {
-        CanaryRequestHandler::$editableFields = ['Name'];
+        $controller = new CanaryRequestHandler();
+
+        $controller->editableFields = ['Name'];
         $data = Canary::avis();
         $Canary = new Canary();
-        CanaryRequestHandler::applyRecordDelta($Canary, $data);
+        $controller->applyRecordDelta($Canary, $data);
         $this->assertEquals($data['Name'], $Canary->Name);
         $this->assertNotEquals($data['Handle'], $Canary->Handle);
-        CanaryRequestHandler::$editableFields = null;
+        $controller->editableFields = null;
     }
 
     public function testAccessDeniedBrowse()
     {
         // create
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        SecureCanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json';
         ob_start();
-        SecureCanaryRequestHandler::handleRequest();
+        $this->emit(SecureCanaryRequestHandler::class, '/json');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('Login required.', $x['failed']['errors']);
@@ -824,10 +794,8 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        SecureCanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/create';
         ob_start();
-        SecureCanaryRequestHandler::handleRequest();
+        $this->emit(SecureCanaryRequestHandler::class, '/json/create');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('Login required.', $x['failed']['errors']);
@@ -845,26 +813,22 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        SecureCanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
         ob_start();
-        SecureCanaryRequestHandler::handleRequest();
+        $this->emit(SecureCanaryRequestHandler::class, '/json/'.$ID.'/edit');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('Login required.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
-    
+
     // delete
     public function testAccessDeniedDelete()
     {
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
         $Canary = Canary::getByID($ID);
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        SecureCanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
         ob_start();
-        SecureCanaryRequestHandler::handleRequest();
+        $this->emit(SecureCanaryRequestHandler::class, '/json/'.$ID.'/delete');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('Login required.', $x['failed']['errors']);
@@ -881,10 +845,8 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        ParanoidCanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/create';
         ob_start();
-        ParanoidCanaryRequestHandler::handleRequest();
+        $this->emit(ParanoidCanaryRequestHandler::class, '/json/create');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('API access required.', $x['failed']['errors']);
@@ -902,26 +864,22 @@ class RecordsRequestHandlerTest extends TestCase
             $MockData['Colors'] = [$MockData['Colors']];
         }
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        ParanoidCanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/edit';
         ob_start();
-        ParanoidCanaryRequestHandler::handleRequest();
+        $this->emit(ParanoidCanaryRequestHandler::class, '/json/'.$ID.'/edit');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('API access required.', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
-    
+
     // delete
     public function testAPIAccessDeniedDelete()
     {
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
         $Canary = Canary::getByID($ID);
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        ParanoidCanaryRequestHandler::clear();
-        $_SERVER['REQUEST_URI'] = '/json/'.$ID.'/delete';
         ob_start();
-        ParanoidCanaryRequestHandler::handleRequest();
+        $this->emit(ParanoidCanaryRequestHandler::class, '/json/'.$ID.'/delete');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('API access required.', $x['failed']['errors']);
@@ -934,7 +892,10 @@ class RecordsRequestHandlerTest extends TestCase
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
         $Canary = Canary::getByID($ID);
         ob_start();
-        SecureCanaryRequestHandler::handleDeleteRequest($Canary);
+        $controller = new SecureCanaryRequestHandler();
+        $controller->responseBuilder = JsonBuilder::class;
+        $response = $controller->handleDeleteRequest($Canary);
+        (new Emitter($response))->emit();
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
         $this->assertEquals('Login required.', $x['failed']['errors']);
@@ -944,7 +905,8 @@ class RecordsRequestHandlerTest extends TestCase
     public function testProcessDatumSaveNoWriteAccess()
     {
         $this->expectException('Exception');
-        SecureCanaryRequestHandler::processDatumSave([
+        $controller = new SecureCanaryRequestHandler();
+        $controller->processDatumSave([
             'ID' => '1',
             'Name' => 'whatever',
         ]);
@@ -954,7 +916,8 @@ class RecordsRequestHandlerTest extends TestCase
     public function testProcessDatumSaveDatabaseError()
     {
         $this->expectException('Exception');
-        CanaryRequestHandler::processDatumSave([
+        $controller = new CanaryRequestHandler();
+        $controller->processDatumSave([
             'Created' => 'fake',
         ]);
     }
@@ -963,7 +926,8 @@ class RecordsRequestHandlerTest extends TestCase
     public function testProcessDatumDestroyNoWriteAccess()
     {
         $this->expectException('Exception');
-        SecureCanaryRequestHandler::processDatumDestroy([
+        $controller = new SecureCanaryRequestHandler();
+        $controller->processDatumDestroy([
             'ID' => '1',
         ]);
     }
@@ -972,7 +936,8 @@ class RecordsRequestHandlerTest extends TestCase
     public function testProcessDatumDestroyNoKey()
     {
         $this->expectException('Exception');
-        CanaryRequestHandler::processDatumDestroy([
+        $controller = new CanaryRequestHandler();
+        $controller->processDatumDestroy([
             'fake' => 'fake',
         ]);
     }
@@ -982,7 +947,8 @@ class RecordsRequestHandlerTest extends TestCase
     {
         DB::nonQuery('LOCK TABLES `canaries` READ');
         $this->expectException('Exception');
-        CanaryRequestHandler::processDatumDestroy([
+        $controller = new CanaryRequestHandler();
+        $controller->processDatumDestroy([
             'ID' => '1',
         ]);
     }

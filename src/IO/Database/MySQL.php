@@ -561,7 +561,7 @@ class MySQL
      * Creates an associative array containing the query and time_start
      *
      * @param string $query The query you want to start logging.
-     * @return false|array If App::$Config['environment']!='dev' this will return false. Otherwise an array containing 'query' and 'time_start' members.
+     * @return false|array If App::$App->Config['environment']!='dev' this will return false. Otherwise an array containing 'query' and 'time_start' members.
      */
     protected static function startQueryLog($query)
     {
@@ -627,9 +627,9 @@ class MySQL
     }
 
     /**
-     * Gets the label we should use in the current run time based on App::$Config['environment']
+     * Gets the label we should use in the current run time based on App::$App->Config['environment']
      *
-     * @uses App::$Config
+     * @uses App::$App->Config
      * @uses static::$defaultProductionLabel
      * @uses static::$defaultDevLabel
      *

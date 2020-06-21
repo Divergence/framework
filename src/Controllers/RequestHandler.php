@@ -10,12 +10,15 @@
 namespace Divergence\Controllers;
 
 use Divergence\App;
+use Divergence\Responders\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 abstract class RequestHandler implements RequestHandlerInterface
 {
+    public string $responseBuilder;
+
     public function peekPath()
     {
         return App::$App->Path->peekPath();
@@ -29,6 +32,12 @@ abstract class RequestHandler implements RequestHandlerInterface
     public function unshiftPath($string)
     {
         return App::$App->Path->unshiftPath($string);
+    }
+
+    public function respond($responseID, $responseData = []): ResponseInterface
+    {
+        $className = $this->responseBuilder;
+        return new Response(new $className($responseID, $responseData));
     }
 
     abstract public function handle(ServerRequestInterface $request): ResponseInterface;

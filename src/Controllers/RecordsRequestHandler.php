@@ -32,7 +32,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 {
     public $config;
 
-    public $recordClass;
+    public static $recordClass;
     public $accountLevelRead = false;
     public $accountLevelBrowse = 'Staff';
     public $accountLevelWrite = 'Staff';
@@ -43,7 +43,6 @@ abstract class RecordsRequestHandler extends RequestHandler
     public $editableFields = false;
     public $searchConditions = false;
     public $calledClass = __CLASS__;
-    public string $responseBuilder;
 
     public function __construct()
     {
@@ -116,7 +115,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public function getRecordByHandle($handle)
     {
-        $className = $this->recordClass;
+        $className = static::$recordClass;
 
         if (method_exists($className, 'getByHandle')) {
             return $className::getByHandle($handle);
@@ -136,8 +135,12 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public function prepareDefaultBrowseOptions()
     {
-        if (empty($_REQUEST['offset']) && is_numeric($_REQUEST['start'])) {
-            $_REQUEST['offset'] = $_REQUEST['start'];
+        if (isset($_REQUEST['offset'])) {
+            if (isset($_REQUEST['start'])) {
+                if (is_numeric($_REQUEST['start'])) {
+                    $_REQUEST['offset'] = $_REQUEST['start'];
+                }
+            }
         }
 
         $limit = !empty($_REQUEST['limit']) && is_numeric($_REQUEST['limit']) ? $_REQUEST['limit'] : $this->browseLimitDefault;
@@ -198,7 +201,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             }
         }
 
-        $className = $this->recordClass;
+        $className = static::$recordClass;
 
         return $this->respond(
             isset($responseID) ? $responseID : $this->getTemplateName($className::$pluralNoun),
@@ -224,7 +227,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             case '':
             case false:
             {
-                $className = $this->recordClass;
+                $className = static::$recordClass;
 
                 return $this->respond($this->getTemplateName($className::$singularNoun), [
                     'success' => true,
@@ -262,7 +265,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public function getDatumRecord($datum)
     {
-        $className = $this->recordClass;
+        $className = static::$recordClass;
         $PrimaryKey = $className::getPrimaryKey();
         if (empty($datum[$PrimaryKey])) {
             $record = new $className::$defaultClass();
@@ -309,7 +312,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public function handleMultiSaveRequest(): ResponseInterface
     {
-        $className = $this->recordClass;
+        $className = static::$recordClass;
 
         $this->prepareResponseModeJSON(['POST','PUT']);
 
@@ -351,7 +354,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public function processDatumDestroy($datum)
     {
-        $className = $this->recordClass;
+        $className = static::$recordClass;
         $PrimaryKey = $className::getPrimaryKey();
 
         // get record
@@ -381,7 +384,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public function handleMultiDestroyRequest(): ResponseInterface
     {
-        $className = $this->recordClass;
+        $className = static::$recordClass;
 
         $this->prepareResponseModeJSON(['POST','PUT','DELETE']);
 
@@ -427,7 +430,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         $this->calledClass = get_called_class();
 
         if (!$Record) {
-            $className = $this->recordClass;
+            $className = static::$recordClass;
             $Record = new $className::$defaultClass();
         }
 
@@ -439,7 +442,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public function handleEditRequest(ActiveRecord $Record): ResponseInterface
     {
-        $className = $this->recordClass;
+        $className = static::$recordClass;
 
         if (!$this->checkWriteAccess($Record)) {
             return $this->throwUnauthorizedError();
@@ -504,7 +507,7 @@ abstract class RecordsRequestHandler extends RequestHandler
 
     public function handleDeleteRequest(ActiveRecord $Record): ResponseInterface
     {
-        $className = $this->recordClass;
+        $className = static::$recordClass;
 
         if (!$this->checkWriteAccess($Record)) {
             return $this->throwUnauthorizedError();
@@ -528,13 +531,6 @@ abstract class RecordsRequestHandler extends RequestHandler
             'question' => 'Are you sure you want to delete this '.$className::$singularNoun.'?',
             'data' => $Record,
         ]);
-    }
-
-
-    public function respond($responseID, $responseData = []): ResponseInterface
-    {
-        $className = $this->responseBuilder;
-        return new Response(new $className($responseID, $responseData));
     }
 
     // access control template functions

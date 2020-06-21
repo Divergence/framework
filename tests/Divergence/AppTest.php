@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 class AppTest extends TestCase
 {
+    public App $App;
     public $ApplicationPath;
 
     public function setUp()
@@ -67,20 +68,21 @@ class AppTest extends TestCase
 
     public function doInit()
     {
-        App::init($this->ApplicationPath);
+        $this->App = new App($this->ApplicationPath);
+        //$this->App->init($this->ApplicationPath);
     }
 
     /**
-     * @covers Divergence\App::init
+     * @covers Divergence\$this->App->init
      */
     public function testAppInit()
     {
         $this->doInit();
-        $OriginalEnvState = App::config('app');
-        $this->assertEquals(realpath(__DIR__.'/../../'), App::$ApplicationPath);
-        $this->assertEquals($OriginalEnvState['debug'], App::$Config['debug']);
-        $this->assertEquals($OriginalEnvState['environment'], App::$Config['environment']);
-        $this->assertEquals(App::config('app'), App::$Config);
+        $OriginalEnvState = $this->App->config('app');
+        $this->assertEquals(realpath(__DIR__.'/../../'), $this->App->ApplicationPath);
+        $this->assertEquals($OriginalEnvState['debug'], $this->App->Config['debug']);
+        $this->assertEquals($OriginalEnvState['environment'], $this->App->Config['environment']);
+        $this->assertEquals($this->App->config('app'), $this->App->Config);
     }
 
     public function testAppInitException()
@@ -94,20 +96,20 @@ class AppTest extends TestCase
     }
 
     /**
-     * @covers Divergence\App::config
+     * @covers Divergence\$this->App->config
      */
     public function testAppConfig()
     {
         $this->doInit();
         $this->createFakeDevEnv();
-        $envState = App::config('app');
-        $this->assertEquals($envState['debug'], true, 'App::$config[\'debug\'] was set to false despite presence of .debug file in Application root.');
-        $this->assertEquals($envState['environment'], 'dev', 'App::$config[\'environment\'] was set to production despite presence of .dev file in Application root.');
+        $envState = $this->App->config('app');
+        $this->assertEquals($envState['debug'], true, '$this->App->config[\'debug\'] was set to false despite presence of .debug file in Application root.');
+        $this->assertEquals($envState['environment'], 'dev', '$this->App->config[\'environment\'] was set to production despite presence of .dev file in Application root.');
         $this->cleanFakeDevEnv();
     }
 
     /**
-     * @covers Divergence\App::registerErrorHandler
+     * @covers Divergence\$this->App->registerErrorHandler
      */
     public function testAppRegisterErrorHandler()
     {
@@ -115,7 +117,7 @@ class AppTest extends TestCase
         $this->assertEquals(error_reporting(), 0, 'Error reporting not set to 0 for production environment.');
         $this->createFakeDevEnv();
         $this->doInit();
-        $this->assertInstanceOf(\Whoops\Run::class, App::$whoops, "Whoops isn't being properly registered when App::\$config['environment'] is set to 'dev'.");
+        $this->assertInstanceOf(\Whoops\Run::class, $this->App->whoops, "Whoops isn't being properly registered when \$config['environment'] is set to 'dev'.");
         $this->cleanFakeDevEnv();
     }
 }
