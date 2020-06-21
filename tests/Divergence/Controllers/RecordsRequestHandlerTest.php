@@ -138,8 +138,7 @@ class RecordsRequestHandlerTest extends TestCase
         $expected = json_encode($expected);
 
         $this->expectOutputString($expected);
-
-        $this->emit(TagRequestHandler::class, '/json/'.$Object->Handle);
+        $this->emit(CanaryRequestHandler::class, '/json/'.$Object->Handle);
     }
 
     public function testHandleRequestOneValidRecordByHandleWithNoHandleField()
@@ -410,7 +409,7 @@ class RecordsRequestHandlerTest extends TestCase
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
-        $_SERVER['REQUEST_URI'] = '/json/';
+        $_REQUEST = [];
         $_REQUEST['limit'] = $expected['limit'];
         $_REQUEST['offset'] = $expected['offset'];
         ob_start();
@@ -435,6 +434,7 @@ class RecordsRequestHandlerTest extends TestCase
             $expected['data'][] = $Record->data;
         }
         $_SERVER['REQUEST_URI'] = '/json/';
+        $_REQUEST = [];
         $_REQUEST['limit'] = $expected['limit'];
         $_REQUEST['start'] = $expected['offset'];
         ob_start();

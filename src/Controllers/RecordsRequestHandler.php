@@ -116,7 +116,6 @@ abstract class RecordsRequestHandler extends RequestHandler
     public function getRecordByHandle($handle)
     {
         $className = static::$recordClass;
-
         if (method_exists($className, 'getByHandle')) {
             return $className::getByHandle($handle);
         }
