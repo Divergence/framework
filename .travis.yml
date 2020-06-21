@@ -1,7 +1,6 @@
 language: php
 php:
-  - '7.1'
-  - '7.2'
+  - '7.4'
 
 addons:
   apt:
@@ -40,8 +39,8 @@ after_success:
  - bash <(curl -s https://codecov.io/bash)
 
  # Tell Travis CI to monitor only 'master' branch
-branches:
-  only: master
+#branches:
+#  only: master
 
 # Specify where the cache is so you can delete it via the travis-ci web interface
 cache:
