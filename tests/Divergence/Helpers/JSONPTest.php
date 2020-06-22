@@ -18,7 +18,7 @@ class JSONPtest extends TestCase
 
 
     /**
-     * @covers Divergence\Helpers\JSONP::respond
+     *
      */
     public function testRespond()
     {
@@ -36,7 +36,7 @@ class JSONPtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSONP::translateAndRespond
+     *
      */
     public function testTranslateAndRespond()
     {

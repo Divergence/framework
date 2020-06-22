@@ -32,7 +32,7 @@ class VersioningTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\Versioning::getHistoryTable
+     *
      */
     public function testGetHistoryTable()
     {
@@ -43,7 +43,7 @@ class VersioningTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\Versioning::getRevisionsByID
+     *
      */
     public function testGetRevisionsByID()
     {
@@ -56,7 +56,7 @@ class VersioningTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\Versioning::getRevisions
+     *
      */
     public function testGetRevisions()
     {
@@ -68,8 +68,8 @@ class VersioningTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\Versioning::getRevisionRecords
-     * @covers Divergence\Models\Versioning::getRevisions
+     *
+     *
      */
     public function testGetRevisionRecords()
     {

@@ -34,11 +34,11 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::__construct
-     * @covers Divergence\Models\ActiveRecord::init
-     * @covers Divergence\Models\ActiveRecord::_defineEvents
-     * @covers Divergence\Models\ActiveRecord::_defineFields
-     * @covers Divergence\Models\ActiveRecord::_initFields
+     *
+     *
+     *
+     *
+     *
      */
     public function test__construct()
     {
@@ -76,11 +76,11 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::__get
-     * @covers Divergence\Models\ActiveRecord::getValue
-     * @covers Divergence\Models\ActiveRecord::_getFieldValue
-     * @covers Divergence\Models\ActiveRecord::getData
-     * @covers Divergence\Models\ActiveRecord::fieldExists
+     *
+     *
+     *
+     *
+     *
      */
     public function test__get()
     {
@@ -138,7 +138,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::jsonSerialize
+     *
      */
     public function testJsonSerialize()
     {
@@ -147,14 +147,14 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::__set
-     * @covers Divergence\Models\ActiveRecord::setFields
-     * @covers Divergence\Models\ActiveRecord::setField
-     * @covers Divergence\Models\ActiveRecord::_setFieldValue
-     * @covers Divergence\Models\ActiveRecord::setValue
-     * @covers Divergence\Models\ActiveRecord::_cn
-     * @covers Divergence\Models\ActiveRecord::fieldExists
-     * @covers Divergence\Models\ActiveRecord::getData
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
      */
     public function test__set()
     {
@@ -185,7 +185,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getPrimaryKeyValue
+     *
      */
     public function testGetPrimaryKeyValue()
     {
@@ -201,7 +201,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getPrimaryKey
+     *
      */
     public function testGetPrimaryKey()
     {
@@ -217,7 +217,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::create
+     *
      */
     public function testCreate()
     {
@@ -240,7 +240,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::__isset
+     *
      */
     public function testIsset()
     {
@@ -253,7 +253,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::isVersioned
+     *
      */
     public function testIsVersioned()
     {
@@ -261,7 +261,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::isRelational
+     *
      */
     public function testIsRelational()
     {
@@ -269,7 +269,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::isA
+     *
      */
     public function testIsA()
     {
@@ -281,9 +281,9 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals($A->isA(ActiveRecord::class), true);
         $this->assertEquals($A->isA(Model::class), true);
     }
-    
+
     /**
-     * @covers Divergence\Models\ActiveRecord::changeClass
+     *
      */
     public function testChangeClass()
     {
@@ -302,7 +302,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::changeClass
+     *
      */
     public function testChangeClassWithData()
     {
@@ -316,7 +316,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getOriginalValue
+     *
      */
     public function testGetOriginalValue()
     {
@@ -328,7 +328,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getClassFields
+     *
      */
     public function testGetClassFields()
     {
@@ -352,7 +352,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getFieldOptions
+     *
      */
     public function testGetFieldOptions()
     {
@@ -376,14 +376,14 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::mapFieldOrder
-     * @covers Divergence\Models\ActiveRecord::_mapFieldOrder
+     *
+     *
      */
     public function testMapFieldOrder()
     {
         $x = ActiveRecord::mapFieldOrder('some string');
         $this->assertEquals(['some string'], $x);
-        
+
         $x = Tag::mapFieldOrder([
             'Tag' => 'DESC',
             'Created' => 'ASC',
@@ -399,8 +399,8 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::mapFieldOrder
-     * @covers Divergence\Models\ActiveRecord::_mapFieldOrder
+     *
+     *
      */
     public function testMapFieldOrderNonExistantColumn()
     {
@@ -409,8 +409,8 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::mapConditions
-     * @covers Divergence\Models\ActiveRecord::_mapConditions
+     *
+     *
      */
     public function testMapConditions()
     {
@@ -424,7 +424,7 @@ class ActiveRecordTest extends TestCase
             ],
             'isAlive' => true,
         ];
-        
+
         $this->assertEquals([
             "Handle" => "`Handle` IS NULL",
             "Name" => "`Name` NOT \"Frank\"",
@@ -448,7 +448,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getColumnName
+     *
      */
     public function testGetColumnName()
     {
@@ -462,9 +462,9 @@ class ActiveRecordTest extends TestCase
         $this->expectException('Exception');
         $A->getColumnName('nohere');
     }
-    
+
     /**
-     * @covers Divergence\Models\ActiveRecord::getRootClass
+     *
      */
     public function testGetRootClass()
     {
@@ -474,11 +474,11 @@ class ActiveRecordTest extends TestCase
         ]);
         $this->assertEquals(Tag::class, $A->getRootClass());
     }
-    
+
     /**
-     * @covers Divergence\Models\ActiveRecord::addValidationErrors
-     * @covers Divergence\Models\ActiveRecord::addValidationError
-     * @covers Divergence\Models\ActiveRecord::getValidationError
+     *
+     *
+     *
      */
     public function testAddValidationErrors()
     {
@@ -496,7 +496,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::isFieldDirty
+     *
      */
     public function testIsFieldDirty()
     {
@@ -508,7 +508,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::_getRecordClass
+     *
      */
     public function test_getRecordClass()
     {
@@ -520,19 +520,19 @@ class ActiveRecordTest extends TestCase
             "Tag" => "Linux",
             "Slug" => "linux",
         ];
-        
+
 
         $this->assertEquals('Divergence\Tests\MockSite\Models\Tag', Tag::getRecordClass($record));
         $this->assertEquals('Divergence\Tests\MockSite\Models\Tag', Tag::getRecordClass([]));
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::save
-     * @covers Divergence\Models\ActiveRecord::destroy
-     * @covers Divergence\Models\ActiveRecord::delete
-     * @covers Divergence\Models\ActiveRecord::validate
-     * @covers Divergence\Models\ActiveRecord::finishValidation
-     * @covers Divergence\Models\ActiveRecord::_prepareRecordValues
+     *
+     *
+     *
+     *
+     *
+     *
      *
      */
     public function testSave()
@@ -555,17 +555,17 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::save
-     * @covers Divergence\Models\ActiveRecord::destroy
-     * @covers Divergence\Models\ActiveRecord::delete
-     * @covers Divergence\Models\ActiveRecord::validate
-     * @covers Divergence\Models\ActiveRecord::create
-     * @covers Divergence\Models\ActiveRecord::setFields
-     * @covers Divergence\Models\ActiveRecord::__construct
-     * @covers Divergence\Models\ActiveRecord::_getFieldValue
-     * @covers Divergence\Models\ActiveRecord::_setFieldValue
-     * @covers Divergence\Models\ActiveRecord::_mapValuesToSet
-     * @covers Divergence\Models\ActiveRecord::_prepareRecordValues
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
      */
     public function testSaveCanary()
     {
@@ -573,23 +573,23 @@ class ActiveRecordTest extends TestCase
         $data['DateOfBirth'] = date('Y-m-d', $data['DateOfBirth']);
         $Canary = Canary::create($data);
         $Canary->setFields($data);
-        
+
         $returnData = $Canary->data;
-        
+
         // fix this later
         unset($data['Colors']);
         unset($returnData['Colors']);
 
         $this->assertArraySubset($data, $returnData);
-        
+
         $data = Canary::avis();
         $data['DateOfBirth'] = date('Y-m-d', $data['DateOfBirth']);
         $Canary = new Canary();
         $Canary->setFields($data);
-        
+
         $Canary->save();
         $returnData = $Canary->data;
-        
+
         // fix this later
         unset($data['Colors']);
         unset($returnData['Colors']);
@@ -607,7 +607,7 @@ class ActiveRecordTest extends TestCase
         // $fieldOptions['blankisnull] = true
         $x->Handle = null;
         $this->assertNull($x->Handle);
-        
+
 
         // null value for int when
         // $fieldOptions['notnull'] = false
@@ -622,15 +622,15 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::save
-     * @covers Divergence\Models\ActiveRecord::destroy
-     * @covers Divergence\Models\ActiveRecord::delete
-     * @covers Divergence\Models\ActiveRecord::validate
-     * @covers Divergence\Models\ActiveRecord::finishValidation
-     * @covers Divergence\Models\ActiveRecord::_getFieldValue
-     * @covers Divergence\Models\ActiveRecord::_setFieldValue
-     * @covers Divergence\Models\ActiveRecord::_mapValuesToSet
-     * @covers Divergence\Models\ActiveRecord::_prepareRecordValues
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
      */
     public function testSaveCanaryTimestamps()
     {
@@ -661,11 +661,11 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getByContext
-     * @covers Divergence\Models\ActiveRecord::getByContextObject
-     * @covers Divergence\Models\ActiveRecord::getRecordByWhere
-     * @covers Divergence\Models\ActiveRecord::_getRecordClass
-     * @covers Divergence\Models\ActiveRecord::fieldExists
+     *
+     *
+     *
+     *
+     *
      */
     public function testGetByContextObject()
     {
@@ -681,10 +681,10 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getByContext
-     * @covers Divergence\Models\ActiveRecord::getRecordByWhere
-     * @covers Divergence\Models\ActiveRecord::_getRecordClass
-     * @covers Divergence\Models\ActiveRecord::fieldExists
+     *
+     *
+     *
+     *
      */
     public function testGetByContextException()
     {
@@ -695,11 +695,11 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getAllByContext
-     * @covers Divergence\Models\ActiveRecord::getAllByContextObject
-     * @covers Divergence\Models\ActiveRecord::getRecordByWhere
-     * @covers Divergence\Models\ActiveRecord::_getRecordClass
-     * @covers Divergence\Models\ActiveRecord::fieldExists
+     *
+     *
+     *
+     *
+     *
      */
     public function testGetAllByContextObject()
     {
@@ -708,15 +708,15 @@ class ActiveRecordTest extends TestCase
         $Tag = Tag::getByID(7);
 
         $x = Canary::getAllByContextObject($Tag);
-    
+
         $this->assertEquals(DB::oneValue("SELECT COUNT(*) FROM canaries"), count($x));
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getAllByContext
-     * @covers Divergence\Models\ActiveRecord::getRecordByWhere
-     * @covers Divergence\Models\ActiveRecord::_getRecordClass
-     * @covers Divergence\Models\ActiveRecord::fieldExists
+     *
+     *
+     *
+     *
      */
     public function testGetAllByContextException()
     {
@@ -727,8 +727,8 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getByHandle
-     * @covers Divergence\Models\ActiveRecord::getByID
+     *
+     *
      */
     public function testGetByHandle()
     {
@@ -739,17 +739,17 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getByField
-     * @covers Divergence\Models\ActiveRecord::getByID
-     * @covers Divergence\Models\ActiveRecord::destroy
-     * @covers Divergence\Models\ActiveRecord::delete
-     * @covers Divergence\Models\ActiveRecord::getRecordByField
-     * @covers Divergence\Models\ActiveRecord::instantiateRecord
+     *
+     *
+     *
+     *
+     *
+     *
      */
     public function testGetByField()
     {
         TestUtils::requireDB($this);
-        
+
         $x = Tag::getByField('Tag', 'Linux');
         $this->assertEquals('Linux', $x->Tag);
 
@@ -763,13 +763,13 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getByWhere
-     * @covers Divergence\Models\ActiveRecord::getRecordByWhere
-     * @covers Divergence\Models\ActiveRecord::destroy
-     * @covers Divergence\Models\ActiveRecord::delete
-     * @covers Divergence\Models\ActiveRecord::instantiateRecord
-     * @covers Divergence\Models\ActiveRecord::_mapConditions
-     * @covers Divergence\Models\ActiveRecord::_mapFieldOrder
+     *
+     *
+     *
+     *
+     *
+     *
+     *
      */
     public function testGetByWhere()
     {
@@ -806,7 +806,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getByQuery
+     *
      */
     public function testGetByQuery()
     {
@@ -824,8 +824,8 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getAllByClass
-     * @covers Divergence\Models\ActiveRecord::getAllByField
+     *
+     *
      */
     public function testGetAllByClass()
     {
@@ -838,9 +838,9 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getAllByField
-     * @covers Divergence\Models\ActiveRecord::getAllByWhere
-     * @covers Divergence\Models\ActiveRecord::getAllRecordsByWhere
+     *
+     *
+     *
      */
     public function testGetAllByField()
     {
@@ -851,11 +851,11 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getAllByWhere
-     * @covers Divergence\Models\ActiveRecord::getAllRecordsByWhere
-     * @covers Divergence\Models\ActiveRecord::instantiateRecords
-     * @covers Divergence\Models\ActiveRecord::mapFieldOrder
-     * @covers Divergence\Models\ActiveRecord::_mapFieldOrder
+     *
+     *
+     *
+     *
+     *
      */
     public function testGetAllByWhere()
     {
@@ -869,7 +869,7 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(DB::oneValue('SELECT COUNT(*) FROM tags WHERE CreatorID=1'), count($x));
 
         // extraColumns as array
-        
+
         $x = Canary::getAllByWhere(['Class'=>Canary::class], [
             'extraColumns' =>[
                 'HeightInInches'=>'format(`Height`/2.54,2)',
@@ -904,7 +904,7 @@ class ActiveRecordTest extends TestCase
                 '`HeightInInches`>5.0',
             ],
         ]);
-        
+
         $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
 
         $this->assertEquals($expectedCount, count($x));
@@ -924,7 +924,7 @@ class ActiveRecordTest extends TestCase
                 ]
             ]*/
         ]);
-        
+
         $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
 
         $this->assertEquals($expectedCount, count($x));
@@ -938,9 +938,9 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getAll
-     * @covers Divergence\Models\ActiveRecord::getAllRecords
-     * @covers Divergence\Models\ActiveRecord::instantiateRecords
+     *
+     *
+     *
      */
     public function testGetAll()
     {
@@ -962,8 +962,8 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getAllByQuery
-     * @covers Divergence\Models\ActiveRecord::instantiateRecords
+     *
+     *
      */
     public function testGetAllByQuery()
     {
@@ -974,9 +974,9 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::instantiateRecords
-     * @covers Divergence\Models\ActiveRecord::getTableByQuery
-     * @covers Divergence\IO\Database\MySQL::table
+     *
+     *
+     *
      */
     public function testGetTableByQuery()
     {
@@ -989,7 +989,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getUniqueHandle
+     *
 
      */
     public function testGetUniqueHandle()
@@ -1011,13 +1011,13 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::generateRandomHandle
+     *
 
      */
     public function testGenerateRandomHandle()
     {
         TestUtils::requireDB($this);
-        
+
         $x = Canary::generateRandomHandle(1);
         //$y = Canary::generateRandomHandle(100);
         $z = Canary::generateRandomHandle();
@@ -1030,8 +1030,8 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::validate
-     * @covers Divergence\Models\ActiveRecord::finishValidation
+     *
+     *
      */
     // needs work
     /*public function testValidate()
@@ -1048,8 +1048,8 @@ class ActiveRecordTest extends TestCase
     }*/
 
     /**
-     * @covers Divergence\Models\ActiveRecord::getAllByQuery
-     * @covers Divergence\Models\ActiveRecord::handleError
+     *
+     *
      */
     public function testGetAllByQueryException()
     {
@@ -1060,22 +1060,22 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::handleError
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      */
     public function testHandleError()
     {
         TestUtils::requireDB($this);
 
-        
+
         fakeCanary::throwExceptionNextError();
         $this->expectExceptionMessage('fakeCanary handlError exception');
         fakeCanary::getAllByQuery('SELECT nothing(*)');
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::handleError
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      */
     public function testAutomagicTableCreation()
     {
@@ -1086,9 +1086,9 @@ class ActiveRecordTest extends TestCase
 
         fakeCanary::$tableName = 'fake';
         fakeCanary::$historyTable = 'history_fake';
-        
+
         $x = fakeCanary::create(fakeCanary::avis(), true);
-        
+
         $this->assertCount(2, DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
         fakeCanary::$tableName = $a;
         fakeCanary::$historyTable = $b;
@@ -1097,7 +1097,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::beforeSave
+     *
      */
     public function testBeforeSave()
     {
@@ -1119,7 +1119,7 @@ class ActiveRecordTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Models\ActiveRecord::afterSave
+     *
      */
     public function testAfterSave()
     {

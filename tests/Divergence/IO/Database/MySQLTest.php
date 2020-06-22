@@ -74,7 +74,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::getConnection
+     *
      */
     public function testGetConnection()
     {
@@ -93,7 +93,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::setConnection
+     *
      */
     public function testSetConnection()
     {
@@ -104,7 +104,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::escape
+     *
      *
      * I hope you had as much fun reading this code as I had writing it.
      *
@@ -139,8 +139,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::affectedRows
-     * @covers Divergence\IO\Database\MySQL::nonQuery
+     *
+     *
      *
      */
     public function testAffectedRows()
@@ -153,8 +153,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::foundRows
-     * @covers Divergence\IO\Database\MySQL::oneValue
+     *
+     *
      *
      */
     public function testFoundRows()
@@ -176,12 +176,12 @@ class MySQLTest extends TestCase
     }
 
     /**
-    * @covers Divergence\IO\Database\MySQL::insertID
-    * @covers Divergence\IO\Database\MySQL::oneRecord
-    * @covers Divergence\IO\Database\MySQL::nonQuery
-    * @covers Divergence\Models\ActiveRecord::create
-    * @covers Divergence\Models\ActiveRecord::save
-    * @covers Divergence\Models\ActiveRecord::destroy
+    *
+    *
+    *
+    *
+    *
+    *
     *
     */
     public function testInsertID()
@@ -197,11 +197,11 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::prepareQuery
-     * @covers Divergence\IO\Database\MySQL::preprocessQuery
-     * @covers Divergence\Models\ActiveRecord::getByID
-     * @covers Divergence\Models\ActiveRecord::getRecordByField
-     * @covers Divergence\Models\ActiveRecord::instantiateRecord
+     *
+     *
+     *
+     *
+     *
      *
      */
     public function testPrepareQuery()
@@ -230,10 +230,10 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::nonQuery
-     * @covers Divergence\Models\ActiveRecord::getByID
-     * @covers Divergence\Models\ActiveRecord::getRecordByField
-     * @covers Divergence\Models\ActiveRecord::instantiateRecord
+     *
+     *
+     *
+     *
      *
      */
     public function testNonQuery()
@@ -251,8 +251,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testQueryException()
@@ -265,8 +265,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testQueryExceptionExistingPrimaryKey()
@@ -278,8 +278,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testQueryExceptionHandled()
@@ -296,8 +296,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testPDOStatementError()
@@ -307,8 +307,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testHandleErrorDevelopment()
@@ -322,7 +322,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::table
+     *
      *
      */
     public function testTable()
@@ -335,8 +335,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::nonQuery
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testNonQueryExceptionDevException()
@@ -353,8 +353,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::nonQuery
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testNonQueryHandledException()
@@ -383,7 +383,7 @@ class MySQLTest extends TestCase
 
 
     /**
-     * @covers Divergence\IO\Database\MySQL::allRecords
+     *
      *
      */
     public function testAllRecords()
@@ -399,7 +399,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::allValues
+     *
      *
      */
     public function testAllValues()
@@ -421,7 +421,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::clearCachedRecord
+     *
      *
      */
     public function testClearCachedRecord()
@@ -445,7 +445,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::oneRecordCached
+     *
      *
      */
     public function testOneRecordCached()
@@ -468,8 +468,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::oneRecordCached
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testOneRecordCachedError()
@@ -482,7 +482,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::preprocessQuery
+     *
      *
      */
     public function testPreprocessQuery()
@@ -495,7 +495,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::startQueryLog
+     *
      *
      */
     public function testStartQueryLog()
@@ -513,7 +513,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::finishQueryLog
+     *
      *
      */
     public function testFinishQueryLog()
@@ -542,7 +542,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::config
+     *
      *
      */
     public function testConfig()
@@ -558,7 +558,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::getDefaultLabel
+     *
      *
      */
     public function testGetDefaultLabel()

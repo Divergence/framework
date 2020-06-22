@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 class UtilTest extends TestCase
 {
     /**
-     * @covers Divergence\Helpers\Util::prepareOptions
+     *
      */
     public function testPrepareOptions()
     {

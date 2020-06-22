@@ -43,7 +43,7 @@ class mockWithData extends mock
 class JSONtest extends TestCase
 {
     /**
-     * @covers Divergence\Helpers\JSON::getRequestData
+     *
      */
     public function testGetRequestData()
     {
@@ -63,7 +63,7 @@ class JSONtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSON::respond
+     *
      */
     public function testRespond()
     {
@@ -74,7 +74,7 @@ class JSONtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSON::error
+     *
      */
     public function testError()
     {
@@ -85,7 +85,7 @@ class JSONtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSON::translateObjects
+     *
      */
     public function testTranslateObjects()
     {
@@ -97,7 +97,7 @@ class JSONtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSON::translateAndRespond
+     *
      */
     public function testTranslateAndRespond()
     {

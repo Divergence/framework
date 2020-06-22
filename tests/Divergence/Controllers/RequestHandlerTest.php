@@ -27,7 +27,7 @@ use Psr\Http\Message\ServerRequestInterface;
 class RequestHandlerTest extends TestCase
 {
     /**
-     * @covers Divergence\Controllers\RequestHandler::respond
+     *
      */
     public function testRespondEmpty()
     {
@@ -37,7 +37,7 @@ class RequestHandlerTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::respond
+     *
      */
     public function testRespondJSON()
     {
@@ -50,7 +50,7 @@ class RequestHandlerTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::respond
+     *
      */
     public function testRespondJSONP()
     {
@@ -63,7 +63,7 @@ class RequestHandlerTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::respond
+     *
      */
     public function testRespondTwig()
     {
@@ -78,7 +78,7 @@ class RequestHandlerTest extends TestCase
     }
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::respond
+     *
      */
     /*public function testRespondInjectableData()
     {
@@ -91,7 +91,7 @@ class RequestHandlerTest extends TestCase
     }*/
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::respond
+     *
      */
     /*public function testRespondReturn()
     {
@@ -102,7 +102,7 @@ class RequestHandlerTest extends TestCase
     }*/
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::respond
+     *
      */
     /*public function testRespondInvalidResponseMode()
     {
@@ -112,7 +112,7 @@ class RequestHandlerTest extends TestCase
     }*/
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::setPath
+     *
      */
     /*public function testSetPath()
     {
@@ -136,7 +136,7 @@ class RequestHandlerTest extends TestCase
     }*/
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::setOptions
+     *
      */
     /*public function testSetOptions()
     {
@@ -149,7 +149,7 @@ class RequestHandlerTest extends TestCase
     }*/
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::peekPath
+     *
      */
     /*public function testPeekPath()
     {
@@ -165,7 +165,7 @@ class RequestHandlerTest extends TestCase
     }*/
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::shiftPath
+     *
      */
     /*public function testShiftPath()
     {
@@ -178,7 +178,7 @@ class RequestHandlerTest extends TestCase
     }*/
 
     /**
-     * @covers Divergence\Controllers\RequestHandler::getPath
+     *
      */
     /*public function testGetPath()
     {
@@ -187,7 +187,7 @@ class RequestHandlerTest extends TestCase
         $this->assertEquals(['blogs','edit','1'], testableRequestHandler::testGetPath());
     }*/
     /**
-     * @covers Divergence\Controllers\RequestHandler::unshiftPath
+     *
      */
     /*public function testUnshiftPath()
     {
