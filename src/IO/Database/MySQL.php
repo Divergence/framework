@@ -441,9 +441,7 @@ class MySQL
         $record = $result->fetch(PDO::FETCH_ASSOC);
 
         // save record to cache
-        if ($cacheKey) {
-            static::$_record_cache[$cacheKey] = $record;
-        }
+        static::$_record_cache[$cacheKey] = $record;
 
         // return record
         return $record;
@@ -531,10 +529,8 @@ class MySQL
                 'ErrorCode'	=>	static::getConnection()->errorCode(),
             ]);
             \Divergence\App::$App->whoops->pushHandler($Handler);
-            throw new \RuntimeException("Database error!");
-        } else {
-            throw new \RuntimeException("Database error!");
         }
+        throw new \RuntimeException(sprintf("Database error: [%s]", static::getConnection()->errorCode()).$message);
     }
 
     /**
