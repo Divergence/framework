@@ -56,6 +56,7 @@ class Session extends Model
         ],
         'LastIP' => [
             'type' => 'binary',
+            'length' => 16
         ],
     ];
 
@@ -161,14 +162,16 @@ class Session extends Model
         parent::save($deep);
 
         // set cookie
-        setcookie(
-            static::$cookieName,
-            $this->Handle,
-            static::$cookieExpires ? (time() + static::$cookieExpires) : 0,
-            static::$cookiePath,
-            static::$cookieDomain,
-            static::$cookieSecure
-        );
+        if (!headers_sent()) {
+            setcookie(
+                static::$cookieName,
+                $this->Handle,
+                static::$cookieExpires ? (time() + static::$cookieExpires) : 0,
+                static::$cookiePath,
+                static::$cookieDomain,
+                static::$cookieSecure
+            );
+        }
     }
 
     /**
@@ -185,8 +188,6 @@ class Session extends Model
 
         $this->destroy();
     }
-
-
 
     /**
      * Makes a random 32 digit string by generating 16 random bytes
