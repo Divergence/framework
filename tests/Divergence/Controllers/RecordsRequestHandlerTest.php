@@ -238,7 +238,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/edit');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertEquals('Database error!', $x['failed']['errors']);
+        $this->assertContains('Database error', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 

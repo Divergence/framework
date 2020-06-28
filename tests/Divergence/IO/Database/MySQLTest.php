@@ -302,7 +302,7 @@ class MySQLTest extends TestCase
      */
     public function testPDOStatementError()
     {
-        $this->expectExceptionMessage('Database error!');
+        $this->expectExceptionMessageRegExp('/Database error:/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
     }
 
@@ -316,7 +316,7 @@ class MySQLTest extends TestCase
         App::$App->Config['environment']='dev';
         DB::$defaultDevLabel = 'tests-mysql';
         $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$App->whoops->getHandlers()[0]);
-        $this->expectExceptionMessage('Database error!');
+        $this->expectExceptionMessageRegExp('/Database error:/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
         App::$App->Config['environment']='production';
     }
@@ -347,7 +347,7 @@ class MySQLTest extends TestCase
         DB::$defaultDevLabel = 'tests-mysql';
 
         $this->expectException(\RunTimeException::class);
-        $this->expectExceptionMessage('Database error!');
+        $this->expectExceptionMessageRegExp('/Database error:/');
         App::$App->Config['environment'] = 'production';
         DB::nonQuery('SELECT malformed query');
     }
@@ -477,7 +477,7 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         // forced error
-        $this->expectExceptionMessage('Database error!');
+        $this->expectExceptionMessageRegExp('/Database error:/');
         $record = testableDB::oneRecordCached('something', 'SELECT FROM NOTHING');
     }
 
