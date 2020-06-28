@@ -71,5 +71,15 @@ class SessionTest extends TestCase
         $this->assertEquals(inet_pton($_SERVER['REMOTE_ADDR']), $new->LastIP);
         $this->assertEquals($lastRequest, $new->LastRequest);
         $this->assertEquals(1, $new->ID);
+
+        DB::clearCachedRecord($key);
+
+        $new->destroy();
+        $lastRequest = date('U');
+        $_SERVER['REMOTE_ADDR'] = '192.168.1.2';
+        unset($_SERVER[Session::$cookieName]);
+        $_REQUEST[Session::$cookieName] = static::$sessionHandle;
+        $new = Session::getFromRequest(false);
+        $this->assertFalse($new);
     }
 }
