@@ -14,6 +14,7 @@ use ReflectionClass;
 
 use Twig\Error\LoaderError;
 
+use Divergence\Routing\Path;
 use PHPUnit\Framework\TestCase;
 use Divergence\Responders\Emitter;
 use Divergence\Responders\Response;
@@ -138,72 +139,55 @@ class RequestHandlerTest extends TestCase
     /**
      *
      */
-    /*public function testSetOptions()
-    {
-        $A = ['abc123'=>'xyz789','x'=>5];
-        testableRequestHandler::testSetOptions($A);
-        $this->assertEquals(testableRequestHandler::getOptions(), $A);
-        $B = ['ohi'=>999,'x'=>6];
-        testableRequestHandler::testSetOptions($B);
-        $this->assertEquals(testableRequestHandler::getOptions(), array_merge($A, $B));
-    }*/
-
-    /**
-     *
-     */
-    /*public function testPeekPath()
+    public function testPeekPath()
     {
         $_SERVER['REQUEST_URI'] = '/blogs/edit/1';
-        testableRequestHandler::clear();
-        $this->assertEquals('blogs', testableRequestHandler::testPeekPath());
-        testableRequestHandler::testShiftPath();
-        $this->assertEquals('edit', testableRequestHandler::testPeekPath());
-        testableRequestHandler::testShiftPath();
-        $this->assertEquals('1', testableRequestHandler::testPeekPath());
-        testableRequestHandler::testShiftPath();
-        $this->assertEquals(false, testableRequestHandler::testPeekPath());
-    }*/
+        App::$App->Path = new Path($_SERVER['REQUEST_URI']);
+        $controller = new testableRequestHandler();
+        $this->assertEquals('blogs', $controller->peekPath());
+        $controller->shiftPath();
+        $this->assertEquals('edit', $controller->peekPath());
+        $controller->shiftPath();
+        $this->assertEquals('1', $controller->peekPath());
+        $controller->shiftPath();
+        $this->assertEquals(false, $controller->peekPath());
+    }
 
-    /**
-     *
-     */
-    /*public function testShiftPath()
+
+    public function testShiftPath()
     {
         $_SERVER['REQUEST_URI'] = '/blogs/edit/1';
-        testableRequestHandler::clear();
-        $this->assertEquals('blogs', testableRequestHandler::testShiftPath());
-        $this->assertEquals('edit', testableRequestHandler::testShiftPath());
-        $this->assertEquals('1', testableRequestHandler::testShiftPath());
-        $this->assertEquals(false, testableRequestHandler::testShiftPath());
-    }*/
+        App::$App->Path = new Path($_SERVER['REQUEST_URI']);
+        $controller = new testableRequestHandler();
+        $this->assertEquals('blogs', $controller->shiftPath());
+        $this->assertEquals('edit', $controller->shiftPath());
+        $this->assertEquals('1', $controller->shiftPath());
+        $this->assertEquals(false, $controller->shiftPath());
+    }
 
-    /**
-     *
-     */
-    /*public function testGetPath()
+    public function testGetPath()
     {
         $_SERVER['REQUEST_URI'] = '/blogs/edit/1';
-        testableRequestHandler::clear();
-        $this->assertEquals(['blogs','edit','1'], testableRequestHandler::testGetPath());
-    }*/
-    /**
-     *
-     */
-    /*public function testUnshiftPath()
+        App::$App->Path = new Path($_SERVER['REQUEST_URI']);
+        $this->assertEquals(['blogs','edit','1'], App::$App->Path->getPath());
+    }
+
+    public function testUnshiftPath()
     {
         $_SERVER['REQUEST_URI'] = '/blogs/edit/1';
-        testableRequestHandler::clear();
-        $this->assertEquals('blogs', testableRequestHandler::testShiftPath());
-        $this->assertEquals('edit', testableRequestHandler::testShiftPath());
-        $this->assertEquals('1', testableRequestHandler::testShiftPath());
-        testableRequestHandler::testUnshiftPath('blogs');
-        $this->assertEquals('blogs', testableRequestHandler::testShiftPath());
+        App::$App->Path = new Path($_SERVER['REQUEST_URI']);
+        $controller = new testableRequestHandler();
+        $this->assertEquals('blogs', $controller->shiftPath());
+        $this->assertEquals('edit', $controller->shiftPath());
+        $this->assertEquals('1', $controller->shiftPath());
+        $controller->unshiftPath('blogs');
+        $this->assertEquals('blogs', $controller->shiftPath());
 
-
-        testableRequestHandler::clear();
-        testableRequestHandler::testUnshiftPath('json');
-        $this->assertEquals('json', testableRequestHandler::testShiftPath());
-    }*/
+        App::$App->Path = new Path('/');
+        $controller = new testableRequestHandler();
+        $controller->unshiftPath('json');
+        $this->assertEquals('json', $controller->shiftPath());
+    }
 }
 
 class testableRequestHandler extends RequestHandler
@@ -213,31 +197,5 @@ class testableRequestHandler extends RequestHandler
     {
         $builder = $this->responseBuilder;
         return new Response(new $builder());
-    }
-
-    public function testSetPath($path=null)
-    {
-        return $this->setPath($path);
-    }
-
-    public function testSetOptions($options)
-    {
-        return $this->setOptions($options);
-    }
-
-
-    public function testPeekPath()
-    {
-        return $this->peekPath();
-    }
-
-    public function testShiftPath()
-    {
-        return $this->shiftPath();
-    }
-
-    public function testUnshiftPath($string)
-    {
-        return $this->unshiftPath($string);
     }
 }
