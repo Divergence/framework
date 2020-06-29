@@ -13,16 +13,17 @@ use Exception;
 use Divergence\Helpers\JSON;
 use Divergence\Models\Media\Media;
 use Divergence\Models\ActiveRecord;
+use Divergence\Responders\JsonBuilder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class MediaRequestHandler extends RecordsRequestHandler
 {
     // RecordRequestHandler configuration
-    public $recordClass = Media::class;
+    public static $recordClass = Media::class;
     public $accountLevelRead = false;
-    public $accountLevelBrowse = 'Staff';
-    public $accountLevelWrite = 'Staff';
+    public $accountLevelBrowse = 'User';
+    public $accountLevelWrite = 'User';
     public $accountLevelAPI = false;
     public $browseLimit = 100;
     public $browseOrder = ['ID' => 'DESC'];
@@ -61,16 +62,12 @@ class MediaRequestHandler extends RecordsRequestHandler
     {
         // handle json response mode
         if ($this->peekPath() == 'json') {
-            $this->responseMode = $this->shiftPath();
+            $this->shiftPath();
+            $this->responseBuilder = JsonBuilder::class;
         }
 
         // handle action
         switch ($action = $this->shiftPath()) {
-
-#    		case 'media':
-#			{
-#				return $this->handleMediaRequest();
-#			}
 
             case 'upload':
             {
@@ -190,10 +187,10 @@ class MediaRequestHandler extends RecordsRequestHandler
                 return $this->throwUploadError('The file you uploaded is not of a supported media format');
             }
         } elseif ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            $put = fopen("php://input", "r"); // open input stream
+            $put = fopen('php://input', 'r'); // open input stream
 
-            $tmp = tempnam("/tmp", "emr");  // use PHP to make a temporary file
-            $fp = fopen($tmp, "w"); // open write stream to temp file
+            $tmp = tempnam('/tmp', 'dvr');  // use PHP to make a temporary file
+            $fp = fopen($tmp, 'w'); // open write stream to temp file
 
             // write
             while ($data = fread($put, 1024)) {
@@ -254,15 +251,15 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         if (!$Media) {
-            $this->throwNotFoundError('Media ID #%u was not found', $media_id);
+            $this->throwNotFoundError('Media ID #%u was not found', $mediaID);
         }
 
         if (!$this->checkReadAccess($Media)) {
             return $this->throwNotFoundError();
         }
 
-        if ($this->responseMode == 'json' || $_SERVER['HTTP_ACCEPT'] == 'application/json') {
-            JSON::translateAndRespond([
+        if (is_a($this->responseBuilder, JsonBuilder::class) || $_SERVER['HTTP_ACCEPT'] == 'application/json') {
+            return $this->respond([
                 'success' => true
                 ,'data' => $Media,
             ]);
@@ -633,6 +630,11 @@ class MediaRequestHandler extends RecordsRequestHandler
             'success' => true
             ,'deleted' => $deleted,
         ]);
+    }
+
+    public function checkUploadAccess()
+    {
+        return true;
     }
 
     public function throwUploadError($error): ResponseInterface
