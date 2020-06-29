@@ -245,13 +245,13 @@ class Media extends Model
 
             default:
 
-                if (!$fileData = @file_get_contents($sourceFile)) {
+                if (!$fileData = file_get_contents($sourceFile)) {
                     throw new Exception('Could not load media source: '.$sourceFile);
                 }
 
                 $image = imagecreatefromstring($fileData);
 
-                if ($this->MIMEType == 'image/jpeg' && ($exifData = @exif_read_data($sourceFile)) && !empty($exifData['Orientation'])) {
+                if ($this->MIMEType == 'image/jpeg' && ($exifData = exif_read_data($sourceFile)) && !empty($exifData['Orientation'])) {
                     switch ($exifData['Orientation']) {
                         case 1: // nothing
                             break;
@@ -546,14 +546,6 @@ class Media extends Model
             return $Media;
         } catch (Exception $e) {
             throw $e;
-            /*\Emergence\Logger::general_warning('Caught exception while processing media upload, aborting upload and returning null', [
-                'exceptionClass' => get_class($e)
-                ,'exceptionMessage' => $e->getMessage()
-                ,'exceptionCode' => $e->getCode()
-                ,'recordData' => $Media ? $Media->getData() : null
-                ,'mediaInfo' => $mediaInfo,
-            ]);*/
-            // fall through to cleanup below
         }
 
         // remove photo record
@@ -648,7 +640,7 @@ class Media extends Model
     {
         // get image info
         $sourcePath = static::getBlankPath($contextClass);
-        $sourceInfo = @getimagesize($sourcePath);
+        $sourceInfo = getimagesize($sourcePath);
 
         if (!$sourceInfo) {
             throw new Exception("Unable to load blank image for context '$contextClass' from '$sourcePath'");
