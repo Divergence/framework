@@ -108,7 +108,8 @@ class MediaRequestHandler extends RecordsRequestHandler
 
             case 'delete':
             {
-                return $this->handleDeleteRequest();
+                $mediaID = $this->shiftPath();
+                return $this->handleDeleteRequest($mediaID);
             }
 
             case 'thumbnail':
