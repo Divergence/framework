@@ -120,6 +120,7 @@ class MediaRequestHandlerTest extends TestCase
         copy($PNG, $tempName);
         $media = Media::createFromFile($tempName);
         $_SERVER['REQUEST_METHOD'] = 'POST';
+        
         App::$App->Path = new Path('/json/'.$media->ID);
         $controller = new MediaRequestHandler();
         $controller->uploadFileFieldName = 'test';
