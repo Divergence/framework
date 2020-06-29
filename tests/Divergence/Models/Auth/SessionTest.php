@@ -74,12 +74,14 @@ class SessionTest extends TestCase
 
         DB::clearCachedRecord($key);
 
-        $new->destroy();
+        $_COOKIE[Session::$cookieName] = static::$sessionHandle;
+        $new->terminate();
         $lastRequest = date('U');
         $_SERVER['REMOTE_ADDR'] = '192.168.1.2';
         unset($_SERVER[Session::$cookieName]);
         $_REQUEST[Session::$cookieName] = static::$sessionHandle;
         $new = Session::getFromRequest(false);
         $this->assertFalse($new);
+        $this->assertFalse(isset($_COOKIE[Session::$cookieName]));
     }
 }
