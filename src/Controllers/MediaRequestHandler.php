@@ -184,7 +184,7 @@ class MediaRequestHandler extends RecordsRequestHandler
             try {
                 $Media = Media::createFromUpload($_FILES[$options['fieldName']]['tmp_name'], $options);
             } catch (Exception $e) {
-                return $this->throwUploadError('The file you uploaded is not of a supported media format');
+                return $this->throwUploadError($e->getMessage());
             }
         } elseif ($_SERVER['REQUEST_METHOD'] == 'PUT') {
             $put = fopen('php://input', 'r'); // open input stream
@@ -252,8 +252,12 @@ class MediaRequestHandler extends RecordsRequestHandler
             return $this->throwNotFoundError();
         }
 
-        if (is_a($this->responseBuilder, JsonBuilder::class) || $_SERVER['HTTP_ACCEPT'] == 'application/json') {
-            return $this->respond([
+        if (isset($_SERVER['HTTP_ACCEPT'])) {
+            $this->responseBuilder = JsonBuilder::class;
+        }
+
+        if ($this->responseBuilder == JsonBuilder::class) {
+            return $this->respond('media', [
                 'success' => true
                 ,'data' => $Media,
             ]);
@@ -270,9 +274,11 @@ class MediaRequestHandler extends RecordsRequestHandler
 
             // send caching headers
             $expires = 60*60*24*365;
-            header("Cache-Control: public, max-age=$expires");
-            header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
-            header('Pragma: public');
+            if (!headers_sent()) {
+                header("Cache-Control: public, max-age=$expires");
+                header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
+                header('Pragma: public');
+            }
 
             // media are immutable for a given URL, so no need to actually check anything if the browser wants to revalidate its cache
             if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) || !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
@@ -289,9 +295,11 @@ class MediaRequestHandler extends RecordsRequestHandler
             $start = 0;
             $end = $size - 1;
 
-            header('Content-Type: '.$Media->getMIMEType($variant));
-            header('ETag: media-'.$Media->ID.'-'.$variant);
-            header('Accept-Ranges: bytes');
+            if (!headers_sent()) {
+                header('Content-Type: '.$Media->getMIMEType($variant));
+                header('ETag: media-'.$Media->ID.'-'.$variant);
+                header('Accept-Ranges: bytes');
+            }
 
             // interpret range requests
             if (!empty($_SERVER['HTTP_RANGE'])) {
@@ -330,8 +338,10 @@ class MediaRequestHandler extends RecordsRequestHandler
             }
 
             // finish response
-            header("Content-Range: bytes $start-$end/$size");
-            header("Content-Length: $length");
+            if (!headers_sent()) {
+                header("Content-Range: bytes $start-$end/$size");
+                header("Content-Length: $length");
+            }
 
             $buffer = 1024 * 8;
             while (!feof($fp) && ($p = ftell($fp)) <= $end) {
@@ -344,6 +354,9 @@ class MediaRequestHandler extends RecordsRequestHandler
             }
 
             fclose($fp);
+            if ($this->responseBuilder != JsonBuilder::class) {
+                exit;
+            }
         }
     }
 

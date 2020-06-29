@@ -4,6 +4,7 @@ namespace Divergence\Tests\Controllers;
 use Divergence\App;
 use Divergence\Routing\Path;
 use PHPUnit\Framework\TestCase;
+use Divergence\Models\Media\Media;
 use Divergence\Responders\Emitter;
 use GuzzleHttp\Psr7\ServerRequest;
 use Divergence\Controllers\MediaRequestHandler;
@@ -92,13 +93,15 @@ class MediaRequestHandlerTest extends TestCase
         (new Emitter($response))->emit();
     }
 
-    public function testUploadUnknownType()
+    /*public function testUploadPNG()
     {
+        $PNG = realpath(App::$App->ApplicationPath . 'tests/assets/logo.png');
+        //dump($PNG);
         $_FILES['test'] = [
             'error' => UPLOAD_ERR_OK,
-            'tmp_name' => '/tmp/uploadedFile8190',
-            'size' => 4096,
-            'name' => 'example.jpg',
+            'tmp_name' => $PNG,
+            'size' => filesize($PNG),
+            'name' => 'logo.png',
             'type' => ''
         ];
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -106,7 +109,24 @@ class MediaRequestHandlerTest extends TestCase
         $controller = new MediaRequestHandler();
         $controller->uploadFileFieldName = 'test';
         $response = $controller->handle(ServerRequest::fromGlobals());
-        $this->expectOutputString('{"success":false,"failed":{"errors":"The file you uploaded is not of a supported media format"}}');
+        //$this->expectOutputString('{"success":false,"failed":{"errors":"The file you uploaded is not of a supported media format"}}');
         (new Emitter($response))->emit();
+    }*/
+
+    public function testCreatePNGFromFile()
+    {
+        $tempName = tempnam('/tmp', 'testmedia');
+        $PNG = realpath(App::$App->ApplicationPath . 'tests/assets/logo.png');
+        copy($PNG, $tempName);
+        $media = Media::createFromFile($tempName);
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        App::$App->Path = new Path('/json/'.$media->ID);
+        $controller = new MediaRequestHandler();
+        $controller->uploadFileFieldName = 'test';
+        $response = $controller->handle(ServerRequest::fromGlobals());
+        $this->expectOutputString(json_encode(['success'=>true,'data'=>$media]));
+        (new Emitter($response))->emit();
+        unlink(realpath(App::$App->ApplicationPath.'media/original/'.$media->ID.'.png'));
     }
 }

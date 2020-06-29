@@ -37,66 +37,67 @@ class Media extends Model
 
     public static $fields = [
         'ContextClass' => [
-            'type' => 'string'
-            ,'notnull' => false,
-        ]
-        ,'ContextID' => [
-            'type' => 'integer'
-            ,'notnull' => false,
-        ]
-        ,'MIMEType' => 'string'
-        ,'Width' => [
-            'type' => 'integer'
-            ,'unsigned' => true
-            ,'notnull' => false,
-        ]
-        ,'Height' => [
-            'type' => 'integer'
-            ,'unsigned' => true
-            ,'notnull' => false,
-        ]
-        ,'Duration' => [
-            'type' => 'float'
-            ,'unsigned' => true
-            ,'notnull' => false,
-        ]
-        ,'Caption' => [
-            'type' => 'string'
-            ,'notnull' => false,
+            'type' => 'string',
+            'notnull' => false,
+        ],
+        'ContextID' => [
+            'type' => 'integer',
+            'notnull' => false,
+        ],
+        'MIMEType' => 'string',
+        'Width' => [
+            'type' => 'integer',
+            'unsigned' => true,
+            'notnull' => false,
+        ],
+        'Height' => [
+            'type' => 'integer',
+            'unsigned' => true,
+            'notnull' => false,
+        ],
+        'Duration' => [
+            'type' => 'float',
+            'unsigned' => true,
+            'notnull' => false,
+            'default' => 0
+        ],
+        'Caption' => [
+            'type' => 'string',
+            'notnull' => false,
         ],
     ];
 
     public static $relationships = [
         'Creator' => [
-            'type' => 'one-one'
-            ,'class' => 'Person'
-            ,'local' => 'CreatorID',
-        ]
-        ,'Context' => [
+            'type' => 'one-one',
+            'class' => 'Person',
+            'local' => 'CreatorID',
+        ],
+        'Context' => [
             'type' => 'context-parent',
         ],
     ];
 
     public static $searchConditions = [
         'Caption' => [
-            'qualifiers' => ['any','caption']
-            ,'points' => 2
-            ,'sql' => 'Caption LIKE "%%%s%%"',
-        ]
-        ,'CaptionLike' => [
-            'qualifiers' => ['caption-like']
-            ,'points' => 2
-            ,'sql' => 'Caption LIKE "%s"',
-        ]
-        ,'CaptionNot' => [
-            'qualifiers' => ['caption-not']
-            ,'points' => 2
-            ,'sql' => 'Caption NOT LIKE "%%%s%%"',
-        ]
-        ,'CaptionNotLike' => [
-            'qualifiers' => ['caption-not-like']
-            ,'points' => 2
-            ,'sql' => 'Caption NOT LIKE "%s"',
+            'qualifiers' => ['any','caption'],
+            'points' => 2,
+            'sql' => 'Caption LIKE "%%%s%%"',
+        ],
+        'CaptionLike' => [
+            'qualifiers' => ['caption-like'],
+            'points' => 2,
+            'sql' => 'Caption LIKE "%s"',
+        ],
+        'CaptionNot' => [
+            'qualifiers' => ['caption-not'],
+            'points' => 2,
+            'sql' => 'Caption NOT LIKE "%%%s%%"',
+        ],
+        'CaptionNotLike' => [
+            'qualifiers' => ['caption-not-like'],
+            'points' => 2,
+            'sql' => 'Caption NOT LIKE "%s"',
         ],
     ];
 
@@ -128,11 +129,11 @@ class Media extends Model
     ];
 
     public static $mimeRewrites = [
-        'image/photoshop'               => 'application/psd'
-        ,'image/x-photoshop'            => 'application/psd'
-        ,'image/psd'                    => 'application/psd'
-        ,'application/photoshop'        => 'application/psd'
-        ,'image/vnd.adobe.photoshop'    => 'application/psd',
+        'image/photoshop'              => 'application/psd',
+        'image/x-photoshop'            => 'application/psd',
+        'image/psd'                    => 'application/psd',
+        'application/photoshop'        => 'application/psd',
+        'image/vnd.adobe.photoshop'    => 'application/psd',
     ];
 
 
@@ -150,14 +151,14 @@ class Media extends Model
             case 'SummaryData':
             case 'JsonTranslation':
                 return [
-                    'ID' => $this->ID
-                    ,'Class' => $this->Class
-                    ,'ContextClass' => $this->ContextClass
-                    ,'ContextID' => $this->ContextID
-                    ,'MIMEType' => $this->MIMEType
-                    ,'Width' => $this->Width
-                    ,'Height' => $this->Height
-                    ,'Duration' => $this->Duration,
+                    'ID' => $this->ID,
+                    'Class' => $this->Class,
+                    'ContextClass' => $this->ContextClass,
+                    'ContextID' => $this->ContextID,
+                    'MIMEType' => $this->MIMEType,
+                    'Width' => $this->Width,
+                    'Height' => $this->Height,
+                    'Duration' => $this->Duration,
                 ];
 
             case 'Filename':
