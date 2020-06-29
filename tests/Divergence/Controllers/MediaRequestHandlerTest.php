@@ -115,11 +115,10 @@ class MediaRequestHandlerTest extends TestCase
 
     public function testCreatePNGFromFile()
     {
-        $tempName = tempnam('/tmp', 'testmedia');
-        $PNG = realpath(App::$App->ApplicationPath . 'tests/assets/logo.png');
+        $tempName = tempnam('/tmp', 'testmedia').'.png';
+        $PNG = realpath(App::$App->ApplicationPath . '/tests/assets/logo.png');
         copy($PNG, $tempName);
         $media = Media::createFromFile($tempName);
-
         $_SERVER['REQUEST_METHOD'] = 'POST';
         App::$App->Path = new Path('/json/'.$media->ID);
         $controller = new MediaRequestHandler();
@@ -127,6 +126,8 @@ class MediaRequestHandlerTest extends TestCase
         $response = $controller->handle(ServerRequest::fromGlobals());
         $this->expectOutputString(json_encode(['success'=>true,'data'=>$media]));
         (new Emitter($response))->emit();
-        unlink(realpath(App::$App->ApplicationPath.'media/original/'.$media->ID.'.png'));
+        unlink(realpath(App::$App->ApplicationPath.'/media/original/'.$media->ID.'.png'));
+        unlink(realpath(App::$App->ApplicationPath.'/media/original/'));
+        unlink(realpath(App::$App->ApplicationPath.'/media/'));
     }
 }

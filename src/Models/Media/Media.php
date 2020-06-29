@@ -533,6 +533,9 @@ class Media extends Model
             $mediaInfo = static::analyzeFile($file);
 
             // create media object
+            /**
+             * @var static
+             */
             $Media = $mediaInfo['className']::create($fieldValues);
 
             // init media

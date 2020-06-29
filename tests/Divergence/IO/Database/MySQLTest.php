@@ -11,9 +11,9 @@ namespace Divergence\Tests\IO\Database;
 
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
+use Divergence\Models\Media\Media;
 use Divergence\Tests\MockSite\App;
 use Divergence\IO\Database\MySQL as DB;
-
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\MockSite\Models\Forum\Post;
@@ -392,7 +392,7 @@ class MySQLTest extends TestCase
 
         $tables = DB::allRecords('SHOW TABLES');
 
-        $this->assertCount(9, $tables);
+        $this->assertCount(10, $tables);
         foreach ($tables as $table) {
             $this->assertNotEmpty($table['Tables_in_test']);
         }
@@ -416,6 +416,7 @@ class MySQLTest extends TestCase
             Post::$historyTable,
             Thread::$tableName,
             Thread::$historyTable,
+            Media::$tableName,
             Tag::$tableName,
         ], $tables);
     }
