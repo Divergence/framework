@@ -211,11 +211,6 @@ class MediaRequestHandler extends RecordsRequestHandler
             return $this->respond('upload');
         }
 
-        // assign tag
-        /*if (!empty($_REQUEST['Tag']) && ($Tag = Tag::getByHandle($_REQUEST['Tag']))) {
-            $Tag->assignItem('Media', $Media->ID);
-        }*/
-
         // assign context
         if (!empty($_REQUEST['ContextClass']) && !empty($_REQUEST['ContextID'])) {
             if (!is_subclass_of($_REQUEST['ContextClass'], ActiveRecord::class)
@@ -232,7 +227,6 @@ class MediaRequestHandler extends RecordsRequestHandler
         return $this->respond('uploadComplete', [
             'success' => (boolean)$Media
             ,'data' => $Media
-            ,'TagID' => isset($Tag) ? $Tag->ID : null,
         ]);
     }
 
