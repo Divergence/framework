@@ -14,6 +14,9 @@ use PHPUnit\Framework\TestCase;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Models\Auth\Session;
 
+/**
+ * @covers Session
+ */
 class SessionTest extends TestCase
 {
     public static ?string $sessionHandle;
