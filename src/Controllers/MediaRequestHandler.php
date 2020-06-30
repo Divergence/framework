@@ -35,6 +35,8 @@ class MediaRequestHandler extends RecordsRequestHandler
     public $uploadFileFieldName = 'mediaFile';
     public $responseMode = 'html';
 
+    public static $inputStream = 'php://input'; // this is a setting so that unit tests can provide a fake stream :)
+
     public $searchConditions = [
         'Caption' => [
             'qualifiers' => ['any','caption']
@@ -187,7 +189,7 @@ class MediaRequestHandler extends RecordsRequestHandler
                 return $this->throwUploadError($e->getMessage());
             }
         } elseif ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-            $put = fopen('php://input', 'r'); // open input stream
+            $put = fopen(static::$inputStream, 'r'); // open input stream
 
             $tmp = tempnam('/tmp', 'dvr');  // use PHP to make a temporary file
             $fp = fopen($tmp, 'w'); // open write stream to temp file
@@ -234,7 +236,7 @@ class MediaRequestHandler extends RecordsRequestHandler
     public function handleMediaRequest($mediaID): ResponseInterface
     {
         if (empty($mediaID) || !is_numeric($mediaID)) {
-            $this->throwError('Missing or invalid media_id');
+            return $this->throwNotFoundError('Media ID #%u was not found', $mediaID);
         }
 
         // get media
@@ -245,7 +247,7 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         if (!$Media) {
-            $this->throwNotFoundError('Media ID #%u was not found', $mediaID);
+            return $this->throwNotFoundError('Media ID #%u was not found', $mediaID);
         }
 
         if (!$this->checkReadAccess($Media)) {
@@ -374,7 +376,7 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         if (!$Media) {
-            $this->throwNotFoundError();
+            return $this->throwNotFoundError();
         }
 
         if (!$this->checkReadAccess($Media)) {
@@ -399,7 +401,7 @@ class MediaRequestHandler extends RecordsRequestHandler
 
 
         if (!$Media) {
-            $this->throwNotFoundError();
+            return $this->throwNotFoundError();
         }
 
         if (!$this->checkReadAccess($Media)) {
@@ -416,9 +418,11 @@ class MediaRequestHandler extends RecordsRequestHandler
             $filename .= '.'.$Media->Extension;
         }
 
-        header('Content-Type: '.$Media->MIMEType);
-        header('Content-Disposition: attachment; filename="'.str_replace('"', '', $filename).'"');
-        header('Content-Length: '.filesize($Media->FilesystemPath));
+        if (!headers_sent()) {
+            header('Content-Type: '.$Media->MIMEType);
+            header('Content-Disposition: attachment; filename="'.str_replace('"', '', $filename).'"');
+            header('Content-Length: '.filesize($Media->FilesystemPath));
+        }
 
         readfile($Media->FilesystemPath);
         exit();
@@ -430,7 +434,7 @@ class MediaRequestHandler extends RecordsRequestHandler
         $GLOBALS['Session']->requireAccountLevel('Staff');
 
         if (empty($media_id) || !is_numeric($media_id)) {
-            $this->throwNotFoundError();
+            return $this->throwNotFoundError();
         }
 
         // get media
@@ -483,7 +487,7 @@ class MediaRequestHandler extends RecordsRequestHandler
             $Media = Media::getByID($mediaID);
 
             if (!$Media) {
-                $this->throwNotFoundError();
+                return $this->throwNotFoundError();
             }
 
             if ($Media->destroy()) {
@@ -497,26 +501,21 @@ class MediaRequestHandler extends RecordsRequestHandler
         ]);
     }
 
-
-
-
-
-
     public function handleThumbnailRequest(Media $Media = null): ResponseInterface
     {
         // send caching headers
-        $expires = 60*60*24*365;
-        header("Cache-Control: public, max-age=$expires");
-        header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
-        header('Pragma: public');
-
+        if (!headers_sent()) {
+            $expires = 60*60*24*365;
+            header("Cache-Control: public, max-age=$expires");
+            header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
+            header('Pragma: public');
+        }
 
         // thumbnails are immutable for a given URL, so no need to actually check anything if the browser wants to revalidate its cache
         if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) || !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
             header('HTTP/1.0 304 Not Modified');
             exit();
         }
-
 
         // get media
         if (!$Media) {
@@ -526,7 +525,6 @@ class MediaRequestHandler extends RecordsRequestHandler
                 return $this->throwNotFoundError();
             }
         }
-
 
         // get format
         if (preg_match('/^(\d+)x(\d+)(x([0-9A-F]{6})?)?$/i', $this->peekPath(), $matches)) {
@@ -547,7 +545,6 @@ class MediaRequestHandler extends RecordsRequestHandler
             $cropped = false;
         }
 
-
         // get thumbnail media
         try {
             $thumbPath = $Media->getThumbnail($maxWidth, $maxHeight, $fillColor, $cropped);
@@ -556,23 +553,14 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         // emit
-        header("ETag: media-$Media->ID-$maxWidth-$maxHeight-$fillColor-$cropped");
-        header("Content-Type: $Media->ThumbnailMIMEType");
-        header('Content-Length: '.filesize($thumbPath));
-        readfile($thumbPath);
+        if (!headers_sent()) {
+            header("ETag: media-$Media->ID-$maxWidth-$maxHeight-$fillColor-$cropped");
+            header("Content-Type: $Media->ThumbnailMIMEType");
+            header('Content-Length: '.filesize($thumbPath));
+            readfile($thumbPath);
+        }
         exit();
     }
-
-
-
-    public function handleManageRequest(): ResponseInterface
-    {
-        // access control
-        $GLOBALS['Session']->requireAccountLevel('Staff');
-
-        return $this->respond('manage');
-    }
-
 
 
     public function handleBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = []): ResponseInterface
@@ -606,14 +594,14 @@ class MediaRequestHandler extends RecordsRequestHandler
     {
         // sanity check
         if (empty($_REQUEST['media']) || !is_array($_REQUEST['media'])) {
-            $this->throwNotFoundError();
+            return $this->throwNotFoundError();
         }
 
         // retrieve photos
         $media_array = [];
         foreach ($_REQUEST['media'] as $media_id) {
             if (!is_numeric($media_id)) {
-                $this->throwNotFoundError();
+                return $this->throwNotFoundError();
             }
 
             if ($Media = Media::getById($media_id)) {

@@ -3,6 +3,7 @@ namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
 use Divergence\Routing\Path;
+use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use Divergence\Models\Media\Media;
 use Divergence\Responders\Emitter;
@@ -129,14 +130,43 @@ class MediaRequestHandlerTest extends TestCase
         (new Emitter($response))->emit();
     }
 
+    public function testCreatePNGFromPUT()
+    {
+        $PNG = realpath(App::$App->ApplicationPath . '/tests/assets/logo.png');
+        vfsStream::setup('input', null, ['data' => file_get_contents($PNG)]);
+        MediaRequestHandler::$inputStream = 'vfs://input/data';
+        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        App::$App->Path = new Path('/json/upload');
+        $controller = new MediaRequestHandler();
+        $response = $controller->handle(ServerRequest::fromGlobals());
+        $media = Media::getByID(2);
+        $this->expectOutputString(json_encode(['success'=>true,'data'=>$media]));
+        (new Emitter($response))->emit();
+    }
+
     public function testGetAllMedia()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         App::$App->Path = new Path('/json/');
         $controller = new MediaRequestHandler();
         $response = $controller->handle(ServerRequest::fromGlobals());
-        $media = Media::GetAll();
+        $media = Media::getAll([
+            'order' => [
+                'ID' => 'DESC'
+            ]
+        ]);
         $this->expectOutputString(json_encode(['success'=>true,'data'=>$media,'conditions'=>[],'total'=>(string)count($media),'limit'=>false,'offset'=>false]));
+        (new Emitter($response))->emit();
+    }
+
+    public function testGetInfo()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        App::$App->Path = new Path('/json/info/1');
+        $controller = new MediaRequestHandler();
+        $response = $controller->handle(ServerRequest::fromGlobals());
+        $media = Media::getByID(1);
+        $this->expectOutputString(json_encode(['success'=>true,'data'=>$media]));
         (new Emitter($response))->emit();
     }
 
