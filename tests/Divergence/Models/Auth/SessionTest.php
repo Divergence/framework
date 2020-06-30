@@ -15,7 +15,7 @@ use Divergence\IO\Database\MySQL as DB;
 use Divergence\Models\Auth\Session;
 
 /**
- * @covers Session
+ * @covers \Divergence\Models\Auth\Session
  */
 class SessionTest extends TestCase
 {

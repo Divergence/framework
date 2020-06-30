@@ -127,7 +127,27 @@ class MediaRequestHandlerTest extends TestCase
         $response = $controller->handle(ServerRequest::fromGlobals());
         $this->expectOutputString(json_encode(['success'=>true,'data'=>$media]));
         (new Emitter($response))->emit();
-        unlink(realpath(App::$App->ApplicationPath.'/media/original/'.$media->ID.'.png'));
+    }
+
+    public function testGetAllMedia()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        App::$App->Path = new Path('/json/');
+        $controller = new MediaRequestHandler();
+        $response = $controller->handle(ServerRequest::fromGlobals());
+        $media = Media::GetAll();
+        $this->expectOutputString(json_encode(['success'=>true,'data'=>$media,'conditions'=>[],'total'=>(string)count($media),'limit'=>false,'offset'=>false]));
+        (new Emitter($response))->emit();
+    }
+
+    public function tearDown()
+    {
+        foreach (scandir(App::$App->ApplicationPath.'/media/original/') as $file) {
+            if (in_array($file, ['.','..'])) {
+                unlink(realpath(App::$App->ApplicationPath.'/media/original/'.$file));
+            }
+        }
+        
         unlink(realpath(App::$App->ApplicationPath.'/media/original/'));
         unlink(realpath(App::$App->ApplicationPath.'/media/'));
     }
