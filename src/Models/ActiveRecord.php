@@ -1793,7 +1793,7 @@ class ActiveRecord implements JsonSerializable
             return date('Y-m-d H:i:s', $value);
         } elseif (is_string($value)) {
             // trim any extra crap, or leave as-is if it doesn't fit the pattern
-            if (preg_match('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/')) {
+            if (preg_match('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/', $value)) {
                 return preg_replace('/^(\d{4})\D?(\d{2})\D?(\d{2})T?(\d{2})\D?(\d{2})\D?(\d{2})/', '$1-$2-$3 $4:$5:$6', $value);
             } else {
                 return date('Y-m-d H:i:s', strtotime($value));

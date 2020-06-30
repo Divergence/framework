@@ -277,15 +277,19 @@ class MediaRequestHandler extends RecordsRequestHandler
             // send caching headers
             $expires = 60*60*24*365;
             if (!headers_sent()) {
+                // @codeCoverageIgnoreStart
                 header("Cache-Control: public, max-age=$expires");
                 header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
                 header('Pragma: public');
+                // @codeCoverageIgnoreEnd
             }
 
             // media are immutable for a given URL, so no need to actually check anything if the browser wants to revalidate its cache
             if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) || !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+                // @codeCoverageIgnoreStart
                 header('HTTP/1.0 304 Not Modified');
                 exit();
+                // @codeCoverageIgnoreEnd
             }
 
             // initialize response
@@ -298,9 +302,11 @@ class MediaRequestHandler extends RecordsRequestHandler
             $end = $size - 1;
 
             if (!headers_sent()) {
+                // @codeCoverageIgnoreStart
                 header('Content-Type: '.$Media->getMIMEType($variant));
                 header('ETag: media-'.$Media->ID.'-'.$variant);
                 header('Accept-Ranges: bytes');
+                // @codeCoverageIgnoreEnd
             }
 
             // interpret range requests
@@ -311,9 +317,11 @@ class MediaRequestHandler extends RecordsRequestHandler
                 list(, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
 
                 if (strpos($range, ',') !== false) {
+                    // @codeCoverageIgnoreStart
                     header('HTTP/1.1 416 Requested Range Not Satisfiable');
                     header("Content-Range: bytes $start-$end/$size");
                     exit();
+                    // @codeCoverageIgnoreEnd
                 }
 
                 if ($range == '-') {
@@ -326,9 +334,11 @@ class MediaRequestHandler extends RecordsRequestHandler
 
                 $chunkEnd = ($chunkEnd > $end) ? $end : $chunkEnd;
                 if ($chunkStart > $chunkEnd || $chunkStart > $size - 1 || $chunkEnd >= $size) {
+                    // @codeCoverageIgnoreStart
                     header('HTTP/1.1 416 Requested Range Not Satisfiable');
                     header("Content-Range: bytes $start-$end/$size");
                     exit();
+                    // @codeCoverageIgnoreEnd
                 }
 
                 $start = $chunkStart;
@@ -336,13 +346,17 @@ class MediaRequestHandler extends RecordsRequestHandler
                 $length = $end - $start + 1;
 
                 fseek($fp, $start);
+                // @codeCoverageIgnoreStart
                 header('HTTP/1.1 206 Partial Content');
+                // @codeCoverageIgnoreEnd
             }
 
             // finish response
             if (!headers_sent()) {
+                // @codeCoverageIgnoreStart
                 header("Content-Range: bytes $start-$end/$size");
                 header("Content-Length: $length");
+                // @codeCoverageIgnoreEnd
             }
 
             $buffer = 1024 * 8;
@@ -419,9 +433,11 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         if (!headers_sent()) {
+            // @codeCoverageIgnoreStart
             header('Content-Type: '.$Media->MIMEType);
             header('Content-Disposition: attachment; filename="'.str_replace('"', '', $filename).'"');
             header('Content-Length: '.filesize($Media->FilesystemPath));
+            // @codeCoverageIgnoreEnd
         }
 
         readfile($Media->FilesystemPath);
@@ -505,10 +521,12 @@ class MediaRequestHandler extends RecordsRequestHandler
     {
         // send caching headers
         if (!headers_sent()) {
+            // @codeCoverageIgnoreStart
             $expires = 60*60*24*365;
             header("Cache-Control: public, max-age=$expires");
             header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
             header('Pragma: public');
+            // @codeCoverageIgnoreEnd
         }
 
         // thumbnails are immutable for a given URL, so no need to actually check anything if the browser wants to revalidate its cache
@@ -554,10 +572,12 @@ class MediaRequestHandler extends RecordsRequestHandler
 
         // emit
         if (!headers_sent()) {
+            // @codeCoverageIgnoreStart
             header("ETag: media-$Media->ID-$maxWidth-$maxHeight-$fillColor-$cropped");
             header("Content-Type: $Media->ThumbnailMIMEType");
             header('Content-Length: '.filesize($thumbPath));
             readfile($thumbPath);
+            // @codeCoverageIgnoreEnd
         }
         exit();
     }

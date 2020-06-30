@@ -77,6 +77,21 @@ class SessionTest extends TestCase
 
         DB::clearCachedRecord($key);
 
+
+        static::$sessionHandle = $session->Handle;
+        // set to expire before expiration
+        $session->LastRequest = time()-(Session::$timeout*2);
+        $session->save();
+        DB::clearCachedRecord($key);
+        $lastRequest = date('U');
+        $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
+        $_COOKIE[Session::$cookieName] = static::$sessionHandle;
+        $new = Session::getFromRequest();
+        $this->assertEquals($createdTime, $new->Created);
+        $this->assertEquals(inet_pton($_SERVER['REMOTE_ADDR']), $new->LastIP);
+        $this->assertEquals($lastRequest, $new->LastRequest);
+        $this->assertEquals(2, $new->ID);
+
         $_COOKIE[Session::$cookieName] = static::$sessionHandle;
         $new->terminate();
         $lastRequest = date('U');

@@ -16,7 +16,9 @@ class SiteRequestHandler extends RequestHandler
 {
     public function handle(ServerRequestInterface $request):ResponseInterface
     {
+        // @codeCoverageIgnoreStart
         phpinfo();
         exit;
+        // @codeCoverageIgnoreEnd
     }
 }

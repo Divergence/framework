@@ -104,7 +104,7 @@ class Session extends Model
     public static function updateSession(Session $Session, $sessionData)
     {
         // check timestamp
-        if ($Session->LastRequest < (time() - static::$timeout)) {
+        if (time() > $Session->LastRequest + static::$timeout) {
             $Session->terminate();
 
             return false;
@@ -112,9 +112,11 @@ class Session extends Model
             // update session
             $Session->setFields($sessionData);
             if (function_exists('fastcgi_finish_request')) {
+                // @codeCoverageIgnoreStart
                 register_shutdown_function(function (&$Session) {
                     $Session->save();
                 }, $Session);
+            // @codeCoverageIgnoreEnd
             } else {
                 $Session->save();
             }
@@ -132,14 +134,6 @@ class Session extends Model
     public static function getByHandle($handle)
     {
         return static::getByField('Handle', $handle, true);
-    }
-
-    public function getData()
-    {
-        // embed related object(s)
-        return array_merge(parent::getData(), [
-            'Person' => $this->Person ? $this->Person->getData() : null,
-        ]);
     }
 
     /**
@@ -163,6 +157,7 @@ class Session extends Model
 
         // set cookie
         if (!headers_sent()) {
+            // @codeCoverageIgnoreStart
             setcookie(
                 static::$cookieName,
                 $this->Handle,
@@ -171,6 +166,7 @@ class Session extends Model
                 static::$cookieDomain,
                 static::$cookieSecure
             );
+            // @codeCoverageIgnoreEnd
         }
     }
 
@@ -183,7 +179,11 @@ class Session extends Model
      */
     public function terminate()
     {
-        setcookie(static::$cookieName, '', time() - 3600);
+        if (!headers_sent()) {
+            // @codeCoverageIgnoreStart
+            setcookie(static::$cookieName, '', time() - 3600);
+            // @codeCoverageIgnoreEnd
+        }
         unset($_COOKIE[static::$cookieName]);
 
         $this->destroy();
