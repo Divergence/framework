@@ -63,7 +63,7 @@ class App
         if ($this->Config['environment'] == 'dev') {
             $this->whoops = new \Whoops\Run;
 
-            $Handler = new \Whoops\Handler\PrettyPageHandler;
+            $Handler = new \Whoops\Handler\PrettyPageHandler();
             $Handler->setPageTitle("Divergence Error");
 
             $this->whoops->pushHandler($Handler);

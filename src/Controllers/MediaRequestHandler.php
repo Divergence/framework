@@ -255,7 +255,9 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         if (isset($_SERVER['HTTP_ACCEPT'])) {
-            $this->responseBuilder = JsonBuilder::class;
+	    if ($_SERVER['HTTP_ACCEPT'] == 'application/json') {
+	        $this->responseBuilder = JsonBuilder::class;
+	    }
         }
 
         if ($this->responseBuilder == JsonBuilder::class) {
