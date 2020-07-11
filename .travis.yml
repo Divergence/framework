@@ -41,9 +41,9 @@ after_success:
 # Submit coverage report to codecov.io
  - bash <(curl -s https://codecov.io/bash)
 
- # Tell Travis CI to monitor only 'master' branch
+ # Tell Travis CI to monitor only 'release' branch
 #branches:
-#  only: master
+#  only: release
 
 # Specify where the cache is so you can delete it via the travis-ci web interface
 cache:
