@@ -17,7 +17,7 @@ Unit testing the code base and providing code coverage is a primary goal of this
  * Models
     * Real PHP classes.
     * Extend an `ActiveRecord` class.
-    * Use `traits` for versioning and ORM.
+    * Use `traits` to unlock Relationships and Versioning as needed.
     * Automatically creates table on first time use.
     * Built in support for MySQL.
 
@@ -29,14 +29,22 @@ Unit testing the code base and providing code coverage is a primary goal of this
     * Built with basic class inheritance in mind.
 
 * Controllers
-    * Integrated CRUD controllers load templates or JSON depending on the response mode. 
+    * Psr7 compatible controllers.
+    * Pre-made REST API controllers allow you to build APIs rapidly.
+    * 100% Unit test coverage for filters, sorters, and conditions go ive you peace of mind.
     * Build HTTP APIs in minutes by extending `RecordsRequestHandler` and setting the one config variable: the name of your model class.
     * Use a pre-made security trait with RecordsRequestHandler or extend it and write in your own permissions.
-    * Reuse permission traits from one model to another. 
+    * Standard permissions interface allows reuse of permission traits from one model to another.
  
  * Templates
-    * Out of the box support for Smarty & Dwoo Templates using the Dwoo engine
-    * Respond with a Template instantly `RequestHandler::respond('/path/to/tpl')`
+    * Out of the box support for Twig
+
+ * Media
+    * Out of the box support for a media storage.
+    * Automated thumbnail generation for JPEG, GIF, PNG, and PDF.
+    * Built in support for MP4 and WEBM chunkable emitters allowing you to easily host videos with the ability to seek.
+    * Manage media remotely with a built in JSON API using the standard permissions interface for all controllers.
+    * Supports POST and PUT request types for media uploads.
 
 ### Contributing To Divergence
 
