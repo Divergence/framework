@@ -198,7 +198,7 @@ class SQL
             case 'blob':
                 return 'blob';
             case 'binary':
-                return sprintf('binary(%s)', isset($field['length'])?$field['length']:1);
+                return sprintf('binary(%s)', isset($field['length']) ? $field['length'] : 1);
 
             case 'timestamp':
                 return 'timestamp';

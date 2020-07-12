@@ -70,7 +70,7 @@ class AppTest extends TestCase
         $this->App = new App($this->ApplicationPath);
         $this->App->Config = [
             'environment' => 'production',
-            'debug' => false
+            'debug' => false,
         ];
         //$this->App->init($this->ApplicationPath);
     }

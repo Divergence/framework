@@ -11,8 +11,8 @@ namespace Divergence\Tests\Models\Auth;
 
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
-use Divergence\IO\Database\MySQL as DB;
 use Divergence\Models\Auth\Session;
+use Divergence\IO\Database\MySQL as DB;
 
 /**
  * @covers \Divergence\Models\Auth\Session

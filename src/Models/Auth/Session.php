@@ -56,7 +56,7 @@ class Session extends Model
         ],
         'LastIP' => [
             'type' => 'binary',
-            'length' => 16
+            'length' => 16,
         ],
     ];
 

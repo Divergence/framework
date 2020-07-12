@@ -80,6 +80,7 @@ class TestListener implements PHPUnit_TestListener
     {
         //printf("TestSuite '%s' ended.\n", $suite->getName());
         if ($suite->getName() == 'all') {
+            exec('rm -rf %s', App::$App->ApplicationPath.'/media');
             fwrite(STDERR, "\n".'Cleaning up Divergence Mock Environment for PHPUnit'."\n");
         }
     }

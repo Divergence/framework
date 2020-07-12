@@ -18,12 +18,12 @@ class PathTest extends TestCase
     {
         $path = new Path('/two/three/four');
 
-        $this->assertCount(3,$path->pathStack);
-        $this->assertEquals(['two','three','four'],$path->requestPath);
+        $this->assertCount(3, $path->pathStack);
+        $this->assertEquals(['two','three','four'], $path->requestPath);
 
-        $this->assertEquals(4,$path->unshiftPath('one'));
-        $this->assertEquals(['one','two','three','four'],$path->getPath());
-        $this->assertEquals('one',$path->shiftPath());
-        $this->assertEquals('two',$path->peekPath());
+        $this->assertEquals(4, $path->unshiftPath('one'));
+        $this->assertEquals(['one','two','three','four'], $path->getPath());
+        $this->assertEquals('one', $path->shiftPath());
+        $this->assertEquals('two', $path->peekPath());
     }
 }

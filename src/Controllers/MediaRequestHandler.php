@@ -228,7 +228,7 @@ class MediaRequestHandler extends RecordsRequestHandler
 
         return $this->respond('uploadComplete', [
             'success' => (boolean)$Media
-            ,'data' => $Media
+            ,'data' => $Media,
         ]);
     }
 
@@ -255,9 +255,9 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         if (isset($_SERVER['HTTP_ACCEPT'])) {
-	    if ($_SERVER['HTTP_ACCEPT'] == 'application/json') {
-	        $this->responseBuilder = JsonBuilder::class;
-	    }
+            if ($_SERVER['HTTP_ACCEPT'] == 'application/json') {
+                $this->responseBuilder = JsonBuilder::class;
+            }
         }
 
         if ($this->responseBuilder == JsonBuilder::class) {

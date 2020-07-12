@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
@@ -12,6 +20,17 @@ use Divergence\Controllers\MediaRequestHandler;
 
 class MediaRequestHandlerTest extends TestCase
 {
+    public function tearDown()
+    {
+        foreach (scandir(App::$App->ApplicationPath.'/media/original/') as $file) {
+            if (in_array($file, ['.','..'])) {
+                unlink(realpath(App::$App->ApplicationPath.'/media/original/'.$file));
+            }
+        }
+        
+        unlink(realpath(App::$App->ApplicationPath.'/media/original/'));
+        unlink(realpath(App::$App->ApplicationPath.'/media/'));
+    }
     public function testEmptyUpload()
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
@@ -29,7 +48,7 @@ class MediaRequestHandlerTest extends TestCase
             'tmp_name' => '/tmp/uploadedFile8190',
             'size' => 4096,
             'name' => 'example.jpg',
-            'type' => ''
+            'type' => '',
         ];
         $_SERVER['REQUEST_METHOD'] = 'POST';
         App::$App->Path = new Path('/json/upload');
@@ -47,7 +66,7 @@ class MediaRequestHandlerTest extends TestCase
             'tmp_name' => '/tmp/uploadedFile8190',
             'size' => 4096,
             'name' => 'example.jpg',
-            'type' => ''
+            'type' => '',
         ];
         $_SERVER['REQUEST_METHOD'] = 'POST';
         App::$App->Path = new Path('/json/upload');
@@ -65,7 +84,7 @@ class MediaRequestHandlerTest extends TestCase
             'tmp_name' => '/tmp/uploadedFile8190',
             'size' => 4096,
             'name' => 'example.jpg',
-            'type' => ''
+            'type' => '',
         ];
         $_SERVER['REQUEST_METHOD'] = 'POST';
         App::$App->Path = new Path('/json/upload');
@@ -83,7 +102,7 @@ class MediaRequestHandlerTest extends TestCase
             'tmp_name' => '/tmp/uploadedFile8190',
             'size' => 4096,
             'name' => 'example.jpg',
-            'type' => ''
+            'type' => '',
         ];
         $_SERVER['REQUEST_METHOD'] = 'POST';
         App::$App->Path = new Path('/json/upload');
@@ -152,8 +171,8 @@ class MediaRequestHandlerTest extends TestCase
         $response = $controller->handle(ServerRequest::fromGlobals());
         $media = Media::getAll([
             'order' => [
-                'ID' => 'DESC'
-            ]
+                'ID' => 'DESC',
+            ],
         ]);
         $this->expectOutputString(json_encode(['success'=>true,'data'=>$media,'conditions'=>[],'total'=>(string)count($media),'limit'=>false,'offset'=>false]));
         (new Emitter($response))->emit();
@@ -168,17 +187,5 @@ class MediaRequestHandlerTest extends TestCase
         $media = Media::getByID(1);
         $this->expectOutputString(json_encode(['success'=>true,'data'=>$media]));
         (new Emitter($response))->emit();
-    }
-
-    public function tearDown()
-    {
-        foreach (scandir(App::$App->ApplicationPath.'/media/original/') as $file) {
-            if (in_array($file, ['.','..'])) {
-                unlink(realpath(App::$App->ApplicationPath.'/media/original/'.$file));
-            }
-        }
-        
-        unlink(realpath(App::$App->ApplicationPath.'/media/original/'));
-        unlink(realpath(App::$App->ApplicationPath.'/media/'));
     }
 }
