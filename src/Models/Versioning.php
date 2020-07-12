@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * This file is part of the Divergence package.
  *
  * (c) Henry Paradiz <henry.paradiz@gmail.com>

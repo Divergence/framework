@@ -1,12 +1,14 @@
 language: php
 php:
-  - '7.1'
-  - '7.2'
+  - '7.4'
+
+services:
+  - mysql
 
 addons:
   apt:
-    sources:
-      - mysql-5.7-trusty
+    #sources:
+    #  - mysql-5.7-trusty
     packages:
       - mysql-server
       - mysql-client
@@ -19,7 +21,7 @@ before_install:
 
 install:
     # Install composer packages
-  - travis_retry composer update --no-interaction --no-suggest
+  #- travis_retry composer update --no-interaction --no-suggest
   - travis_retry composer install --no-interaction --no-suggest
   # Install coveralls.phar
   - wget -c -nc --retry-connrefused --tries=0 https://github.com/php-coveralls/php-coveralls/releases/download/v2.0.0/php-coveralls.phar -O coveralls.phar
@@ -39,9 +41,9 @@ after_success:
 # Submit coverage report to codecov.io
  - bash <(curl -s https://codecov.io/bash)
 
- # Tell Travis CI to monitor only 'master' branch
-branches:
-  only: master
+ # Tell Travis CI to monitor only 'release' branch
+#branches:
+#  only: release
 
 # Specify where the cache is so you can delete it via the travis-ci web interface
 cache:

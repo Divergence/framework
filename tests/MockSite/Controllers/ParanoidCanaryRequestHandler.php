@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Tests\MockSite\Controllers;
 
 use Divergence\Models\ActiveRecord;
@@ -8,22 +16,22 @@ use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 
 class ParanoidCanaryRequestHandler extends SecureCanaryRequestHandler
 {
-    public static function checkBrowseAccess($arguments)
+    public function checkBrowseAccess($arguments)
     {
         return false;
     }
 
-    public static function checkReadAccess(ActiveRecord $Record)
+    public function checkReadAccess(ActiveRecord $Record)
     {
         return false;
     }
-    
-    public static function checkWriteAccess(ActiveRecord $Record)
+
+    public function checkWriteAccess(ActiveRecord $Record)
     {
         return false;
     }
-    
-    public static function checkAPIAccess()
+
+    public function checkAPIAccess()
     {
         return false;
     }

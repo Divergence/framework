@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Tests\Helpers;
 
 use Divergence\Helpers\JSON;
@@ -35,7 +43,7 @@ class mockWithData extends mock
 class JSONtest extends TestCase
 {
     /**
-     * @covers Divergence\Helpers\JSON::getRequestData
+     *
      */
     public function testGetRequestData()
     {
@@ -55,7 +63,7 @@ class JSONtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSON::respond
+     *
      */
     public function testRespond()
     {
@@ -66,7 +74,7 @@ class JSONtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSON::error
+     *
      */
     public function testError()
     {
@@ -77,7 +85,7 @@ class JSONtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSON::translateObjects
+     *
      */
     public function testTranslateObjects()
     {
@@ -89,7 +97,7 @@ class JSONtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSON::translateAndRespond
+     *
      */
     public function testTranslateAndRespond()
     {

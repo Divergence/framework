@@ -7,7 +7,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 namespace Divergence\Models;
 
 /**
@@ -19,6 +18,8 @@ namespace Divergence\Models;
  */
 class Model extends ActiveRecord
 {
+    use Getters;
+
     /**
      * {@inheritDoc}
      */
@@ -27,6 +28,7 @@ class Model extends ActiveRecord
             'type' => 'integer',
             'autoincrement' => true,
             'unsigned' => true,
+            'primary' => true,
         ],
         'Class' => [
             'type' => 'enum',

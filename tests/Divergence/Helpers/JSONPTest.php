@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Tests\Helpers;
 
 use Divergence\Helpers\JSONP;
@@ -10,7 +18,7 @@ class JSONPtest extends TestCase
 
 
     /**
-     * @covers Divergence\Helpers\JSONP::respond
+     *
      */
     public function testRespond()
     {
@@ -28,7 +36,7 @@ class JSONPtest extends TestCase
     }
 
     /**
-     * @covers Divergence\Helpers\JSONP::translateAndRespond
+     *
      */
     public function testTranslateAndRespond()
     {

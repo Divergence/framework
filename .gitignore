@@ -6,3 +6,4 @@ build/*
 phpDocumentor.phar
 docs
 .vscode
+composer.lock

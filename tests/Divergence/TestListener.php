@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Tests;
 
 use PHPUnit\Framework\Test;
@@ -60,9 +68,10 @@ class TestListener implements PHPUnit_TestListener
     {
         //printf("TestSuite '%s' started.\n", $suite->getName());
         if ($suite->getName() == 'all') {
-            App::init(__DIR__.'/../../');
+            $_SERVER['REQUEST_URI'] = '/';
+            $suite->app = new App(__DIR__.'/../../');
             MySQL::setConnection('tests-mysql');
-            App::setUp();
+            $suite->app->setUp();
             fwrite(STDERR, 'Starting Divergence Mock Environment for PHPUnit'."\n");
         }
     }
@@ -71,6 +80,7 @@ class TestListener implements PHPUnit_TestListener
     {
         //printf("TestSuite '%s' ended.\n", $suite->getName());
         if ($suite->getName() == 'all') {
+            exec(sprintf('rm -rf %s', App::$App->ApplicationPath.'/media'));
             fwrite(STDERR, "\n".'Cleaning up Divergence Mock Environment for PHPUnit'."\n");
         }
     }

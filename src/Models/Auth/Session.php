@@ -2,11 +2,10 @@
 /**
  * This file is part of the Divergence package.
  *
- * @author Henry Paradiz <henry.paradiz@gmail.com>
- * @copyright 2018 Henry Paradiz <henry.paradiz@gmail.com>
- * @license MIT For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
  *
- * @since 1.1
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 namespace Divergence\Models\Auth;
 
@@ -57,6 +56,7 @@ class Session extends Model
         ],
         'LastIP' => [
             'type' => 'binary',
+            'length' => 16,
         ],
     ];
 
@@ -82,7 +82,6 @@ class Session extends Model
                 $Session = static::updateSession($Session, $sessionData);
             }
         }
-
         // try to load from any request method
         if (empty($Session) && !empty($_REQUEST[static::$cookieName])) {
             if ($Session = static::getByHandle($_REQUEST[static::$cookieName])) {
@@ -90,7 +89,6 @@ class Session extends Model
                 $Session = static::updateSession($Session, $sessionData);
             }
         }
-
         if (!empty($Session)) {
             // session found
             return $Session;
@@ -105,9 +103,8 @@ class Session extends Model
 
     public static function updateSession(Session $Session, $sessionData)
     {
-
         // check timestamp
-        if ($Session->LastRequest < (time() - static::$timeout)) {
+        if (time() > $Session->LastRequest + static::$timeout) {
             $Session->terminate();
 
             return false;
@@ -115,9 +112,11 @@ class Session extends Model
             // update session
             $Session->setFields($sessionData);
             if (function_exists('fastcgi_finish_request')) {
-                register_shutdown_function(function (&$Session) {
+                // @codeCoverageIgnoreStart
+                register_shutdown_function(function ($Session) {
                     $Session->save();
                 }, $Session);
+            // @codeCoverageIgnoreEnd
             } else {
                 $Session->save();
             }
@@ -135,14 +134,6 @@ class Session extends Model
     public static function getByHandle($handle)
     {
         return static::getByField('Handle', $handle, true);
-    }
-
-    public function getData()
-    {
-        // embed related object(s)
-        return array_merge(parent::getData(), [
-            'Person' => $this->Person ? $this->Person->getData() : null,
-        ]);
     }
 
     /**
@@ -165,14 +156,18 @@ class Session extends Model
         parent::save($deep);
 
         // set cookie
-        setcookie(
-            static::$cookieName,
-            $this->Handle,
-            static::$cookieExpires ? (time() + static::$cookieExpires) : 0,
-            static::$cookiePath,
-            static::$cookieDomain,
-            static::$cookieSecure
-        );
+        if (!headers_sent()) {
+            // @codeCoverageIgnoreStart
+            setcookie(
+                static::$cookieName,
+                $this->Handle,
+                static::$cookieExpires ? (time() + static::$cookieExpires) : 0,
+                static::$cookiePath,
+                static::$cookieDomain,
+                static::$cookieSecure
+            );
+            // @codeCoverageIgnoreEnd
+        }
     }
 
     /**
@@ -184,13 +179,15 @@ class Session extends Model
      */
     public function terminate()
     {
-        setcookie(static::$cookieName, '', time() - 3600);
+        if (!headers_sent()) {
+            // @codeCoverageIgnoreStart
+            setcookie(static::$cookieName, '', time() - 3600);
+            // @codeCoverageIgnoreEnd
+        }
         unset($_COOKIE[static::$cookieName]);
 
         $this->destroy();
     }
-
-
 
     /**
      * Makes a random 32 digit string by generating 16 random bytes

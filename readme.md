@@ -1,10 +1,10 @@
-[![Build Status](https://travis-ci.org/Divergence/framework.svg?branch=master)](https://travis-ci.org/Divergence/framework) [![Coverage Status](https://coveralls.io/repos/github/Divergence/framework/badge.svg?branch=master)](https://coveralls.io/github/Divergence/framework?branch=master) [![codecov](https://codecov.io/gh/Divergence/framework/branch/master/graph/badge.svg)](https://codecov.io/gh/Divergence/framework) [![Latest Stable Version](https://poser.pugx.org/divergence/divergence/downloads)](https://packagist.org/packages/divergence/divergence) [![Latest Unstable Version](https://poser.pugx.org/divergence/divergence/v/stable)](https://packagist.org/packages/divergence/divergence) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Divergence/framework/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Divergence/framework/?branch=master) [![License](https://poser.pugx.org/divergence/divergence/license)](https://packagist.org/packages/divergence/divergence)
+[![Build Status](https://travis-ci.org/Divergence/framework.svg?branch=release)](https://travis-ci.org/Divergence/framework) [![Coverage Status](https://coveralls.io/repos/github/Divergence/framework/badge.svg?branch=release)](https://coveralls.io/github/Divergence/framework?branch=release) [![codecov](https://codecov.io/gh/Divergence/framework/branch/release/graph/badge.svg)](https://codecov.io/gh/Divergence/framework) [![Latest Stable Version](https://poser.pugx.org/divergence/divergence/downloads)](https://packagist.org/packages/divergence/divergence) [![Latest Unstable Version](https://poser.pugx.org/divergence/divergence/v/stable)](https://packagist.org/packages/divergence/divergence) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Divergence/framework/badges/quality-score.png?b=release)](https://scrutinizer-ci.com/g/Divergence/framework/?branch=release) [![License](https://poser.pugx.org/divergence/divergence/license)](https://packagist.org/packages/divergence/divergence)
 
 ---
 Divergence is a PHP framework designed for rapid development and modern practices without becoming an over abstracted mess.
 
 ## [Documentation](https://github.com/Divergence/docs#divergence-framework-documentation)
-## [Getting Started](https://github.com/Divergence/docs/blob/master/gettingstarted.md#getting-started)
+## [Getting Started](https://github.com/Divergence/docs/blob/release/gettingstarted.md#getting-started)
 
 [![asciicast](https://asciinema.org/a/FhE9hATLKDhH7oQfFbeNG5hzs.png)](https://asciinema.org/a/FhE9hATLKDhH7oQfFbeNG5hzs)
 
@@ -17,7 +17,7 @@ Unit testing the code base and providing code coverage is a primary goal of this
  * Models
     * Real PHP classes.
     * Extend an `ActiveRecord` class.
-    * Use `traits` for versioning and ORM.
+    * Use `traits` to unlock Relationships and Versioning as needed.
     * Automatically creates table on first time use.
     * Built in support for MySQL.
 
@@ -29,14 +29,22 @@ Unit testing the code base and providing code coverage is a primary goal of this
     * Built with basic class inheritance in mind.
 
 * Controllers
-    * Integrated CRUD controllers load templates or JSON depending on the response mode. 
+    * Psr7 compatible controllers.
+    * Pre-made REST API controllers allow you to build APIs rapidly.
+    * 100% Unit test coverage for filters, sorters, and conditions go ive you peace of mind.
     * Build HTTP APIs in minutes by extending `RecordsRequestHandler` and setting the one config variable: the name of your model class.
     * Use a pre-made security trait with RecordsRequestHandler or extend it and write in your own permissions.
-    * Reuse permission traits from one model to another. 
+    * Standard permissions interface allows reuse of permission traits from one model to another.
  
  * Templates
-    * Out of the box support for Smarty & Dwoo Templates using the Dwoo engine
-    * Respond with a Template instantly `RequestHandler::respond('/path/to/tpl')`
+    * Out of the box support for Twig
+
+ * Media
+    * Out of the box support for a media storage.
+    * Automated thumbnail generation for JPEG, GIF, PNG, and PDF.
+    * Built in support for MP4 and WEBM chunkable emitters allowing you to easily host videos with the ability to seek.
+    * Manage media remotely with a built in JSON API using the standard permissions interface for all controllers.
+    * Supports POST and PUT request types for media uploads.
 
 ### Contributing To Divergence
 

@@ -1,11 +1,19 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Tests\IO\Database;
 
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
+use Divergence\Models\Media\Media;
 use Divergence\Tests\MockSite\App;
 use Divergence\IO\Database\MySQL as DB;
-
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\MockSite\Models\Forum\Post;
@@ -61,12 +69,12 @@ class MySQLTest extends TestCase
 
     public function setUp()
     {
-        $this->ApplicationPath = realpath(__DIR__.'/../../../../');
-        App::init($this->ApplicationPath);
+        //$this->ApplicationPath = realpath(__DIR__.'/../../../../');
+        //App::init($this->ApplicationPath);
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::getConnection
+     *
      */
     public function testGetConnection()
     {
@@ -74,23 +82,29 @@ class MySQLTest extends TestCase
         $this->assertInstanceOf(\PDO::class, DB::getConnection());
         $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql'));
         $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql-socket'));
-        $this->expectExceptionMessage('PDO failed to connect on config "mysql" mysql:host=localhost;port=3306;dbname=divergence');
+        /**
+         * For older MySQL message is: "PDO failed to connect on config "mysql" mysql:host=localhost;port=3306;dbname=divergence"
+         * For newer MySQL message is: "SQLSTATE[HY000] [1044] Access denied for user 'divergence'@'localhost' to database 'divergence'"
+         */
+        #$this->expectExceptionCode(1044); // MySQL access denied
+        $this->expectException(\Exception::class);
+        //$this->expectExceptionMessage('PDO failed to connect on config "mysql" mysql:host=localhost;port=3306;dbname=divergence');
         $this->assertInstanceOf(\PDO::class, DB::getConnection('mysql'));
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::setConnection
+     *
      */
     public function testSetConnection()
     {
         TestUtils::requireDB($this);
         DB::setConnection('tests-mysql-socket');
-        $this->assertEquals('tests-mysql-socket',DB::$currentConnection);
+        $this->assertEquals('tests-mysql-socket', DB::$currentConnection);
         DB::setConnection('tests-mysql');
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::escape
+     *
      *
      * I hope you had as much fun reading this code as I had writing it.
      *
@@ -125,8 +139,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::affectedRows
-     * @covers Divergence\IO\Database\MySQL::nonQuery
+     *
+     *
      *
      */
     public function testAffectedRows()
@@ -139,8 +153,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::foundRows
-     * @covers Divergence\IO\Database\MySQL::oneValue
+     *
+     *
      *
      */
     public function testFoundRows()
@@ -162,12 +176,12 @@ class MySQLTest extends TestCase
     }
 
     /**
-    * @covers Divergence\IO\Database\MySQL::insertID
-    * @covers Divergence\IO\Database\MySQL::oneRecord
-    * @covers Divergence\IO\Database\MySQL::nonQuery
-    * @covers Divergence\Models\ActiveRecord::create
-    * @covers Divergence\Models\ActiveRecord::save
-    * @covers Divergence\Models\ActiveRecord::destroy
+    *
+    *
+    *
+    *
+    *
+    *
     *
     */
     public function testInsertID()
@@ -183,11 +197,11 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::prepareQuery
-     * @covers Divergence\IO\Database\MySQL::preprocessQuery
-     * @covers Divergence\Models\ActiveRecord::getByID
-     * @covers Divergence\Models\ActiveRecord::getRecordByField
-     * @covers Divergence\Models\ActiveRecord::instantiateRecord
+     *
+     *
+     *
+     *
+     *
      *
      */
     public function testPrepareQuery()
@@ -216,10 +230,10 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::nonQuery
-     * @covers Divergence\Models\ActiveRecord::getByID
-     * @covers Divergence\Models\ActiveRecord::getRecordByField
-     * @covers Divergence\Models\ActiveRecord::instantiateRecord
+     *
+     *
+     *
+     *
      *
      */
     public function testNonQuery()
@@ -237,8 +251,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testQueryException()
@@ -251,8 +265,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testQueryExceptionExistingPrimaryKey()
@@ -264,8 +278,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testQueryExceptionHandled()
@@ -282,33 +296,33 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testPDOStatementError()
     {
-        $this->expectExceptionMessage('Database error!');
+        $this->expectExceptionMessageRegExp('/Database error:/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::query
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testHandleErrorDevelopment()
     {
-        App::$Config['environment']='dev';
+        App::$App->Config['environment']='dev';
         DB::$defaultDevLabel = 'tests-mysql';
-        $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$whoops->getHandlers()[0]);
-        $this->expectExceptionMessage('Database error!');
+        $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$App->whoops->getHandlers()[0]);
+        $this->expectExceptionMessageRegExp('/Database error:/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
-        App::$Config['environment']='production';
+        App::$App->Config['environment']='production';
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::table
+     *
      *
      */
     public function testTable()
@@ -321,26 +335,26 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::nonQuery
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testNonQueryExceptionDevException()
     {
         TestUtils::requireDB($this);
 
-        App::$Config['environment'] = 'dev';
+        App::$App->Config['environment'] = 'dev';
         DB::$defaultDevLabel = 'tests-mysql';
 
         $this->expectException(\RunTimeException::class);
-        $this->expectExceptionMessage('Database error!');
-        App::$Config['environment'] = 'production';
+        $this->expectExceptionMessageRegExp('/Database error:/');
+        App::$App->Config['environment'] = 'production';
         DB::nonQuery('SELECT malformed query');
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::nonQuery
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testNonQueryHandledException()
@@ -369,7 +383,7 @@ class MySQLTest extends TestCase
 
 
     /**
-     * @covers Divergence\IO\Database\MySQL::allRecords
+     *
      *
      */
     public function testAllRecords()
@@ -378,14 +392,14 @@ class MySQLTest extends TestCase
 
         $tables = DB::allRecords('SHOW TABLES');
 
-        $this->assertCount(9, $tables);
+        $this->assertCount(10, $tables);
         foreach ($tables as $table) {
             $this->assertNotEmpty($table['Tables_in_test']);
         }
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::allValues
+     *
      *
      */
     public function testAllValues()
@@ -402,12 +416,13 @@ class MySQLTest extends TestCase
             Post::$historyTable,
             Thread::$tableName,
             Thread::$historyTable,
+            Media::$tableName,
             Tag::$tableName,
         ], $tables);
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::clearCachedRecord
+     *
      *
      */
     public function testClearCachedRecord()
@@ -431,7 +446,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::oneRecordCached
+     *
      *
      */
     public function testOneRecordCached()
@@ -454,8 +469,8 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::oneRecordCached
-     * @covers Divergence\IO\Database\MySQL::handleError
+     *
+     *
      *
      */
     public function testOneRecordCachedError()
@@ -463,12 +478,12 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         // forced error
-        $this->expectExceptionMessage('Database error!');
+        $this->expectExceptionMessageRegExp('/Database error:/');
         $record = testableDB::oneRecordCached('something', 'SELECT FROM NOTHING');
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::preprocessQuery
+     *
      *
      */
     public function testPreprocessQuery()
@@ -481,7 +496,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::startQueryLog
+     *
      *
      */
     public function testStartQueryLog()
@@ -489,24 +504,24 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         $this->assertFalse(testableDB::_startQueryLog(null));
-        App::$Config['environment'] = 'dev';
+        App::$App->Config['environment'] = 'dev';
         $x = testableDB::_startQueryLog('SELECT corgies');
         $this->assertEquals('SELECT corgies', $x['query']);
 
         $s = explode('.', $x['time_start']);
         $this->assertLessThan(2, $s[0] - time());
-        App::$Config['environment'] = 'production';
+        App::$App->Config['environment'] = 'production';
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::finishQueryLog
+     *
      *
      */
     public function testFinishQueryLog()
     {
         TestUtils::requireDB($this);
 
-        App::$Config['environment'] = 'dev';
+        App::$App->Config['environment'] = 'dev';
         $x = testableDB::_startQueryLog('SELECT corgies');
         usleep(5000);
 
@@ -524,11 +539,11 @@ class MySQLTest extends TestCase
         $this->assertEquals($expected_time_duration_ms, $x['time_duration_ms']);
         $fake = false;
         $this->assertFalse(testableDB::_finishQueryLog($fake));
-        App::$Config['environment'] = 'production';
+        App::$App->Config['environment'] = 'production';
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::config
+     *
      *
      */
     public function testConfig()
@@ -544,7 +559,7 @@ class MySQLTest extends TestCase
     }
 
     /**
-     * @covers Divergence\IO\Database\MySQL::getDefaultLabel
+     *
      *
      */
     public function testGetDefaultLabel()
@@ -552,10 +567,10 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         $this->assertEquals(testableDB::$defaultProductionLabel, testableDB::_getDefaultLabel());
-        App::$Config['environment'] = 'dev';
+        App::$App->Config['environment'] = 'dev';
         $this->assertEquals(testableDB::$defaultDevLabel, testableDB::_getDefaultLabel());
-        App::$Config['environment'] = 'nothing';
+        App::$App->Config['environment'] = 'nothing';
         $this->assertNull(testableDB::_getDefaultLabel());
-        App::$Config['environment'] = 'production';
+        App::$App->Config['environment'] = 'production';
     }
 }
