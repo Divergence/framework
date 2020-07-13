@@ -13,6 +13,9 @@ use Exception;
 use JsonSerializable;
 use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\IO\Database\Query\Delete;
+use Divergence\IO\Database\Query\Insert;
+use Divergence\IO\Database\Query\Update;
 use Divergence\Models\Interfaces\FieldSetMapper;
 use Divergence\Models\SetMappers\DefaultSetMapper;
 
@@ -39,6 +42,7 @@ use Divergence\Models\SetMappers\DefaultSetMapper;
  * @property-read array $data                A plain PHP array of the fields and values for this model object.
  * @property-read array $originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
  *
+ * @property array $versioningFields
  */
 class ActiveRecord implements JsonSerializable
 {
@@ -715,30 +719,17 @@ class ActiveRecord implements JsonSerializable
 
             // transform record to set array
             $set = static::_mapValuesToSet($recordValues);
+
             // create new or update existing
             if ($this->_isPhantom) {
-                DB::nonQuery(
-                    'INSERT INTO `%s` SET %s',
-                    [
-                        static::$tableName,
-                        join(',', $set),
-                    ],
-                    [static::class,'handleError']
-                );
-                $this->_record[static::$primaryKey ? static::$primaryKey : 'ID'] = DB::insertID();
+                DB::nonQuery((new Insert())->setTable(static::$tableName)->set($set), null, [static::class,'handleError']);
+                $this->_record[$this->getPrimaryKey()] = DB::insertID();
                 $this->_isPhantom = false;
                 $this->_isNew = true;
             } elseif (count($set)) {
-                DB::nonQuery(
-                    'UPDATE `%s` SET %s WHERE `%s` = %u',
-                    [
-                        static::$tableName,
-                        join(',', $set),
-                        static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'),
-                        $this->getPrimaryKeyValue(),
-                    ],
-                    [static::class,'handleError']
-                );
+                DB::nonQuery((new Update())->setTable(static::$tableName)->set($set)->where(
+                    sprintf('`%s` = %u', static::_cn($this->getPrimaryKey()), $this->getPrimaryKeyValue())
+                ), null, [static::class,'handleError']);
 
                 $this->_isUpdated = true;
             }
@@ -770,13 +761,7 @@ class ActiveRecord implements JsonSerializable
                 $recordValues = $this->_prepareRecordValues();
                 $set = static::_mapValuesToSet($recordValues);
 
-                DB::nonQuery(
-                    'INSERT INTO `%s` SET %s',
-                    [
-                                static::getHistoryTable(),
-                                join(',', $set),
-                        ]
-                );
+                DB::nonQuery((new Insert())->setTable(static::getHistoryTable())->set($set), null, [static::class,'handleError']);
             }
         }
 
@@ -791,56 +776,9 @@ class ActiveRecord implements JsonSerializable
      */
     public static function delete($id)
     {
-        DB::nonQuery('DELETE FROM `%s` WHERE `%s` = %u', [
-            static::$tableName,
-            static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'),
-            $id,
-        ], [static::class,'handleError']);
+        DB::nonQuery((new Delete())->setTable(static::$tableName)->where(sprintf('`%s` = %u', static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'), $id)), null, [static::class,'handleError']);
 
         return DB::affectedRows() > 0;
-    }
-
-    /**
-     * Builds the extra columns you might want to add to a database select query after the initial list of model fields.
-     *
-     * @param array|string $columns An array of keys and values or a string which will be added to a list of fields after the query's SELECT clause.
-     * @return string|null Extra columns to add after a SELECT clause in a query. Always starts with a comma.
-     */
-    public static function buildExtraColumns($columns)
-    {
-        if (!empty($columns)) {
-            if (is_array($columns)) {
-                foreach ($columns as $key => $value) {
-                    return ', '.$value.' AS '.$key;
-                }
-            } else {
-                return ', ' . $columns;
-            }
-        }
-    }
-
-    /**
-     * Builds the HAVING clause of a MySQL database query.
-     *
-     * @param array|string $having Same as conditions. Can provide a string to use or an array of field/value pairs which will be joined by the AND operator.
-     * @return string|null
-     */
-    public static function buildHaving($having)
-    {
-        if (!empty($having)) {
-            return ' HAVING (' . (is_array($having) ? join(') AND (', static::_mapConditions($having)) : $having) . ')';
-        }
-    }
-
-
-    // TODO: make the handleField
-    public static function generateRandomHandle($length = 32)
-    {
-        do {
-            $handle = substr(md5(mt_rand(0, mt_getrandmax())), 0, $length);
-        } while (static::getByField(static::$handleField, $handle));
-
-        return $handle;
     }
 
     /**

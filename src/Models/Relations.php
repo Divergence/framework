@@ -21,6 +21,10 @@ use Divergence\IO\Database\MySQL as DB;
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
  *
+ * @property array $_classRelationships
+ * @property array $_classFields
+ * @property string $rootClass
+ * @property array $contextClasses
  */
 trait Relations
 {
