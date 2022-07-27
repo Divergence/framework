@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Models;
 
 use Divergence\Models\Model;
@@ -23,7 +24,7 @@ use Divergence\Tests\MockSite\Models\Canary;
 class VersioningTest extends TestCase
 {
     public static $table;
-    public function setUp()
+    public function setUp(): void
     {
         static::$table = Canary::$historyTable ? Canary::$historyTable : static::$table;
         if (static::$table) {

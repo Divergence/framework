@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\MockSite\Models\Forum;
 
 use Divergence\Models\Relations;
@@ -20,7 +21,7 @@ class TagPost extends \Divergence\Models\Model
 {
     use Versioning;
     use Relations;
-    
+
     // support subclassing
     public static $rootClass = __CLASS__;
     public static $defaultClass = __CLASS__;
@@ -31,7 +32,7 @@ class TagPost extends \Divergence\Models\Model
     public static $tableName = 'forum_tag_post';
     public static $singularNoun = 'tag_post';
     public static $pluralNoun = 'tag_posts';
-    
+
     // versioning
     public static $historyTable = 'forum_tag_post_history';
     public static $createRevisionOnDestroy = true;

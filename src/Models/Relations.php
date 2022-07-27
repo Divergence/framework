@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models;
 
 use Exception;
@@ -54,7 +55,7 @@ trait Relations
         }
     }
 
-    
+
     /**
      * Called after _defineRelationships to initialize and apply defaults to the relationships property
      * Must be idempotent as it may be applied multiple times up the inheritence chain
@@ -72,7 +73,7 @@ trait Relations
             static::$_classRelationships[$className] = $relationships;
         }
     }
-    
+
     // TODO: Make relations getPrimaryKeyValue() instead of using ID all the time.
     protected static function _initRelationship($relationship, $options)
     {
@@ -82,12 +83,12 @@ trait Relations
         if (empty($options['type'])) {
             $options['type'] = 'one-one';
         }
-        
+
         if ($options['type'] == 'one-one') {
             if (empty($options['local'])) {
                 $options['local'] = $relationship . 'ID';
             }
-                
+
             if (empty($options['foreign'])) {
                 $options['foreign'] = 'ID';
             }
@@ -95,21 +96,21 @@ trait Relations
             if (empty($options['local'])) {
                 $options['local'] = 'ID';
             }
-                    
+
             if (empty($options['foreign'])) {
                 $options['foreign'] =  $classShortName. 'ID';
             }
-                
+
             if (!isset($options['indexField'])) {
                 $options['indexField'] = false;
             }
-                
+
             if (!isset($options['conditions'])) {
                 $options['conditions'] = [];
             } elseif (is_string($options['conditions'])) {
                 $options['conditions'] = [$options['conditions']];
             }
-                
+
             if (!isset($options['order'])) {
                 $options['order'] = false;
             }
@@ -117,19 +118,19 @@ trait Relations
             if (empty($options['local'])) {
                 $options['local'] = 'ID';
             }
-                    
+
             if (empty($options['contextClass'])) {
                 $options['contextClass'] = get_called_class();
             }
-                
+
             if (!isset($options['indexField'])) {
                 $options['indexField'] = false;
             }
-                
+
             if (!isset($options['conditions'])) {
                 $options['conditions'] = [];
             }
-                
+
             if (!isset($options['order'])) {
                 $options['order'] = false;
             }
@@ -137,7 +138,7 @@ trait Relations
             if (empty($options['local'])) {
                 $options['local'] = 'ContextID';
             }
-                    
+
             if (empty($options['foreign'])) {
                 $options['foreign'] = 'ID';
             }
@@ -153,20 +154,20 @@ trait Relations
             if (empty($options['class'])) {
                 throw new Exception('Relationship type many-many option requires a class setting.');
             }
-        
+
             if (empty($options['linkClass'])) {
                 throw new Exception('Relationship type many-many option requires a linkClass setting.');
             }
-                
+
             if (empty($options['linkLocal'])) {
                 $options['linkLocal'] = $classShortName . 'ID';
             }
-        
+
             if (empty($options['linkForeign'])) {
                 $foreignShortname = basename(str_replace('\\', '/', $options['class']::$rootClass));
                 $options['linkForeign'] =  $foreignShortname . 'ID';
             }
-        
+
             if (empty($options['local'])) {
                 $options['local'] = 'ID';
             }
@@ -178,25 +179,25 @@ trait Relations
             if (!isset($options['indexField'])) {
                 $options['indexField'] = false;
             }
-                
+
             if (!isset($options['conditions'])) {
                 $options['conditions'] = [];
             }
-                
+
             if (!isset($options['order'])) {
                 $options['order'] = false;
             }
         }
-           
+
         if (static::isVersioned() && $options['type'] == 'history') {
             if (empty($options['class'])) {
                 $options['class'] = get_called_class();
             }
         }
-                
+
         return $options;
     }
-    
+
     /**
      * Retrieves given relationships' value
      * @param string $relationship Name of relationship
@@ -210,7 +211,7 @@ trait Relations
             if ($rel['type'] == 'one-one') {
                 if ($value = $this->_getFieldValue($rel['local'])) {
                     $this->_relatedObjects[$relationship] = $rel['class']::getByField($rel['foreign'], $value);
-                
+
                     // hook relationship for invalidation
                     static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
                 } else {
@@ -220,7 +221,7 @@ trait Relations
                 if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
-                
+
                 $this->_relatedObjects[$relationship] = $rel['class']::getAllByWhere(
                     array_merge($rel['conditions'], [
                         $rel['foreign'] => $this->_getFieldValue($rel['local']),
@@ -231,8 +232,8 @@ trait Relations
                         'conditions' => $rel['conditions'],
                     ]
                 );
-                
-                
+
+
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'context-children') {
@@ -244,7 +245,7 @@ trait Relations
                     'ContextClass' => $rel['contextClass'],
                     'ContextID' => $this->_getFieldValue($rel['local']),
                 ]);
-            
+
                 $this->_relatedObjects[$relationship] = $rel['class']::getAllByWhere(
                     $conditions,
                     [
@@ -252,13 +253,13 @@ trait Relations
                         'order' => $rel['order'],
                     ]
                 );
-                
+
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'context-parent') {
                 $className = $this->_getFieldValue($rel['classField']);
                 $this->_relatedObjects[$relationship] = $className ? $className::getByID($this->_getFieldValue($rel['local'])) : null;
-                
+
                 // hook both relationships for invalidation
                 static::$_classFields[get_called_class()][$rel['classField']]['relationships'][$relationship] = true;
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
@@ -266,9 +267,9 @@ trait Relations
                 if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
-                
+
                 // TODO: support indexField, conditions, and order
-                
+
                 $this->_relatedObjects[$relationship] = $rel['class']::getAllByQuery(
                     'SELECT Related.* FROM `%s` Link JOIN `%s` Related ON (Related.`%s` = Link.%s) WHERE Link.`%s` = %u AND %s',
                     [
@@ -281,14 +282,14 @@ trait Relations
                         $rel['conditions'] ? join(' AND ', $rel['conditions']) : '1',
                     ]
                 );
-                
+
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'history' && static::isVersioned()) {
                 $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->getPrimaryKeyValue(), $rel);
             }
         }
-        
+
         return $this->_relatedObjects[$relationship];
     }
 }

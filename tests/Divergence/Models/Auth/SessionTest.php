@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Models\Auth;
 
 use Divergence\Tests\TestUtils;
@@ -40,7 +41,7 @@ class SessionTest extends TestCase
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $createdTime = date('U');
         $session = Session::getFromRequest();
-        
+
         $this->assertEquals($createdTime, $session->Created);
         $this->assertEquals(inet_pton($_SERVER['REMOTE_ADDR']), $session->LastIP);
         $this->assertEquals(32, strlen($session->Handle));

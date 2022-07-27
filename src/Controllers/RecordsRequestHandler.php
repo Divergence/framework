@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Controllers;
 
 use Exception;
@@ -82,34 +83,34 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         switch ($action ? $action : $action = $this->shiftPath()) {
             case 'save':
-            {
-                return $this->handleMultiSaveRequest();
-            }
+                {
+                    return $this->handleMultiSaveRequest();
+                }
 
             case 'destroy':
-            {
-                return $this->handleMultiDestroyRequest();
-            }
+                {
+                    return $this->handleMultiDestroyRequest();
+                }
 
             case 'create':
-            {
-                return $this->handleCreateRequest();
-            }
+                {
+                    return $this->handleCreateRequest();
+                }
 
             case '':
             case false:
-            {
-                return $this->handleBrowseRequest();
-            }
+                {
+                    return $this->handleBrowseRequest();
+                }
 
             default:
-            {
-                if ($Record = $this->getRecordByHandle($action)) {
-                    return $this->handleRecordRequest($Record);
-                } else {
-                    return $this->throwRecordNotFoundError();
+                {
+                    if ($Record = $this->getRecordByHandle($action)) {
+                        return $this->handleRecordRequest($Record);
+                    } else {
+                        return $this->throwRecordNotFoundError();
+                    }
                 }
-            }
         }
     }
 
@@ -225,29 +226,29 @@ abstract class RecordsRequestHandler extends RequestHandler
         switch ($action ? $action : $action = $this->shiftPath()) {
             case '':
             case false:
-            {
-                $className = static::$recordClass;
+                {
+                    $className = static::$recordClass;
 
-                return $this->respond($this->getTemplateName($className::$singularNoun), [
-                    'success' => true,
-                    'data' => $Record,
-                ]);
-            }
+                    return $this->respond($this->getTemplateName($className::$singularNoun), [
+                        'success' => true,
+                        'data' => $Record,
+                    ]);
+                }
 
             case 'edit':
-            {
-                return $this->handleEditRequest($Record);
-            }
+                {
+                    return $this->handleEditRequest($Record);
+                }
 
             case 'delete':
-            {
-                return $this->handleDeleteRequest($Record);
-            }
+                {
+                    return $this->handleDeleteRequest($Record);
+                }
 
             default:
-            {
-                return $this->onRecordRequestNotHandled($Record, $action);
-            }
+                {
+                    return $this->onRecordRequestNotHandled($Record, $action);
+                }
         }
     }
 

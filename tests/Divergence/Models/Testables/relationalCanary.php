@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Models\Testables;
 
 use Divergence\Models\Relations;
@@ -15,7 +16,8 @@ use Divergence\Tests\Models\Testables\fakeCanary;
 
 class relationalCanary extends fakeCanary
 {
-    use Versioning,Relations;
+    use Versioning;
+    use Relations;
 
     public static $relationships = [
         'ContextParent' => [

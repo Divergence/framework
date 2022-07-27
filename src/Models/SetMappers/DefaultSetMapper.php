@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models\SetMappers;
 
 use Divergence\IO\Database\MySQL as DB;
@@ -28,7 +29,7 @@ class DefaultSetMapper implements FieldSetMapper
 
     public function setBooleanValue($value): bool
     {
-        return (boolean)$value;
+        return (bool)$value;
     }
 
     public function setDecimalValue($value): ?float

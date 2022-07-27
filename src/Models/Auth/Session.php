@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models\Auth;
 
 use Divergence\Models\Model;
@@ -194,7 +195,7 @@ class Session extends Model
      * Is cryptographically secure.
      * @see http://php.net/manual/en/function.random-bytes.php
      *
-     * @return void
+     * @return string
      */
     public static function generateUniqueHandle()
     {
