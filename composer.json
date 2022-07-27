@@ -10,6 +10,11 @@
             "email": "henry.paradiz@gmail.com",
             "homepage": "https://henryparadiz.com",
             "role": "Developer"
+        },
+        {
+            "name": "Jack Smith",
+            "email": "jgs41495@gmail.com",
+            "role": "Developer"
         }
     ],
     "require": {
