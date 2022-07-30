@@ -10,6 +10,11 @@
             "email": "henry.paradiz@gmail.com",
             "homepage": "https://henryparadiz.com",
             "role": "Developer"
+        },
+        {
+            "name": "Jack Smith",
+            "email": "jgs41495@gmail.com",
+            "role": "Developer"
         }
     ],
     "require": {
@@ -34,10 +39,11 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^7.0",
+        "phpunit/phpunit": "^9.5",
         "friendsofphp/php-cs-fixer": "*",
         "mikey179/vfsstream": "^1.6",
-        "fzaninotto/faker": "^1.9"
+        "fakerphp/faker": "^1.20",
+        "dms/phpunit-arraysubset-asserts": "^0.4.0"
     },
     "suggest": {
         "divergence/cli": "Lets you initialize a new project as well as create, edit, and test database configurations via CLI."

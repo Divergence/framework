@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models\Media;
 
 use Exception;
@@ -134,7 +135,7 @@ class Video extends Media
 
         $mediaInfo['width'] = (int)$mediaInfo['videoStream']['width'];
         $mediaInfo['height'] = (int)$mediaInfo['videoStream']['height'];
-        $mediaInfo['duration'] = (double)$mediaInfo['videoStream']['duration'];
+        $mediaInfo['duration'] = (float)$mediaInfo['videoStream']['duration'];
 
         return $mediaInfo;
     }

@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Controllers;
 
 use Exception;
@@ -72,69 +73,69 @@ class MediaRequestHandler extends RecordsRequestHandler
         switch ($action = $this->shiftPath()) {
 
             case 'upload':
-            {
-                return $this->handleUploadRequest();
-            }
+                {
+                    return $this->handleUploadRequest();
+                }
 
             case 'open':
-            {
-                $mediaID = $this->shiftPath();
+                {
+                    $mediaID = $this->shiftPath();
 
-                return $this->handleMediaRequest($mediaID);
-            }
+                    return $this->handleMediaRequest($mediaID);
+                }
 
             case 'download':
-            {
-                $mediaID = $this->shiftPath();
-                $filename = urldecode($this->shiftPath());
+                {
+                    $mediaID = $this->shiftPath();
+                    $filename = urldecode($this->shiftPath());
 
-                return $this->handleDownloadRequest($mediaID, $filename);
-            }
+                    return $this->handleDownloadRequest($mediaID, $filename);
+                }
 
             case 'info':
-            {
-                $mediaID = $this->shiftPath();
+                {
+                    $mediaID = $this->shiftPath();
 
-                return $this->handleInfoRequest($mediaID);
-            }
+                    return $this->handleInfoRequest($mediaID);
+                }
 
             case 'caption':
-            {
-                $mediaID = $this->shiftPath();
+                {
+                    $mediaID = $this->shiftPath();
 
-                return $this->handleCaptionRequest($mediaID);
-            }
+                    return $this->handleCaptionRequest($mediaID);
+                }
 
             case 'delete':
-            {
-                $mediaID = $this->shiftPath();
-                return $this->handleDeleteRequest($mediaID);
-            }
+                {
+                    $mediaID = $this->shiftPath();
+                    return $this->handleDeleteRequest($mediaID);
+                }
 
             case 'thumbnail':
-            {
-                return $this->handleThumbnailRequest();
-            }
+                {
+                    return $this->handleThumbnailRequest();
+                }
 
             case false:
             case '':
             case 'browse':
-            {
-                if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                    return $this->handleUploadRequest();
-                }
+                {
+                    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                        return $this->handleUploadRequest();
+                    }
 
-                return $this->handleBrowseRequest();
-            }
+                    return $this->handleBrowseRequest();
+                }
 
             default:
-            {
-                if (ctype_digit($action)) {
-                    return $this->handleMediaRequest($action);
-                } else {
-                    return parent::handleRecordsRequest($action);
+                {
+                    if (ctype_digit($action)) {
+                        return $this->handleMediaRequest($action);
+                    } else {
+                        return parent::handleRecordsRequest($action);
+                    }
                 }
-            }
         }
     }
 
@@ -227,7 +228,7 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         return $this->respond('uploadComplete', [
-            'success' => (boolean)$Media
+            'success' => (bool)$Media
             ,'data' => $Media,
         ]);
     }

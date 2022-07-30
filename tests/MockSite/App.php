@@ -7,9 +7,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\MockSite;
 
-use Faker\Provider\Lorem;
+use Faker\Factory;
 use Divergence\Routing\Path;
 use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
@@ -24,6 +25,7 @@ class App extends \Divergence\App
 {
     public function setUp()
     {
+        $faker = Factory::create();
         ini_set('error_reporting', E_ALL); // or error_reporting(E_ALL);
         ini_set('display_errors', '1');
         ini_set('display_startup_errors', '1');
@@ -105,7 +107,7 @@ class App extends \Divergence\App
                     $i = 0;
                     while ($i<$x) {
                         Post::create([
-                            'Content' => Lorem::text(rand(50, 400)),
+                            'Content' => $faker->text(rand(50, 400)),
                             'ThreadID' => $Thread->ID,
                         ], true);
                         $i++;

@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -17,7 +18,7 @@ class AppTest extends TestCase
     public App $App;
     public $ApplicationPath;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->ApplicationPath = realpath(__DIR__.'/../../');
 
@@ -41,7 +42,7 @@ class AppTest extends TestCase
         }
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         // move .dev and .debug files that already existed at the beginning of the test back to their original states
         if (file_exists($this->ApplicationPath.'/.debug.temp')) {
