@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\IO\Database;
 
 use Divergence\Tests\TestUtils;
@@ -67,7 +68,7 @@ class MySQLTest extends TestCase
 {
     public $ApplicationPath;
 
-    public function setUp()
+    public function setUp(): void
     {
         //$this->ApplicationPath = realpath(__DIR__.'/../../../../');
         //App::init($this->ApplicationPath);
@@ -302,7 +303,7 @@ class MySQLTest extends TestCase
      */
     public function testPDOStatementError()
     {
-        $this->expectExceptionMessageRegExp('/Database error:/');
+        $this->expectExceptionMessageMatches('/Database error:/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
     }
 
@@ -316,7 +317,7 @@ class MySQLTest extends TestCase
         App::$App->Config['environment']='dev';
         DB::$defaultDevLabel = 'tests-mysql';
         $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$App->whoops->getHandlers()[0]);
-        $this->expectExceptionMessageRegExp('/Database error:/');
+        $this->expectExceptionMessageMatches('/Database error:/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
         App::$App->Config['environment']='production';
     }
@@ -347,7 +348,7 @@ class MySQLTest extends TestCase
         DB::$defaultDevLabel = 'tests-mysql';
 
         $this->expectException(\RunTimeException::class);
-        $this->expectExceptionMessageRegExp('/Database error:/');
+        $this->expectExceptionMessageMatches('/Database error:/');
         App::$App->Config['environment'] = 'production';
         DB::nonQuery('SELECT malformed query');
     }
@@ -478,7 +479,7 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         // forced error
-        $this->expectExceptionMessageRegExp('/Database error:/');
+        $this->expectExceptionMessageMatches('/Database error:/');
         $record = testableDB::oneRecordCached('something', 'SELECT FROM NOTHING');
     }
 

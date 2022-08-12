@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\MockSite\Models\Forum;
 
 use Divergence\Models\Relations;
@@ -18,7 +19,7 @@ class Post extends \Divergence\Models\Model
 {
     use Versioning;
     use Relations;
-    
+
     // support subclassing
     public static $rootClass = __CLASS__;
     public static $defaultClass = __CLASS__;
@@ -29,7 +30,7 @@ class Post extends \Divergence\Models\Model
     public static $tableName = 'forum_posts';
     public static $singularNoun = 'post';
     public static $pluralNoun = 'posts';
-    
+
     // versioning
     public static $historyTable = 'forum_posts_history';
     public static $createRevisionOnDestroy = true;

@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\IO\Database;
 
 use Divergence\IO\Database\SQL;
@@ -32,7 +33,7 @@ class SQLTest extends TestCase
 
         $littleBobbyTables = 'Robert\'); DROP TABLE Students;--';
         $safeLittleBobbyTables = $z($littleBobbyTables);
-        
+
         $arrayOfBobbies = [
             'lorum ipsum',
             $littleBobbyTables,
@@ -43,7 +44,7 @@ class SQLTest extends TestCase
         foreach ($arrayOfBobbies as $oneBob) {
             $safeArrayOfBobbies[] = $z($oneBob);
         }
-        
+
         $this->assertEquals($safeLittleBobbyTables, SQL::escape($littleBobbyTables));
         $this->assertEquals($safeArrayOfBobbies, SQL::escape($arrayOfBobbies));
     }

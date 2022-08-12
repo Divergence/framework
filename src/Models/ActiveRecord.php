@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models;
 
 use Exception;
@@ -448,22 +449,22 @@ class ActiveRecord implements JsonSerializable
                 return $this->_originalValues;
 
             default:
-            {
-                // handle field
-                if (static::fieldExists($name)) {
-                    return $this->_getFieldValue($name);
-                }
-                // handle relationship
-                elseif (static::isRelational()) {
-                    if (static::_relationshipExists($name)) {
-                        return $this->_getRelationshipValue($name);
+                {
+                    // handle field
+                    if (static::fieldExists($name)) {
+                        return $this->_getFieldValue($name);
+                    }
+                    // handle relationship
+                    elseif (static::isRelational()) {
+                        if (static::_relationshipExists($name)) {
+                            return $this->_getRelationshipValue($name);
+                        }
+                    }
+                    // default Handle to ID if not caught by fieldExists
+                    elseif ($name == static::$handleField) {
+                        return $this->ID;
                     }
                 }
-                // default Handle to ID if not caught by fieldExists
-                elseif ($name == static::$handleField) {
-                    return $this->ID;
-                }
-            }
         }
         // undefined
         return null;
@@ -1184,40 +1185,40 @@ class ActiveRecord implements JsonSerializable
             // apply type-dependent transformations
             switch ($fieldOptions['type']) {
                 case 'password':
-                {
-                    return $value;
-                }
+                    {
+                        return $value;
+                    }
 
                 case 'timestamp':
-                {
-                    if (!isset($this->_convertedValues[$field])) {
-                        if ($value && $value != '0000-00-00 00:00:00') {
-                            $this->_convertedValues[$field] = strtotime($value);
-                        } else {
-                            $this->_convertedValues[$field] = null;
+                    {
+                        if (!isset($this->_convertedValues[$field])) {
+                            if ($value && $value != '0000-00-00 00:00:00') {
+                                $this->_convertedValues[$field] = strtotime($value);
+                            } else {
+                                $this->_convertedValues[$field] = null;
+                            }
                         }
-                    }
 
-                    return $this->_convertedValues[$field];
-                }
+                        return $this->_convertedValues[$field];
+                    }
                 case 'serialized':
-                {
-                    if (!isset($this->_convertedValues[$field])) {
-                        $this->_convertedValues[$field] = is_string($value) ? unserialize($value) : $value;
-                    }
+                    {
+                        if (!isset($this->_convertedValues[$field])) {
+                            $this->_convertedValues[$field] = is_string($value) ? unserialize($value) : $value;
+                        }
 
-                    return $this->_convertedValues[$field];
-                }
+                        return $this->_convertedValues[$field];
+                    }
                 case 'set':
                 case 'list':
-                {
-                    if (!isset($this->_convertedValues[$field])) {
-                        $delim = empty($fieldOptions['delimiter']) ? ',' : $fieldOptions['delimiter'];
-                        $this->_convertedValues[$field] = array_filter(preg_split('/\s*'.$delim.'\s*/', $value));
-                    }
+                    {
+                        if (!isset($this->_convertedValues[$field])) {
+                            $delim = empty($fieldOptions['delimiter']) ? ',' : $fieldOptions['delimiter'];
+                            $this->_convertedValues[$field] = array_filter(preg_split('/\s*'.$delim.'\s*/', $value));
+                        }
 
-                    return $this->_convertedValues[$field];
-                }
+                        return $this->_convertedValues[$field];
+                    }
 
                 case 'int':
                 case 'integer':
@@ -1230,20 +1231,20 @@ class ActiveRecord implements JsonSerializable
                         }
                     }
                     return $this->_convertedValues[$field];
-                    
+
                 case 'boolean':
-                {
-                    if (!isset($this->_convertedValues[$field])) {
-                        $this->_convertedValues[$field] = (boolean)$value;
+                    {
+                        if (!isset($this->_convertedValues[$field])) {
+                            $this->_convertedValues[$field] = (bool)$value;
+                        }
+
+                        return $this->_convertedValues[$field];
                     }
 
-                    return $this->_convertedValues[$field];
-                }
-
                 default:
-                {
-                    return $value;
-                }
+                    {
+                        return $value;
+                    }
             }
         } elseif ($useDefault && isset($fieldOptions['default'])) {
             // return default
@@ -1252,13 +1253,13 @@ class ActiveRecord implements JsonSerializable
             switch ($fieldOptions['type']) {
                 case 'set':
                 case 'list':
-                {
-                    return [];
-                }
+                    {
+                        return [];
+                    }
                 default:
-                {
-                    return null;
-                }
+                    {
+                        return null;
+                    }
             }
         }
     }
@@ -1297,69 +1298,69 @@ class ActiveRecord implements JsonSerializable
         switch ($fieldOptions['type']) {
             case 'clob':
             case 'string':
-            {
-                $value = $this->fieldSetMapper->setStringValue($value);
-                if (!$fieldOptions['notnull'] && $fieldOptions['blankisnull'] && ($value === '' || $value === null)) {
-                    $value = null;
+                {
+                    $value = $this->fieldSetMapper->setStringValue($value);
+                    if (!$fieldOptions['notnull'] && $fieldOptions['blankisnull'] && ($value === '' || $value === null)) {
+                        $value = null;
+                    }
+                    break;
                 }
-                break;
-            }
 
             case 'boolean':
-            {
-                $value = $this->fieldSetMapper->setBooleanValue($value);
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setBooleanValue($value);
+                    break;
+                }
 
             case 'decimal':
-            {
-                $value = $this->fieldSetMapper->setDecimalValue($value);
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setDecimalValue($value);
+                    break;
+                }
 
             case 'int':
             case 'uint':
             case 'integer':
-            {
-                $value = $this->fieldSetMapper->setIntegerValue($value);
-                if (!$fieldOptions['notnull'] && ($value === '' || is_null($value))) {
-                    $value = null;
+                {
+                    $value = $this->fieldSetMapper->setIntegerValue($value);
+                    if (!$fieldOptions['notnull'] && ($value === '' || is_null($value))) {
+                        $value = null;
+                    }
+                    break;
                 }
-                break;
-            }
 
             case 'timestamp':
-            {
-                $value = $this->fieldSetMapper->setTimestampValue($value);
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setTimestampValue($value);
+                    break;
+                }
 
             case 'date':
-            {
-                $value = $this->fieldSetMapper->setDateValue($value);
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setDateValue($value);
+                    break;
+                }
 
-            // these types are converted to strings from another PHP type on save
+                // these types are converted to strings from another PHP type on save
             case 'serialized':
-            {
-                $this->_convertedValues[$field] = $value;
-                $value = $this->fieldSetMapper->setSerializedValue($value);
-                break;
-            }
+                {
+                    $this->_convertedValues[$field] = $value;
+                    $value = $this->fieldSetMapper->setSerializedValue($value);
+                    break;
+                }
             case 'enum':
-            {
-                $value = $this->fieldSetMapper->setEnumValue($fieldOptions['values'], $value);
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setEnumValue($fieldOptions['values'], $value);
+                    break;
+                }
             case 'set':
             case 'list':
-            {
-                $value = $this->fieldSetMapper->setListValue($value, isset($fieldOptions['delimiter']) ? $fieldOptions['delimiter'] : null);
-                $this->_convertedValues[$field] = $value;
-                $forceDirty = true;
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setListValue($value, isset($fieldOptions['delimiter']) ? $fieldOptions['delimiter'] : null);
+                    $this->_convertedValues[$field] = $value;
+                    $forceDirty = true;
+                    break;
+                }
         }
 
         if ($forceDirty || (empty($this->_record[$field]) && isset($value)) || ($this->_record[$field] !== $value)) {

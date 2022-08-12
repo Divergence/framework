@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
@@ -30,6 +31,7 @@ use Divergence\Tests\MockSite\Controllers\TagRequestHandler;
 use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\SecureCanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\ParanoidCanaryRequestHandler;
+use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 
 /*
  * About Unit Testing Divergence Controllers
@@ -52,13 +54,15 @@ use Divergence\Tests\MockSite\Controllers\ParanoidCanaryRequestHandler;
 
 class RecordsRequestHandlerTest extends TestCase
 {
-    public function setUp()
+    use ArraySubsetAsserts;
+
+    public function setUp(): void
     {
 
         //$this->App->Config['environment'] = 'production';
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         if (in_array($this->getName(), ['testProcessDatumDestroyFailed','testEditWithError'])) {
             DB::nonQuery('UNLOCK TABLES');

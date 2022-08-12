@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Models;
 
 use Closure;
@@ -23,10 +24,13 @@ use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\Models\Testables\fakeCanary;
 use Divergence\Tests\Models\Testables\relationalCanary;
+use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 
 class ActiveRecordTest extends TestCase
 {
-    public function setUp()
+    use ArraySubsetAsserts;
+
+    public function setUp(): void
     {
         //App::init();
         //$x = Tag::create();
