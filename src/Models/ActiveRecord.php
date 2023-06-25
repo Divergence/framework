@@ -599,7 +599,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return array Return for extension JsonSerializable
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->getData();
     }
