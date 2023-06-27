@@ -10,7 +10,7 @@ build:
   tests:
     override:
       -
-        command: true       # Or "./vendor/bin/phpcs". Anyway do not use the scrutinizer command "phpcs-run" as if some cs error are found this command is not considered as failed command
+        #command: true       # Or "./vendor/bin/phpcs". Anyway do not use the scrutinizer command "phpcs-run" as if some cs error are found this command is not considered as failed command
         command: ./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml  # Or "./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml"
         idle_timeout: 1200
         coverage:
