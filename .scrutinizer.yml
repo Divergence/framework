@@ -1,7 +1,16 @@
 build:
-    image: default-bionic
-    environment:
-        php: 8.1.12
+  image: default-bionic
+  environment:
+      php: 8.1.12
+  nodes:
+    coverage:
+      tests:
+        override:
+          - command: ./vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+            coverage:
+              file: build/logs/clover.xml   # <- Set this to where we find the coverage data.
+                                          #    The path is relative to the current directory.
+              format: clover
 tools:
-  php_codesniffer:
+  php_code_sniffer:
     enabled: false
