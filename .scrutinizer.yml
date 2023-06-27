@@ -1,9 +1,18 @@
+checks:
+  php:
+    code_rating: true
+    duplication: true
+
 build:
   image: default-bionic
   environment:
     php: 8.1.12
-  nodes:
-    phpcs-run:
-      tests:
-        override:
-          - true
+  tests:
+    override:
+      -
+        command: true       # Or "./vendor/bin/phpcs". Anyway do not use the scrutinizer command "phpcs-run" as if some cs error are found this command is not considered as failed command
+        command: ./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml  # Or "./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml"
+        idle_timeout: 1200
+        coverage:
+          file: 'build/coverage/clover.xml'
+          format: 'php-clover'
