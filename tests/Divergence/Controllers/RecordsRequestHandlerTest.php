@@ -95,7 +95,7 @@ class RecordsRequestHandlerTest extends TestCase
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
-        $expected['total'] = count($Records)."";
+        $expected['total'] = count($Records);
         $expected = json_encode($expected);
 
 
@@ -242,7 +242,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/edit');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertContains('Database error', $x['failed']['errors']);
+        $this->assertStringContainsString('Database error', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 

@@ -8,3 +8,4 @@ phpDocumentor.phar
 docs
 .vscode
 composer.lock
+.phpunit.result.cache

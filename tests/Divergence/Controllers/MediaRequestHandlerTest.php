@@ -175,7 +175,7 @@ class MediaRequestHandlerTest extends TestCase
                 'ID' => 'DESC',
             ],
         ]);
-        $this->expectOutputString(json_encode(['success'=>true,'data'=>$media,'conditions'=>[],'total'=>(string)count($media),'limit'=>false,'offset'=>false]));
+        $this->expectOutputString(json_encode(['success'=>true,'data'=>$media,'conditions'=>[],'total'=>count($media),'limit'=>false,'offset'=>false]));
         (new Emitter($response))->emit();
     }
 

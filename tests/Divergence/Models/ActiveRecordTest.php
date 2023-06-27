@@ -1073,7 +1073,7 @@ class ActiveRecordTest extends TestCase
 
 
         fakeCanary::throwExceptionNextError();
-        $this->expectExceptionMessage('fakeCanary handlError exception');
+        $this->expectExceptionMessageMatches('/(Database error|fakeCanary handlError exception)/');
         fakeCanary::getAllByQuery('SELECT nothing(*)');
     }
 

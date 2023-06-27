@@ -355,7 +355,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return string ID by default or static::$primaryKey if it's set.
      */
-    public function getPrimaryKey()
+    public static function getPrimaryKey()
     {
         return isset(static::$primaryKey) ? static::$primaryKey : 'ID';
     }
@@ -723,14 +723,14 @@ class ActiveRecord implements JsonSerializable
 
             // create new or update existing
             if ($this->_isPhantom) {
-                DB::nonQuery((new Insert())->setTable(static::$tableName)->set($set), null, [static::class,'handleError']);
+                DB::nonQuery((new Insert())->setTable(static::$tableName)->set($set), null, [static::class,'handleException']);
                 $this->_record[$this->getPrimaryKey()] = DB::insertID();
                 $this->_isPhantom = false;
                 $this->_isNew = true;
             } elseif (count($set)) {
                 DB::nonQuery((new Update())->setTable(static::$tableName)->set($set)->where(
                     sprintf('`%s` = %u', static::_cn($this->getPrimaryKey()), $this->getPrimaryKeyValue())
-                ), null, [static::class,'handleError']);
+                ), null, [static::class,'handleException']);
 
                 $this->_isUpdated = true;
             }
@@ -762,7 +762,7 @@ class ActiveRecord implements JsonSerializable
                 $recordValues = $this->_prepareRecordValues();
                 $set = static::_mapValuesToSet($recordValues);
 
-                DB::nonQuery((new Insert())->setTable(static::getHistoryTable())->set($set), null, [static::class,'handleError']);
+                DB::nonQuery((new Insert())->setTable(static::getHistoryTable())->set($set), null, [static::class,'handleException']);
             }
         }
 
@@ -777,7 +777,7 @@ class ActiveRecord implements JsonSerializable
      */
     public static function delete($id)
     {
-        DB::nonQuery((new Delete())->setTable(static::$tableName)->where(sprintf('`%s` = %u', static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'), $id)), null, [static::class,'handleError']);
+        DB::nonQuery((new Delete())->setTable(static::$tableName)->where(sprintf('`%s` = %u', static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'), $id)), null, [static::class,'handleException']);
 
         return DB::affectedRows() > 0;
     }
@@ -965,17 +965,17 @@ class ActiveRecord implements JsonSerializable
     /**
      * Handle any errors that come from the database client in the process of running a query.
      * If the error code from MySQL 42S02 (table not found) is thrown this method will attempt to create the table before running the original query and returning.
-     * Other errors will be routed through to DB::handleError
+     * Other errors will be routed through to DB::handleException
      *
+     * @param Exception $exception
      * @param string $query
      * @param array $queryLog
      * @param array|string $parameters
-     * @return mixed Retried query result or the return from DB::handleError
+     * @return mixed Retried query result or the return from DB::handleException
      */
-    public static function handleError($query = null, $queryLog = null, $parameters = null)
+    public static function handleException(\Exception $e, $query = null, $queryLog = null, $parameters = null)
     {
-        $Connection = DB::getConnection();
-
+        $Connection = DB::getConnection(); 
         if ($Connection->errorCode() == '42S02' && static::$autoCreateTables) {
             $CreateTable = SQL::getCreateTable(static::$rootClass);
 
@@ -991,15 +991,15 @@ class ActiveRecord implements JsonSerializable
 
             // handle query error
             if ($ErrorInfo[0] != '00000') {
-                self::handleError($query, $queryLog);
+                self::handleException($query, $queryLog);
             }
 
             // clear buffer (required for the next query to work without running fetchAll first
             $Statement->closeCursor();
 
-            return $Connection->query($query); // now the query should finish with no error
+            return $Connection->query((string)$query); // now the query should finish with no error
         } else {
-            return DB::handleError($query, $queryLog);
+            return DB::handleException($e, $query, $queryLog);
         }
     }
 

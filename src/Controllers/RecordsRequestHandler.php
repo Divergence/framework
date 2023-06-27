@@ -316,9 +316,12 @@ abstract class RecordsRequestHandler extends RequestHandler
 
         $this->prepareResponseModeJSON(['POST','PUT']);
 
-        if ($className::fieldExists(key($_REQUEST['data']))) {
-            $_REQUEST['data'] = [$_REQUEST['data']];
+        if (!empty($_REQUEST['data'])) {
+            if ($className::fieldExists(key($_REQUEST['data']))) {
+                $_REQUEST['data'] = [$_REQUEST['data']];
+            }
         }
+
 
         if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
             return $this->respond('error', [
@@ -388,8 +391,10 @@ abstract class RecordsRequestHandler extends RequestHandler
 
         $this->prepareResponseModeJSON(['POST','PUT','DELETE']);
 
-        if ($className::fieldExists(key($_REQUEST['data']))) {
-            $_REQUEST['data'] = [$_REQUEST['data']];
+        if (!empty($_REQUEST['data'])) {
+            if ($className::fieldExists(key($_REQUEST['data']))) {
+                $_REQUEST['data'] = [$_REQUEST['data']];
+            }
         }
 
         if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {

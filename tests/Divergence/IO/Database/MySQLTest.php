@@ -290,9 +290,14 @@ class MySQLTest extends TestCase
         $Context = $this;
         // bad queries!
         DB::query('SELECT malformed query', null, function () use ($Context) {
+            /**
+             * $args[0] is a PDOException
+             *  with message:"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'malformed' i
+             */
             $args = func_get_args();
-            $Context->assertEquals('SELECT malformed query', $args[0]);
-            $Context->assertEquals(0, $args[1]);
+            $Context->assertEquals('SELECT malformed query', $args[1]);
+            $Context->assertEquals(false, $args[2]);
+            $Context->expectExceptionMessageMatches('/(SQLSTATE)/');
         });
     }
 
@@ -303,7 +308,7 @@ class MySQLTest extends TestCase
      */
     public function testPDOStatementError()
     {
-        $this->expectExceptionMessageMatches('/Database error:/');
+        $this->expectExceptionMessageMatches('/(Database error:|SQLSTATE)/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
     }
 
@@ -317,7 +322,7 @@ class MySQLTest extends TestCase
         App::$App->Config['environment']='dev';
         DB::$defaultDevLabel = 'tests-mysql';
         $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$App->whoops->getHandlers()[0]);
-        $this->expectExceptionMessageMatches('/Database error:/');
+        $this->expectExceptionMessageMatches('/(Database error:|SQLSTATE)/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
         App::$App->Config['environment']='production';
     }
@@ -348,7 +353,7 @@ class MySQLTest extends TestCase
         DB::$defaultDevLabel = 'tests-mysql';
 
         $this->expectException(\RunTimeException::class);
-        $this->expectExceptionMessageMatches('/Database error:/');
+        $this->expectExceptionMessageMatches('/(Database error:|SQLSTATE)/');
         App::$App->Config['environment'] = 'production';
         DB::nonQuery('SELECT malformed query');
     }
@@ -377,8 +382,8 @@ class MySQLTest extends TestCase
                 3,
             ]);
 
-            $Context->assertEquals($a, $args[0]);
-            $Context->assertEquals(0, $args[1]);
+            $Context->assertEquals($a, $args[1]);
+            $Context->assertEquals(0, $args[2]);
         });
     }
 
@@ -479,7 +484,7 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         // forced error
-        $this->expectExceptionMessageMatches('/Database error:/');
+        $this->expectExceptionMessageMatches('/(Database error:SQLSTATE|)/');
         $record = testableDB::oneRecordCached('something', 'SELECT FROM NOTHING');
     }
 

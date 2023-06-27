@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         verbose="true"
-         colors="true"
-         bootstrap="vendor/autoload.php">
-    <testsuites>
-        <testsuite name="all">
-            <directory>tests/Divergence</directory>
-        </testsuite>
-    </testsuites>
-    <listeners>
-        <listener class="Divergence\Tests\TestListener" file="./tests/Divergence/TestListener.php"></listener>
-    </listeners>
-    <filter>
-        <whitelist>
-            <directory>./src</directory>
-            <exclude>
-                <directory>./src/App</directory>
-                <directory>./public</directory>
-                <directory>./vendor</directory>
-                <directory>./tests</directory>
-            </exclude>
-        </whitelist>
-    </filter>
-    <php>
-        <const name="PHPUNIT_TESTSUITE" value="true"/>
-    </php>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" verbose="true" colors="true" bootstrap="vendor/autoload.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+  <coverage>
+    <include>
+      <directory>./src</directory>
+    </include>
+    <exclude>
+      <directory>./src/App</directory>
+      <directory>./public</directory>
+      <directory>./vendor</directory>
+      <directory>./tests</directory>
+    </exclude>
+  </coverage>
+  <testsuites>
+    <testsuite name="all">
+      <directory>tests/Divergence</directory>
+    </testsuite>
+  </testsuites>
+  <listeners>
+    <listener class="Divergence\Tests\TestListener" file="./tests/Divergence/TestListener.php"/>
+  </listeners>
+  <php>
+    <const name="PHPUNIT_TESTSUITE" value="true"/>
+  </php>
 </phpunit>

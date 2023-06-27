@@ -167,8 +167,10 @@ class MySQL
             }
 
             // set timezone
-            $q = static::$Connections[$label]->prepare('SET time_zone=?');
-            $q->execute([static::$TimeZone]);
+            if (!empty(static::$TimeZone)) {
+                $q = static::$Connections[$label]->prepare('SET time_zone=?');
+                $q->execute([static::$TimeZone]);
+            }
         }
 
         return static::$Connections[$label];
@@ -262,28 +264,14 @@ class MySQL
         $queryLog = static::startQueryLog($query);
 
         // execute query
-        $Statement = static::getConnection()->query($query);
-
-        if ($Statement) {
-
-            // check for errors
-            $ErrorInfo = $Statement->errorInfo();
-
-            // handle query error
+        try {
+            static::$LastStatement = static::getConnection()->query($query);
+        } catch(\Exception $e) {
+            $ErrorInfo = $e->errorInfo;
             if ($ErrorInfo[0] != '00000') {
-                static::handleError($query, $queryLog, $errorHandler);
-            }
-        } else {
-            // check for errors
-            $ErrorInfo = static::getConnection()->errorInfo();
-
-            // handle query error
-            if ($ErrorInfo[0] != '00000') {
-                static::handleError($query, $queryLog, $errorHandler);
+                static::handleException($e, $query, $queryLog, $errorHandler);
             }
         }
-
-        static::$LastStatement = $Statement;
 
         // finish query log
         static::finishQueryLog($queryLog);
@@ -295,6 +283,7 @@ class MySQL
      * @param string $query A MySQL query
      * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
      * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleError
+     * @throws Exception
      * @return \PDOStatement
      */
     public static function query($query, $parameters = [], $errorHandler = null)
@@ -305,28 +294,29 @@ class MySQL
         $queryLog = static::startQueryLog($query);
 
         // execute query
-        $Statement = static::getConnection()->query($query);
+        try {
+            static::$LastStatement = $Statement = static::getConnection()->query($query);
+            // finish query log
+            static::finishQueryLog($queryLog);
 
-        if (!$Statement) {
-            // check for errors
-            $ErrorInfo = static::getConnection()->errorInfo();
-
-            // handle query error
+            return $Statement;
+        } catch(\Exception $e) {
+            $ErrorInfo = $e->errorInfo;
             if ($ErrorInfo[0] != '00000') {
-                $ErrorOutput = static::handleError($query, $queryLog, $errorHandler);
+                // handledException should return a PDOStatement from a successful query so let's pass this up
+                $handledException = static::handleException($e, $query, $queryLog, $errorHandler);
+                if (is_a($handledException,\PDOStatement::class)) {
+                    static::$LastStatement = $handledException;
+                    // start query log
+                    $queryLog = static::startQueryLog($query);
 
-                if (is_a($ErrorOutput, 'PDOStatement')) {
-                    $Statement = $ErrorOutput;
+                    return $handledException;
+                } else {
+                    throw $e;
                 }
             }
+           
         }
-
-        static::$LastStatement = $Statement;
-
-        // finish query log
-        static::finishQueryLog($queryLog);
-
-        return $Statement;
     }
 
     /*
@@ -499,15 +489,16 @@ class MySQL
      *
      * @throws \RuntimeException Database error!
      *
+     * @param Exception $e
      * @param string $query The query which caused the error.
      * @param boolean|array $queryLog An array created by startQueryLog containing logging information about this query.
      * @param callable $errorHandler An array handler to use instead of this one. If you pass this in it will run first and return directly.
      * @return void|mixed If $errorHandler is set to a callable it will try to run it and return anything that it returns. Otherwise void
      */
-    public static function handleError($query = '', $queryLog = false, $errorHandler = null)
+    public static function handleException(Exception $e, $query = '', $queryLog = false, $errorHandler = null)
     {
         if (is_callable($errorHandler, false, $callable)) {
-            return call_user_func($errorHandler, $query, $queryLog);
+            return call_user_func($errorHandler, $e, $query, $queryLog);
         }
 
         // save queryLog

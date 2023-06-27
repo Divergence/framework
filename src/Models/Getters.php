@@ -166,7 +166,7 @@ trait Getters
         return DB::oneRecord(
             (new Select())->setTable(static::$tableName)->where(join(') AND (', $conditions))->order($order ? join(',', $order) : '')->limit('1'),
             null,
-            [static::class,'handleError']
+            [static::class,'handleException']
         );
     }
 
@@ -179,7 +179,7 @@ trait Getters
      */
     public static function getByQuery($query, $params = [])
     {
-        return static::instantiateRecord(DB::oneRecord($query, $params, [static::class,'handleError']));
+        return static::instantiateRecord(DB::oneRecord($query, $params, [static::class,'handleException']));
     }
 
     /**
@@ -285,9 +285,9 @@ trait Getters
             $select->limit(sprintf('%u,%u', $options['offset'], $options['limit']));
         }
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $select, null, null, [static::class,'handleError']);
+            return DB::table(static::_cn($options['indexField']), $select, null, null, [static::class,'handleException']);
         } else {
-            return DB::allRecords($select, null, [static::class,'handleError']);
+            return DB::allRecords($select, null, [static::class,'handleException']);
         }
     }
 
@@ -300,12 +300,12 @@ trait Getters
      */
     public static function getAllByQuery($query, $params = [])
     {
-        return static::instantiateRecords(DB::allRecords($query, $params, [static::class,'handleError']));
+        return static::instantiateRecords(DB::allRecords($query, $params, [static::class,'handleException']));
     }
 
     public static function getTableByQuery($keyField, $query, $params = [])
     {
-        return static::instantiateRecords(DB::table($keyField, $query, $params, [static::class,'handleError']));
+        return static::instantiateRecords(DB::table($keyField, $query, $params, [static::class,'handleException']));
     }
 
     /**
@@ -363,9 +363,9 @@ trait Getters
         }
 
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $select, null, null, [static::class,'handleError']);
+            return DB::table(static::_cn($options['indexField']), $select, null, null, [static::class,'handleException']);
         } else {
-            return DB::allRecords($select, null, [static::class,'handleError']);
+            return DB::allRecords($select, null, [static::class,'handleException']);
         }
     }
 
