@@ -3,6 +3,10 @@ build:
   environment:
       php: 8.1.12
   nodes:
+    analysis:
+      dependencies:
+        after:
+        - composer require --dev "squizlabs/php_codesniffer=3.7.2"
     coverage:
       tests:
         override:
@@ -11,6 +15,3 @@ build:
               file: build/logs/clover.xml   # <- Set this to where we find the coverage data.
                                           #    The path is relative to the current directory.
               format: clover
-tools:
-  php_code_sniffer:
-    enabled: false
