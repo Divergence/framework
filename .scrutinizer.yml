@@ -3,7 +3,14 @@ build:
   environment:
     php: 8.1.12
   nodes:
-    node-with-auto-setup:
+    phpcs-run:
       tests:
         override:
           - true
+    phpunit:
+      tests:
+        - command: ./vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+          coverage:
+          file: build/logs/clover.xml   # <- Set this to where we find the coverage data.
+                                          #    The path is relative to the current directory.
+          format: clover
