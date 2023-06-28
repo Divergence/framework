@@ -41,7 +41,7 @@ return [
     'tests-mysql' => [
         'host'     =>   'localhost',
         'database' =>  'test',
-        'username' =>  'travis',
+        'username' =>  'root',
         'password' =>  '',
     ],
     'tests-mysql-socket' => [
@@ -49,7 +49,7 @@ return [
         // feel free to adjust for yourself but do not commit your preference
         'socket'   => file_exists('/var/run/mysqld/mysqld.sock') ? '/var/run/mysqld/mysqld.sock' : '/tmp/mysql.sock',
         'database' =>  'test',
-        'username' =>  'travis',
+        'username' =>  'root',
         'password' =>  '',
     ],
 ];

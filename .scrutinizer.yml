@@ -12,7 +12,7 @@ build:
   nodes:
     coverage:
       services:
-        mariadb: 14
+        mariadb: 10.6.12
       tests:
         override:
           - command: ./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml  # Or "./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml"
