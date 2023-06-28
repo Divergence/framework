@@ -20,4 +20,4 @@ build:
     analysis:
       tests:
         override:
-        - true
+        - php-scrutinizer-run
