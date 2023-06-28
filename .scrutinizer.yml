@@ -16,3 +16,8 @@ build:
         coverage:
           file: 'build/coverage/clover.xml'
           format: 'php-clover'
+  nodes:
+    analysis:
+      tests:
+        override:
+        - true
