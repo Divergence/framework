@@ -10,9 +10,9 @@ build:
   nodes:
     coverage:
       - command: ./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml  # Or "./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml"
-      coverage:
-        file: 'build/coverage/clover.xml'
-        format: 'php-clover'
+        coverage:
+          file: 'build/coverage/clover.xml'
+          format: 'php-clover'
     analysis:
       tests:
         override:
