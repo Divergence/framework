@@ -8,12 +8,13 @@ build:
   environment:
     php: 8.1.12
   nodes:
+    coverage:
+      - command: ./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml  # Or "./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml"
+      idle_timeout: 1200
+      coverage:
+        file: 'build/coverage/clover.xml'
+        format: 'php-clover'
     analysis:
       tests:
         override:
         - php-scrutinizer-run
-        - ./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml  # Or "./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml"
-        idle_timeout: 1200
-        coverage:
-          file: 'build/coverage/clover.xml'
-          format: 'php-clover'
