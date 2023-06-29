@@ -12,9 +12,12 @@ build:
   nodes:
     coverage:
       services:
-        mariadb: 10.6.12
-          ramdisks:
-            - /var/run/mysqld:/var/run/mysqld
+        mariadb:
+            image: docker.io/library/mariadb:10.6.12
+            ports:
+                - 3306
+            ramdisks:
+                - /var/run/mysqld
       dependencies:
         before:
           - mysql -u root -e "CREATE DATABASE IF NOT EXISTS test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
