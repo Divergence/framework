@@ -13,6 +13,8 @@ build:
     coverage:
       services:
         mariadb: 10.6.12
+        volumes:
+          - /var/run/mysqld/:/var/run/mysqld/
       dependencies:
         before:
           - mysql -u root -e "CREATE DATABASE IF NOT EXISTS test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
