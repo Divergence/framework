@@ -266,7 +266,7 @@ class MySQL
         // execute query
         try {
             static::$LastStatement = static::getConnection()->query($query);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $ErrorInfo = $e->errorInfo;
             if ($ErrorInfo[0] != '00000') {
                 static::handleException($e, $query, $queryLog, $errorHandler);
@@ -300,12 +300,12 @@ class MySQL
             static::finishQueryLog($queryLog);
 
             return $Statement;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $ErrorInfo = $e->errorInfo;
             if ($ErrorInfo[0] != '00000') {
                 // handledException should return a PDOStatement from a successful query so let's pass this up
                 $handledException = static::handleException($e, $query, $queryLog, $errorHandler);
-                if (is_a($handledException,\PDOStatement::class)) {
+                if (is_a($handledException, \PDOStatement::class)) {
                     static::$LastStatement = $handledException;
                     // start query log
                     $queryLog = static::startQueryLog($query);
@@ -315,7 +315,6 @@ class MySQL
                     throw $e;
                 }
             }
-           
         }
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace Divergence\IO\Database\Query;
 
 class Update extends AbstractQuery

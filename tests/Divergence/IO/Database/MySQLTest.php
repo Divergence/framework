@@ -84,7 +84,8 @@ class MySQLTest extends TestCase
         $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql'));
         try {
             $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql-socket'));
-        } catch(\Exception $e) {}
+        } catch (\Exception $e) {
+        }
         /**
          * For older MySQL message is: "PDO failed to connect on config "mysql" mysql:host=localhost;port=3306;dbname=divergence"
          * For newer MySQL message is: "SQLSTATE[HY000] [1044] Access denied for user 'divergence'@'localhost' to database 'divergence'"

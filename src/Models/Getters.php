@@ -342,7 +342,7 @@ trait Getters
         if ($options['calcFoundRows']) {
             $select->calcFoundRows();
         }
-        
+
         $expression = sprintf('`%s`.*', $className::$rootClass);
         $select->expression($expression.static::buildExtraColumns($options['extraColumns']));
 

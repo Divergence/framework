@@ -975,7 +975,7 @@ class ActiveRecord implements JsonSerializable
      */
     public static function handleException(\Exception $e, $query = null, $queryLog = null, $parameters = null)
     {
-        $Connection = DB::getConnection(); 
+        $Connection = DB::getConnection();
         if ($Connection->errorCode() == '42S02' && static::$autoCreateTables) {
             $CreateTable = SQL::getCreateTable(static::$rootClass);
 

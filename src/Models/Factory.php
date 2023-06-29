@@ -1,4 +1,5 @@
 <?php
+
 namespace Divergence\Factory;
 
 use Exception;

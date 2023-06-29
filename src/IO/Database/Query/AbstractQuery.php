@@ -1,4 +1,5 @@
 <?php
+
 namespace Divergence\IO\Database\Query;
 
 abstract class AbstractQuery
