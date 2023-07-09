@@ -256,7 +256,7 @@ class RelationsTest extends TestCase
             'class' => fakeCanary::class,
             'linkClass' => 'linkyClass',
             'linkLocal' => 'CategoryID',
-            'linkForeign' => 'CanaryID',
+            'linkForeign' => 'fakeCanaryID',
             'local' => 'ID',
             'foreign' => 'ID',
             'indexField' => false,

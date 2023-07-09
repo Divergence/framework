@@ -13,7 +13,7 @@ namespace Divergence\Tests\MockSite\Models\Forum;
 use Divergence\Models\Relations;
 use Divergence\Models\Versioning;
 
-use Divergence\Tests\MockSite\Mock\Data;
+use Divergence\Models\Mapping\Column;
 
 use Divergence\Tests\MockSite\Models\Tag;
 
@@ -38,18 +38,11 @@ class TagPost extends \Divergence\Models\Model
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
 
-    public static $fields = [
-        'TagID' => [
-            'type' => 'integer',
-            'required' => true,
-            'notnull' => true,
-        ],
-        'PostID' => [
-            'type' => 'integer',
-            'required' => true,
-            'notnull' => true,
-        ],
-    ];
+    #[Column(type: "integer", required:true, notnull: true)]
+    protected $TagID;
+
+    #[Column(type: "integer", required:true, notnull: true)]
+    protected $PostID;
 
     public static $indexes = [
         'TagPost' => [

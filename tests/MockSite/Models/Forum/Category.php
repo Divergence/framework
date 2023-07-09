@@ -13,8 +13,6 @@ namespace Divergence\Tests\MockSite\Models\Forum;
 use Divergence\Models\Relations;
 use Divergence\Models\Versioning;
 
-use Divergence\Tests\MockSite\Mock\Data;
-
 class Category extends \Divergence\Models\Model
 {
     use Versioning;
@@ -36,13 +34,7 @@ class Category extends \Divergence\Models\Model
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
 
-    public static $fields = [
-        'Name' => [
-            'type' => 'string',
-            'required' => true,
-            'notnull' => true,
-        ],
-    ];
+    protected $Name;
 
     public static $indexes = [];
 

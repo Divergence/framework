@@ -13,6 +13,7 @@ namespace Divergence\Models;
 use Exception;
 
 use Divergence\Helpers\Util;
+use Divergence\Models\Mapping\Column;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\IO\Database\Query\Insert;
 use Divergence\IO\Database\Query\Select;
@@ -32,14 +33,8 @@ trait Versioning
 {
     public $wasDirty = false;
 
-    public static $versioningFields = [
-        'RevisionID' => [
-            'columnName' => 'RevisionID',
-            'type' => 'integer',
-            'unsigned' => true,
-            'notnull' => false,
-        ],
-    ];
+    #[Column(type: "integer", unsigned:true, notnull:false)]
+    protected $RevisionID;
 
     public static $versioningRelationships = [
         'History' => [

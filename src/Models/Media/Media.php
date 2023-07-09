@@ -139,9 +139,9 @@ class Media extends Model
 
 
     // privates
-    protected $_webPath;
-    protected $_filesystemPath;
-    protected $_mediaInfo;
+    private $_webPath;
+    private $_filesystemPath;
+    private $_mediaInfo;
 
 
     // magic methods

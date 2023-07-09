@@ -11,6 +11,7 @@
 namespace Divergence\Models;
 
 use Exception;
+use ReflectionClass;
 use JsonSerializable;
 use Divergence\IO\Database\SQL as SQL;
 use Divergence\IO\Database\MySQL as DB;
@@ -308,7 +309,7 @@ class ActiveRecord implements JsonSerializable
 
         // set Class
         if (static::fieldExists('Class') && !$this->Class) {
-            $this->Class = get_class($this);
+            $this->_setFieldValue('Class', get_class($this));
         }
     }
 
@@ -368,9 +369,9 @@ class ActiveRecord implements JsonSerializable
     public function getPrimaryKeyValue()
     {
         if (isset(static::$primaryKey)) {
-            return $this->__get(static::$primaryKey);
+            return $this->{static::$primaryKey} ?? $this->_getFieldValue(static::$primaryKey);
         } else {
-            return $this->ID;
+            return $this->_getFieldValue('ID');
         }
     }
 
@@ -462,7 +463,7 @@ class ActiveRecord implements JsonSerializable
                     }
                     // default Handle to ID if not caught by fieldExists
                     elseif ($name == static::$handleField) {
-                        return $this->ID;
+                        return $this->_getFieldValue('ID');
                     }
                 }
         }
@@ -704,7 +705,8 @@ class ActiveRecord implements JsonSerializable
 
         // set created
         if (static::fieldExists('Created') && (!$this->Created || ($this->Created == 'CURRENT_TIMESTAMP'))) {
-            $this->Created = time();
+            $this->Created = $this->_record['Created'] = time();
+            unset($this->_convertedValues['Created']);
         }
 
         // validate
@@ -724,7 +726,14 @@ class ActiveRecord implements JsonSerializable
             // create new or update existing
             if ($this->_isPhantom) {
                 DB::nonQuery((new Insert())->setTable(static::$tableName)->set($set), null, [static::class,'handleException']);
-                $this->_record[$this->getPrimaryKey()] = DB::insertID();
+                $primaryKey = $this->getPrimaryKey();
+                $insertID = DB::insertID();
+                $fields = static::getClassFields();
+                if ( ($fields[$primaryKey]['type'] ?? false) === 'integer') {
+                    $insertID = intval($insertID);
+                }
+                $this->_record[$primaryKey] = $insertID;
+                $this->$primaryKey = $insertID; 
                 $this->_isPhantom = false;
                 $this->_isNew = true;
             } elseif (count($set)) {
@@ -1069,12 +1078,46 @@ class ActiveRecord implements JsonSerializable
             if (!empty($class::$fields)) {
                 static::$_classFields[$className] = array_merge(static::$_classFields[$className], $class::$fields);
             }
+            if ($attributeFields = $class::_getAttributeFields()) {
+                static::$_classFields[$className] = array_merge(static::$_classFields[$className], $attributeFields);
+            }
         }
+    }
 
-        // versioning
-        if (static::isVersioned()) {
-            static::$_classFields[$className] = array_merge(static::$_classFields[$className], static::$versioningFields);
+    /**
+     * This function grabs all protected fields on the model and uses that as the basis for what constitutes a mapped field
+     * It skips a certain list of protected fields that are built in for ORM operation
+     *
+     * @return array
+     */
+    public static function _getAttributeFields(): array
+    {
+        $attributeMappedClassFields = [];
+        $properties = (new ReflectionClass(static::class))->getProperties();
+        if(!empty($properties)) {
+            foreach ($properties as $property) {
+                if ($property->isProtected()) {
+
+                    // skip these because they are built in
+                    if (in_array($property->getName(),[
+                        '_classFields','_classRelationships','_classBeforeSave','_classAfterSave','_fieldsDefined','_relationshipsDefined','_eventsDefined','_record','_validator'
+                        ,'_validationErrors','_isDirty','_isValid','fieldSetMapper','_convertedValues','_originalValues','_isPhantom','_wasPhantom','_isNew','_isUpdated','_relatedObjects'
+                    ])) {
+                        continue;
+                    }
+
+                    if ($attributes = $property->getAttributes()) {
+                        foreach($attributes as $attribute) {
+                            $attributeMappedClassFields[$property->getName()] = $attribute->getArguments();
+                        }
+                    } else {
+                        // default
+                        $attributeMappedClassFields[$property->getName()] = [];
+                    }
+                }
+             }
         }
+        return $attributeMappedClassFields;
     }
 
 
@@ -1192,10 +1235,12 @@ class ActiveRecord implements JsonSerializable
                 case 'timestamp':
                     {
                         if (!isset($this->_convertedValues[$field])) {
-                            if ($value && $value != '0000-00-00 00:00:00') {
+                            if ($value && is_string($value) && $value != '0000-00-00 00:00:00') {
                                 $this->_convertedValues[$field] = strtotime($value);
+                            } else if (is_integer($value)) {
+                                $this->_convertedValues[$field] = $value;
                             } else {
-                                $this->_convertedValues[$field] = null;
+                                unset($this->_convertedValues[$field]);
                             }
                         }
 
@@ -1274,7 +1319,7 @@ class ActiveRecord implements JsonSerializable
     {
         // ignore setting versioning fields
         if (static::isVersioned()) {
-            if (array_key_exists($field, static::$versioningFields)) {
+            if ($field === 'RevisionID') {
                 return false;
             }
         }
@@ -1331,12 +1376,14 @@ class ActiveRecord implements JsonSerializable
 
             case 'timestamp':
                 {
+                    unset($this->_convertedValues[$field]);
                     $value = $this->fieldSetMapper->setTimestampValue($value);
                     break;
                 }
 
             case 'date':
                 {
+                    unset($this->_convertedValues[$field]);
                     $value = $this->fieldSetMapper->setDateValue($value);
                     break;
                 }
@@ -1344,8 +1391,10 @@ class ActiveRecord implements JsonSerializable
                 // these types are converted to strings from another PHP type on save
             case 'serialized':
                 {
-                    $this->_convertedValues[$field] = $value;
-                    $value = $this->fieldSetMapper->setSerializedValue($value);
+                    // if the value is a string we assume it's already serialized data
+                    if (!is_string($value)) {
+                        $value = $this->fieldSetMapper->setSerializedValue($value); 
+                    }
                     break;
                 }
             case 'enum':
@@ -1369,6 +1418,10 @@ class ActiveRecord implements JsonSerializable
                 $this->_originalValues[$field] = $this->_record[$columnName];
             }
             $this->_record[$columnName] = $value;
+            // only set value if this is an attribute mapped field
+            if (isset($this->_getAttributeFields()[$columnName])) {
+                $this->$columnName = $value;
+            }
             $this->_isDirty = true;
 
             // unset invalidated relationships
@@ -1392,8 +1445,8 @@ class ActiveRecord implements JsonSerializable
         foreach (static::$_classFields[get_called_class()] as $field => $options) {
             $columnName = static::_cn($field);
 
-            if (array_key_exists($columnName, $this->_record)) {
-                $value = $this->_record[$columnName];
+            if (array_key_exists($columnName, $this->_record) || isset($this->$columnName)) {
+                $value = $this->_record[$columnName] ?? $this->$columnName;
 
                 if (!$value && !empty($options['blankisnull'])) {
                     $value = null;

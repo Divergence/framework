@@ -17,6 +17,11 @@ class fakeCanary extends Canary
 { /* so we can test init on a brand new class */
     use Versioning;
 
+    // support subclassing
+    public static $rootClass = __CLASS__;
+    public static $defaultClass = __CLASS__;
+    public static $subClasses = [__CLASS__];
+
     public static $nextErrorAsException = false;
     public static function handleError($query = null, $queryLog = null, $parameters = null)
     {

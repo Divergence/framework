@@ -13,7 +13,7 @@ namespace Divergence\Tests\MockSite\Models\Forum;
 use Divergence\Models\Relations;
 use Divergence\Models\Versioning;
 
-use Divergence\Tests\MockSite\Mock\Data;
+use Divergence\Models\Mapping\Column;
 
 class Post extends \Divergence\Models\Model
 {
@@ -36,18 +36,11 @@ class Post extends \Divergence\Models\Model
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
 
-    public static $fields = [
-        'Content' => [
-            'type' => 'clob',
-            'required' => true,
-            'notnull' => true,
-        ],
-        'ThreadID' => [
-            'type' => 'integer',
-            'required' => true,
-            'notnull' => true,
-        ],
-    ];
+    #[Column(type: "clob", required:true, notnull: true)]
+    protected $Content;
+
+    #[Column(type: "integer", required:true, notnull: true)]
+    protected $ThreadID;
 
     public static $indexes = [
         'ThreadID' => [

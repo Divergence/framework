@@ -203,6 +203,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/create');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -222,6 +223,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/edit');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -312,6 +314,7 @@ class RecordsRequestHandlerTest extends TestCase
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -334,6 +337,7 @@ class RecordsRequestHandlerTest extends TestCase
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -542,6 +546,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/save');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data'][0]);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -563,6 +568,9 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/save');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData[0]['SerializedData'] = unserialize($MockData[0]['SerializedData']);
+        $MockData[1]['SerializedData'] = unserialize($MockData[1]['SerializedData']);
+        $MockData[2]['SerializedData'] = unserialize($MockData[2]['SerializedData']);
         $this->assertArraySubset($MockData[0], $x['data'][0]);
         $this->assertArraySubset($MockData[1], $x['data'][1]);
         $this->assertArraySubset($MockData[2], $x['data'][2]);
@@ -601,6 +609,9 @@ class RecordsRequestHandlerTest extends TestCase
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData[0]['SerializedData'] = unserialize($MockData[0]['SerializedData']);
+        $MockData[1]['SerializedData'] = unserialize($MockData[1]['SerializedData']);
+        $MockData[2]['SerializedData'] = unserialize($MockData[2]['SerializedData']);
         $this->assertArraySubset($MockData[0], $x['data'][0]);
         $this->assertArraySubset($MockData[1], $x['data'][1]);
         $this->assertArraySubset($MockData[2], $x['data'][2]);

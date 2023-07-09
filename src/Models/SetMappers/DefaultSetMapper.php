@@ -24,7 +24,7 @@ class DefaultSetMapper implements FieldSetMapper
 {
     public function setStringValue($value): ?string
     {
-        return mb_convert_encoding($value, DB::$encoding, 'auto'); // normalize encoding to ASCII
+        return mb_convert_encoding($value??'', DB::$encoding, 'auto'); // normalize encoding to ASCII
     }
 
     public function setBooleanValue($value): bool

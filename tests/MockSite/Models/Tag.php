@@ -31,10 +31,9 @@ class Tag extends \Divergence\Models\Model
     //static public $createRevisionOnDestroy = true;
     //static public $createRevisionOnSave = true;
 
-    public static $fields = [
-        'Tag',
-        'Slug',
-    ];
+    protected $Tag;
+
+    protected $Slug;
 
     /* expose protected attributes for unit testing */
     public static function getProtected($field)

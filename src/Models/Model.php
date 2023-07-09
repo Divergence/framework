@@ -10,6 +10,8 @@
 
 namespace Divergence\Models;
 
+use Divergence\Models\Mapping\Column;
+
 /**
  * Model.
  *
@@ -21,28 +23,15 @@ class Model extends ActiveRecord
 {
     use Getters;
 
-    /**
-     * {@inheritDoc}
-     */
-    public static $fields = [
-        'ID' => [
-            'type' => 'integer',
-            'autoincrement' => true,
-            'unsigned' => true,
-            'primary' => true,
-        ],
-        'Class' => [
-            'type' => 'enum',
-            'notnull' => true,
-            'values' => [],
-        ],
-        'Created' => [
-            'type' => 'timestamp',
-            'default' => 'CURRENT_TIMESTAMP',
-        ],
-        'CreatorID' => [
-            'type' => 'integer',
-            'notnull' => false,
-        ],
-    ];
+    #[Column(type: "integer", primary:true, autoincrement:true, unsigned:true)]
+    protected $ID;
+
+    #[Column(type: "enum", notnull:true, values:[])]
+    protected $Class;
+
+    #[Column(type: "timestamp", default:'CURRENT_TIMESTAMP')]
+    protected $Created;
+
+    #[Column(type: "integer", notnull:false)]
+    protected $CreatorID;
 }

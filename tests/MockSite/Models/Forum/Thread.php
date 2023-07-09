@@ -13,7 +13,7 @@ namespace Divergence\Tests\MockSite\Models\Forum;
 use Divergence\Models\Relations;
 use Divergence\Models\Versioning;
 
-use Divergence\Tests\MockSite\Mock\Data;
+use Divergence\Models\Mapping\Column;
 
 class Thread extends \Divergence\Models\Model
 {
@@ -36,18 +36,11 @@ class Thread extends \Divergence\Models\Model
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
 
-    public static $fields = [
-        'Title' => [
-            'type' => 'string',
-            'required' => true,
-            'notnull' => true,
-        ],
-        'CategoryID' => [
-            'type' => 'integer',
-            'required' => true,
-            'notnull' => true,
-        ],
-    ];
+    #[Column(type: "string", required:true, notnull: true)]
+    protected $Title;
+
+    #[Column(type: "integer", required:true, notnull: true)]
+    protected $CategoryID;
 
     public static $indexes = [];
 

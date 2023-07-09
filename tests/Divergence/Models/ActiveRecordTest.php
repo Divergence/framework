@@ -583,6 +583,7 @@ class ActiveRecordTest extends TestCase
         // fix this later
         unset($data['Colors']);
         unset($returnData['Colors']);
+        $data['SerializedData'] = unserialize($data['SerializedData']);
 
         $this->assertArraySubset($data, $returnData);
 
@@ -597,6 +598,7 @@ class ActiveRecordTest extends TestCase
         // fix this later
         unset($data['Colors']);
         unset($returnData['Colors']);
+        $data['SerializedData'] = unserialize($data['SerializedData']);
 
         $this->assertArraySubset($data, $returnData);
 
