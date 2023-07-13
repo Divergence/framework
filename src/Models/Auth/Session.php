@@ -46,10 +46,13 @@ class Session extends Model
     public static $singularNoun = 'session';
     public static $pluralNoun = 'sessions';
 
+    #[Column(notnull: false, default:null)]
     protected $ContextClass;
+
+    #[Column(type:'int',notnull: false, default:null)]
     protected $ContextID;
 
-    #[Column(unique:true)]
+    #[Column(unique:true,length:32)]
     protected $Handle;
 
     #[Column(type:'timestamp',notnull:false)]
