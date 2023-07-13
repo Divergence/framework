@@ -12,6 +12,7 @@ namespace Divergence\Models\Auth;
 
 use Divergence\Models\Model;
 use Divergence\Models\Relations;
+use Divergence\Models\Mapping\Column;
 
 /**
  * Session object
@@ -45,22 +46,17 @@ class Session extends Model
     public static $singularNoun = 'session';
     public static $pluralNoun = 'sessions';
 
-    public static $fields = [
-        'ContextClass' => null,
-        'ContextID' => null,
-        'Handle' => [
-            'unique' => true,
-        ],
-        'LastRequest' => [
-            'type' => 'timestamp',
-            'notnull' => false,
-        ],
-        'LastIP' => [
-            'type' => 'binary',
-            'length' => 16,
-        ],
-    ];
+    protected $ContextClass;
+    protected $ContextID;
 
+    #[Column(unique:true)]
+    protected $Handle;
+
+    #[Column(type:'timestamp',notnull:false)]
+    protected $LastRequest;
+
+    #[Column(type:'binary',length:16)]
+    protected $LastIP;
 
     /**
      * Gets or sets up a session based on current cookies.
@@ -105,7 +101,7 @@ class Session extends Model
     public static function updateSession(Session $Session, $sessionData)
     {
         // check timestamp
-        if (time() > $Session->LastRequest + static::$timeout) {
+        if (time() > $Session->__get('LastRequest') + static::$timeout) {
             $Session->terminate();
 
             return false;
@@ -161,7 +157,7 @@ class Session extends Model
             // @codeCoverageIgnoreStart
             setcookie(
                 static::$cookieName,
-                $this->Handle,
+                $this->__get('Handle'),
                 static::$cookieExpires ? (time() + static::$cookieExpires) : 0,
                 static::$cookiePath,
                 static::$cookieDomain,
