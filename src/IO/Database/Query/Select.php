@@ -7,6 +7,7 @@ class Select extends AbstractQuery
     public ?string $where;
     public ?string $having;
     public ?string $limit;
+    public ?string $order;
     public string $expression = '*';
     public bool $calcFoundRows = false;
 

@@ -308,7 +308,7 @@ class MySQL
                 if (is_a($handledException, \PDOStatement::class)) {
                     static::$LastStatement = $handledException;
                     // start query log
-                    $queryLog = static::startQueryLog($query);
+                    static::startQueryLog($query);
 
                     return $handledException;
                 } else {
@@ -473,7 +473,7 @@ class MySQL
         // get the first record
         $record = static::oneRecord($query, $parameters, $errorHandler);
 
-        if ($record) {
+        if (!empty($record)) {
             // return first value of the record
             return array_shift($record);
         } else {
@@ -512,14 +512,17 @@ class MySQL
         $message = $error[2];
 
         if (App::$App->Config['environment']=='dev') {
+            /** @var \Whoops\Handler\PrettyPageHandler */
             $Handler = \Divergence\App::$App->whoops->popHandler();
 
-            $Handler->addDataTable("Query Information", [
-                'Query'     	=>	$query,
-                'Error'		=>	$message,
-                'ErrorCode'	=>	static::getConnection()->errorCode(),
-            ]);
-            \Divergence\App::$App->whoops->pushHandler($Handler);
+            if ($Handler::class === \Whoops\Handler\PrettyPageHandler::class) {
+                $Handler->addDataTable("Query Information", [
+                    'Query'     	=>	$query,
+                    'Error'		=>	$message,
+                    'ErrorCode'	=>	static::getConnection()->errorCode(),
+                ]);
+                \Divergence\App::$App->whoops->pushHandler($Handler);
+            }
         }
         throw new \RuntimeException(sprintf("Database error: [%s]", static::getConnection()->errorCode()).$message);
     }
@@ -606,7 +609,7 @@ class MySQL
      */
     protected static function config()
     {
-        if (!static::$Config) {
+        if (empty(static::$Config)) {
             static::$Config = App::$App->config('db');
         }
 
