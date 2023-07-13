@@ -54,7 +54,7 @@ class Canary extends \Divergence\Models\Model
     protected $Name;
 
     #[Column(type: 'string', blankisnull: true, notnull:false)]
-    protected $Handle; 
+    protected $Handle;
 
     #[Column(type: 'boolean', default: true)]
     protected $isAlive;
@@ -145,14 +145,14 @@ class Canary extends \Divergence\Models\Model
     /*
      *  manifests a canary
      */
-    public static function mock():array
+    public static function mock(): array
     {
         $properties = (new ReflectionClass(static::class))->getProperties();
-        if(!empty($properties)) {
+        if (!empty($properties)) {
             foreach ($properties as $property) {
                 if ($property->getName() === 'Colors') {
                     $attributes = $property->getAttributes();
-                    foreach($attributes as $attribute) {
+                    foreach ($attributes as $attribute) {
                         if ($attribute->getName()===Column::class) {
                             $allowedColors = $attribute->getArguments()['values'];
                         }

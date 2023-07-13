@@ -12,7 +12,6 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final class Column implements MappingAttribute
 {
-
     /**
      * @var string|null
      * @readonly

@@ -49,16 +49,16 @@ class Session extends Model
     #[Column(notnull: false, default:null)]
     protected $ContextClass;
 
-    #[Column(type:'int',notnull: false, default:null)]
+    #[Column(type:'int', notnull: false, default:null)]
     protected $ContextID;
 
-    #[Column(unique:true,length:32)]
+    #[Column(unique:true, length:32)]
     protected $Handle;
 
-    #[Column(type:'timestamp',notnull:false)]
+    #[Column(type:'timestamp', notnull:false)]
     protected $LastRequest;
 
-    #[Column(type:'binary',length:16)]
+    #[Column(type:'binary', length:16)]
     protected $LastIP;
 
     /**
@@ -149,7 +149,7 @@ class Session extends Model
     {
         // set handle
         if (!$this->__get('Handle')) {
-            $this->__set('Handle',static::generateUniqueHandle());
+            $this->__set('Handle', static::generateUniqueHandle());
         }
 
         // call parent

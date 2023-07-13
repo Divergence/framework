@@ -731,11 +731,11 @@ class ActiveRecord implements JsonSerializable
                 $primaryKey = $this->getPrimaryKey();
                 $insertID = DB::insertID();
                 $fields = static::getClassFields();
-                if ( ($fields[$primaryKey]['type'] ?? false) === 'integer') {
+                if (($fields[$primaryKey]['type'] ?? false) === 'integer') {
                     $insertID = intval($insertID);
                 }
                 $this->_record[$primaryKey] = $insertID;
-                $this->$primaryKey = $insertID; 
+                $this->$primaryKey = $insertID;
                 $this->_isPhantom = false;
                 $this->_isNew = true;
             } elseif (count($set)) {
@@ -1082,7 +1082,7 @@ class ActiveRecord implements JsonSerializable
             }
             $attributeFields = $class::_definedAttributeFields();
             if (!empty($attributeFields['fields'])) {
-                static::$_classFields[$className] = array_merge(static::$_classFields[$className],$attributeFields['fields']);
+                static::$_classFields[$className] = array_merge(static::$_classFields[$className], $attributeFields['fields']);
             }
             if (!empty($attributeFields['relations'])) {
                 $class::$relationships = $attributeFields['relations'];
@@ -1096,17 +1096,17 @@ class ActiveRecord implements JsonSerializable
      *
      * @return array
      */
-    public static function _definedAttributeFields():array
+    public static function _definedAttributeFields(): array
     {
         $fields = [];
         $relations = [];
         $properties = (new ReflectionClass(static::class))->getProperties();
-        if(!empty($properties)) {
+        if (!empty($properties)) {
             foreach ($properties as $property) {
                 if ($property->isProtected()) {
 
                     // skip these because they are built in
-                    if (in_array($property->getName(),[
+                    if (in_array($property->getName(), [
                         '_classFields','_classRelationships','_classBeforeSave','_classAfterSave','_fieldsDefined','_relationshipsDefined','_eventsDefined','_record','_validator'
                         ,'_validationErrors','_isDirty','_isValid','fieldSetMapper','_convertedValues','_originalValues','_isPhantom','_wasPhantom','_isNew','_isUpdated','_relatedObjects'
                     ])) {
@@ -1116,10 +1116,10 @@ class ActiveRecord implements JsonSerializable
                     $isRelationship = false;
 
                     if ($attributes = $property->getAttributes()) {
-                        foreach($attributes as $attribute) {
+                        foreach ($attributes as $attribute) {
                             $attributeName = $attribute->getName();
                             if ($attributeName === Column::class) {
-                                $fields[$property->getName()] = array_merge($attribute->getArguments(),['attributeField'=>true]);
+                                $fields[$property->getName()] = array_merge($attribute->getArguments(), ['attributeField'=>true]);
                             }
 
                             if ($attributeName === Relation::class) {
@@ -1134,7 +1134,7 @@ class ActiveRecord implements JsonSerializable
                         }
                     }
                 }
-             }
+            }
         }
         return [
             'fields' => $fields,
@@ -1259,7 +1259,7 @@ class ActiveRecord implements JsonSerializable
                         if (!isset($this->_convertedValues[$field])) {
                             if ($value && is_string($value) && $value != '0000-00-00 00:00:00') {
                                 $this->_convertedValues[$field] = strtotime($value);
-                            } else if (is_integer($value)) {
+                            } elseif (is_integer($value)) {
                                 $this->_convertedValues[$field] = $value;
                             } else {
                                 unset($this->_convertedValues[$field]);
@@ -1415,7 +1415,7 @@ class ActiveRecord implements JsonSerializable
                 {
                     // if the value is a string we assume it's already serialized data
                     if (!is_string($value)) {
-                        $value = $this->fieldSetMapper->setSerializedValue($value); 
+                        $value = $this->fieldSetMapper->setSerializedValue($value);
                     }
                     break;
                 }

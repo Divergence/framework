@@ -38,7 +38,7 @@ class App
         if (php_sapi_name()!=='cli') {
             $this->Path = new Path($_SERVER['REQUEST_URI']);
         }
-        
+
         $this->Config = $this->config('app');
 
         $this->registerErrorHandler();
