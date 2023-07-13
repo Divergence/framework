@@ -15,6 +15,7 @@ use Divergence\Models\Versioning;
 
 use Divergence\Models\Mapping\Column;
 
+use Divergence\Models\Mapping\Relation;
 use Divergence\Tests\MockSite\Models\Tag;
 
 class TagPost extends \Divergence\Models\Model
@@ -54,18 +55,19 @@ class TagPost extends \Divergence\Models\Model
         ],
     ];
 
-    public static $relationships = [
-        'Tag' => [
-            'type' => 'one-one',
-            'class' => Tag::class,
-            'local' => 'ThreadID',
-            'foreign' => 'ID',
-        ],
-        'Post' => [
-            'type' => 'one-one',
-            'class' => Post::class,
-            'local' => 'PostID',
-            'foreign' => 'ID',
-        ],
-    ];
+    #[Relation(
+        type:'one-one',
+        class:Tag::class,
+        local: 'ThreadID',
+        foreign: 'ID',
+    )]
+    protected $Tag;
+
+    #[Relation(
+        type:'one-one',
+        class:Post::class,
+        local: 'PostID',
+        foreign: 'ID',
+    )]
+    protected $Post;
 }

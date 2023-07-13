@@ -14,6 +14,7 @@ use Divergence\Models\Relations;
 use Divergence\Models\Versioning;
 
 use Divergence\Models\Mapping\Column;
+use Divergence\Models\Mapping\Relation;
 
 class Thread extends \Divergence\Models\Model
 {
@@ -36,20 +37,19 @@ class Thread extends \Divergence\Models\Model
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
 
+    public static $indexes = [];
+
     #[Column(type: "string", required:true, notnull: true)]
     protected $Title;
 
     #[Column(type: "integer", required:true, notnull: true)]
     protected $CategoryID;
 
-    public static $indexes = [];
-
-    public static $relationships = [
-        'Categories' => [
-            'type' => 'one-many',
-            'class' => Category::class,
-            'local' => 'ID',
-            'foreign' => 'ThreadID',
-        ],
-    ];
+    #[Relation(
+        type:'one-many',
+        class:Category::class,
+        local: 'ID',
+        foreign: 'ThreadID',
+    )]
+    protected $Categories;
 }

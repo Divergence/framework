@@ -191,7 +191,7 @@ class RecordsRequestHandlerTest extends TestCase
     public function testCreate()
     {
         // create
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -212,7 +212,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -232,7 +232,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -252,7 +252,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -299,7 +299,7 @@ class RecordsRequestHandlerTest extends TestCase
     public function testCreateFromJSON()
     {
         // create
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $PUT = ['data'=>$MockData];
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -323,7 +323,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $PUT = ['data'=>$MockData];
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -535,7 +535,7 @@ class RecordsRequestHandlerTest extends TestCase
 
     public function testMultiSaveRequestWithOneSave()
     {
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
             $MockData['Colors'] = [$MockData['Colors']];
@@ -555,7 +555,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         $x = 0;
         while ($x < 3) {
-            $MockData[$x] = Canary::avis();
+            $MockData[$x] = Canary::mock();
             $MockData[$x]['DateOfBirth'] = date('Y-m-d', $MockData[$x]['DateOfBirth']);
             if (is_integer($MockData[$x]['Colors'])) {
                 $MockData[$x]['Colors'] = [$MockData[$x]['Colors']];
@@ -593,7 +593,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         $x = 0;
         while ($x < 3) {
-            $MockData[$x] = Canary::avis();
+            $MockData[$x] = Canary::mock();
             $MockData[$x]['DateOfBirth'] = date('Y-m-d', $MockData[$x]['DateOfBirth']);
             if (is_integer($MockData[$x]['Colors'])) {
                 $MockData[$x]['Colors'] = [$MockData[$x]['Colors']];
@@ -627,8 +627,8 @@ class RecordsRequestHandlerTest extends TestCase
             'limit' => 3,
         ]);
 
-        $Existing[0]->setFields(Canary::avis());
-        $Existing[2]->setFields(Canary::avis());
+        $Existing[0]->setFields(Canary::mock());
+        $Existing[2]->setFields(Canary::mock());
 
         $MockData = [
             $Existing[0]->data,
@@ -780,7 +780,7 @@ class RecordsRequestHandlerTest extends TestCase
         $controller = new CanaryRequestHandler();
 
         $controller->editableFields = ['Name'];
-        $data = Canary::avis();
+        $data = Canary::mock();
         $Canary = new Canary();
         $controller->applyRecordDelta($Canary, $data);
         $this->assertEquals($data['Name'], $Canary->Name);
@@ -803,7 +803,7 @@ class RecordsRequestHandlerTest extends TestCase
     public function testAccessDeniedCreate()
     {
         // create
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -822,7 +822,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -854,7 +854,7 @@ class RecordsRequestHandlerTest extends TestCase
     public function testAPIAccessDeniedCreate()
     {
         // create
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -873,7 +873,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {

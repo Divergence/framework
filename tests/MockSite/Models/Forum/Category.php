@@ -12,6 +12,7 @@ namespace Divergence\Tests\MockSite\Models\Forum;
 
 use Divergence\Models\Relations;
 use Divergence\Models\Versioning;
+use Divergence\Models\Mapping\Relation;
 
 class Category extends \Divergence\Models\Model
 {
@@ -34,28 +35,29 @@ class Category extends \Divergence\Models\Model
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
 
-    protected $Name;
-
     public static $indexes = [];
 
-    public static $relationships = [
-        'Threads' => [
-            'type' => 'one-many',
-            'class' => Thread::class,
-            'local' => 'ID',
-            'foreign' => 'CategoryID',
+    protected $Name;
+
+    #[Relation(
+        type:'one-many',
+        class:Thread::class,
+        local: 'ID',
+        foreign: 'CategoryID'
+    )]
+    protected $Threads;
+
+    #[Relation(
+        type:'one-many',
+        class:Thread::class,
+        local: 'ID',
+        foreign: 'CategoryID',
+        conditions: [
+            'Created > DATE_SUB(NOW(), INTERVAL 1 HOUR)',
         ],
-        'ThreadsAlpha' => [
-            'type' => 'one-many',
-            'class' => Thread::class,
-            'local' => 'ID',
-            'foreign' => 'CategoryID',
-            'conditions' => [
-                'Created > DATE_SUB(NOW(), INTERVAL 1 HOUR)',
-            ],
-            'order' => ['Title'=>'ASC'],
-        ],
-    ];
+        order: ['Title'=>'ASC']
+    )]
+    protected $ThreadsAlpha;
 
     public static function getProtected($field)
     {

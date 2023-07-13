@@ -52,13 +52,13 @@ class App extends \Divergence\App
 
             $Canaries = [];
             while (count($Canaries) < 10) {
-                $Canary = Canary::create(Canary::avis());
+                $Canary = Canary::create(Canary::mock());
 
                 $Canary->save();
                 array_push($Canaries, $Canary);
             }
 
-            $data = Canary::avis();
+            $data = Canary::mock();
             $data['Name'] = 'Versioned';
             $data['Handle'] = 'Versioned';
             $Canary = Canary::create($data, true);

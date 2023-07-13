@@ -3,7 +3,6 @@
 namespace Divergence\Models\Mapping;
 
 use Attribute;
-use BackedEnum;
 
 /**
  * @Annotation
@@ -103,12 +102,6 @@ final class Column implements MappingAttribute
     public $values = [];
 
     /**
-     * @var class-string<BackedEnum>|null
-     * @readonly
-     */
-    public $enumType = null;
-
-    /**
      * @var array<string,mixed>
      * @readonly
      */
@@ -129,7 +122,6 @@ final class Column implements MappingAttribute
     public $generated;
 
     /**
-     * @param class-string<BackedEnum>|null $enumType
      * @param array<string,mixed>           $options
      * @psalm-param 'NEVER'|'INSERT'|'ALWAYS'|null $generated
      */
@@ -148,7 +140,6 @@ final class Column implements MappingAttribute
         bool $updatable = true,
         string $delimiter = null,
         array $values = [],
-        ?string $enumType = null,
         array $options = [],
         ?string $columnDefinition = null,
         ?string $generated = null
@@ -167,7 +158,6 @@ final class Column implements MappingAttribute
         $this->updatable        = $updatable;
         $this->delimiter        = $delimiter;
         $this->values           = $values;
-        $this->enumType         = $enumType;
         $this->options          = $options;
         $this->columnDefinition = $columnDefinition;
         $this->generated        = $generated;

@@ -11,7 +11,6 @@
 namespace Divergence\Tests\MockSite\Models;
 
 use ReflectionClass;
-use Divergence\Models\Relations;
 
 use Divergence\Models\Versioning;
 use Divergence\Models\Mapping\Column;
@@ -25,7 +24,6 @@ use Divergence\Tests\MockSite\Mock\Data;
 class Canary extends \Divergence\Models\Model
 {
     use Versioning;
-    //use \Divergence\Models\Relations;
 
     // support subclassing
     public static $rootClass = __CLASS__;
@@ -145,11 +143,9 @@ class Canary extends \Divergence\Models\Model
     }
 
     /*
-     *  @incantation        (AH-viss)
-     *  @url                http://harrypotter.wikia.com/wiki/Bird-Conjuring_Charm
-     *  @desc_for_muggles   Bird-Conjuring Charm
+     *  manifests a canary
      */
-    public static function avis()
+    public static function mock():array
     {
         $properties = (new ReflectionClass(static::class))->getProperties();
         if(!empty($properties)) {
@@ -190,7 +186,7 @@ class Canary extends \Divergence\Models\Model
 
         $output['Handle'] = static::getUniqueHandle($output['Name']);
 
-        $output['DNAHash'] = password_hash($output['DNA'], PASSWORD_DEFAULT);
+        $output['DNAHash'] = md5($output['DNA']);
 
         $output['SerializedData'] = serialize($output);
 
@@ -200,8 +196,9 @@ class Canary extends \Divergence\Models\Model
     public static function randomDNA()
     {
         $raw = '';
+        $letters = ['A','T','G','C'];
         while (strlen($raw)<1000) {
-            $raw .= str_replace([0,1,2,3], ['A','T','G','C'], mt_rand(0, 3));
+            $raw .= $letters[mt_rand(0, 3)];
         }
         return $raw;
     }

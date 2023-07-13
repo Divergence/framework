@@ -12,10 +12,6 @@ namespace Divergence\Models;
 
 use Exception;
 
-use ReflectionClass;
-
-use Divergence\IO\Database\MySQL as DB;
-
 /**
  * Relations.
  *
@@ -203,7 +199,7 @@ trait Relations
     }
 
     /**
-     * Retrieves given relationships' value
+     * Retrieves given relationship's value
      * @param string $relationship Name of relationship
      * @return mixed value
      */

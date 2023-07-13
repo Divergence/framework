@@ -14,6 +14,7 @@ use Divergence\Models\Relations;
 use Divergence\Models\Versioning;
 
 use Divergence\Models\Mapping\Column;
+use Divergence\Models\Mapping\Relation;
 
 class Post extends \Divergence\Models\Model
 {
@@ -36,12 +37,6 @@ class Post extends \Divergence\Models\Model
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
 
-    #[Column(type: "clob", required:true, notnull: true)]
-    protected $Content;
-
-    #[Column(type: "integer", required:true, notnull: true)]
-    protected $ThreadID;
-
     public static $indexes = [
         'ThreadID' => [
             'fields' => [
@@ -51,21 +46,31 @@ class Post extends \Divergence\Models\Model
         ],
     ];
 
-    public static $relationships = [
-        /*
-         *  The first one is testing the minimal configuration of a one-to-one relationship
-         *  The key in this case "Thread" is used to look for $Key.'ID' in this case "ThreadID" as the local
-         *  The foreign is assumed to have it's own PK as ID
-         */
+    #[Column(type: "clob", required:true, notnull: true)]
+    protected $Content;
 
-        'Thread' => [
-            'class' => Thread::class,
+    #[Column(type: "integer", required:true, notnull: true)]
+    protected $ThreadID;
+
+    /*
+     *  The first one is testing the minimal configuration of a one-to-one relationship
+     *  The key in this case "Thread" is used to look for $Key.'ID' in this case "ThreadID" as the local
+     *  The foreign is assumed to have it's own PK as ID
+     */
+    #[Relation(
+        class:Thread::class,
+    )]
+    protected $Thread;
+
+    #[Relation(
+        type:'one-one',
+        class:Thread::class,
+        local: 'ThreadID',
+        foreign: 'ID',
+        conditions: [
+            'Created > DATE_SUB(NOW(), INTERVAL 1 HOUR)',
         ],
-        'ThreadExplicit' => [
-            'type' => 'one-one',
-            'class' => Thread::class,
-            'local' => 'ThreadID',
-            'foreign' => 'ID',
-        ],
-    ];
+        order: ['Title'=>'ASC']
+    )]
+    protected $ThreadExplicit;
 }

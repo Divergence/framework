@@ -13,8 +13,10 @@ namespace Divergence\Models;
 use Exception;
 use ReflectionClass;
 use JsonSerializable;
-use Divergence\IO\Database\SQL as SQL;
+use Divergence\IO\Database\SQL;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\Models\Mapping\Column;
+use Divergence\Models\Mapping\Relation;
 use Divergence\IO\Database\Query\Delete;
 use Divergence\IO\Database\Query\Insert;
 use Divergence\IO\Database\Query\Update;
@@ -538,7 +540,7 @@ class ActiveRecord implements JsonSerializable
      * @param string $class Check if the model matches this class.
      * @return boolean True if model matches the class provided. False otherwise.
      */
-    public function isA($class)
+    public function isA($class): bool
     {
         return is_a($this, $class);
     }
@@ -610,7 +612,7 @@ class ActiveRecord implements JsonSerializable
      *
      *  @return array The model's data as a normal array with any validation errors included.
      */
-    public function getData()
+    public function getData(): array
     {
         $data = [];
 
@@ -631,7 +633,7 @@ class ActiveRecord implements JsonSerializable
      * @param string $field
      * @return boolean
      */
-    public function isFieldDirty($field)
+    public function isFieldDirty($field): bool
     {
         return $this->isPhantom || array_key_exists($field, $this->_originalValues);
     }
@@ -759,7 +761,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return bool True if database returns number of affected rows above 0. False otherwise.
      */
-    public function destroy()
+    public function destroy(): bool
     {
         if (static::isVersioned()) {
             if (static::$createRevisionOnDestroy) {
@@ -784,7 +786,7 @@ class ActiveRecord implements JsonSerializable
      * @param int $id
      * @return bool True if database returns number of affected rows above 0. False otherwise.
      */
-    public static function delete($id)
+    public static function delete($id): bool
     {
         DB::nonQuery((new Delete())->setTable(static::$tableName)->where(sprintf('`%s` = %u', static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'), $id)), null, [static::class,'handleException']);
 
@@ -797,7 +799,7 @@ class ActiveRecord implements JsonSerializable
      * @param string $field Name of the field
      * @return bool True if the field exists. False otherwise.
      */
-    public static function fieldExists($field)
+    public static function fieldExists($field): bool
     {
         static::init();
         return array_key_exists($field, static::$_classFields[get_called_class()]);
@@ -808,7 +810,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return array Current configuration of class fields for the called class.
      */
-    public static function getClassFields()
+    public static function getClassFields(): array
     {
         static::init();
         return static::$_classFields[get_called_class()];
@@ -819,7 +821,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @param string $field Name of the field.
      * @param boolean $optionKey
-     * @return void
+     * @return array|mixed
      */
     public static function getFieldOptions($field, $optionKey = false)
     {
@@ -860,7 +862,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return string static::$rootClass for the called class.
      */
-    public function getRootClass()
+    public function getRootClass(): string
     {
         return static::$rootClass;
     }
@@ -1078,8 +1080,12 @@ class ActiveRecord implements JsonSerializable
             if (!empty($class::$fields)) {
                 static::$_classFields[$className] = array_merge(static::$_classFields[$className], $class::$fields);
             }
-            if ($attributeFields = $class::_getAttributeFields()) {
-                static::$_classFields[$className] = array_merge(static::$_classFields[$className], $attributeFields);
+            $attributeFields = $class::_definedAttributeFields();
+            if (!empty($attributeFields['fields'])) {
+                static::$_classFields[$className] = array_merge(static::$_classFields[$className],$attributeFields['fields']);
+            }
+            if (!empty($attributeFields['relations'])) {
+                $class::$relationships = $attributeFields['relations'];
             }
         }
     }
@@ -1090,9 +1096,10 @@ class ActiveRecord implements JsonSerializable
      *
      * @return array
      */
-    public static function _getAttributeFields(): array
+    public static function _definedAttributeFields():array
     {
-        $attributeMappedClassFields = [];
+        $fields = [];
+        $relations = [];
         $properties = (new ReflectionClass(static::class))->getProperties();
         if(!empty($properties)) {
             foreach ($properties as $property) {
@@ -1106,18 +1113,33 @@ class ActiveRecord implements JsonSerializable
                         continue;
                     }
 
+                    $isRelationship = false;
+
                     if ($attributes = $property->getAttributes()) {
                         foreach($attributes as $attribute) {
-                            $attributeMappedClassFields[$property->getName()] = $attribute->getArguments();
+                            $attributeName = $attribute->getName();
+                            if ($attributeName === Column::class) {
+                                $fields[$property->getName()] = array_merge($attribute->getArguments(),['attributeField'=>true]);
+                            }
+
+                            if ($attributeName === Relation::class) {
+                                $isRelationship = true;
+                                $relations[$property->getName()] = $attribute->getArguments();
+                            }
                         }
                     } else {
                         // default
-                        $attributeMappedClassFields[$property->getName()] = [];
+                        if (!$isRelationship) {
+                            $fields[$property->getName()] = [];
+                        }
                     }
                 }
              }
         }
-        return $attributeMappedClassFields;
+        return [
+            'fields' => $fields,
+            'relations' => $relations
+        ];
     }
 
 
@@ -1419,7 +1441,7 @@ class ActiveRecord implements JsonSerializable
             }
             $this->_record[$columnName] = $value;
             // only set value if this is an attribute mapped field
-            if (isset($this->_getAttributeFields()[$columnName])) {
+            if (isset($this->_classFields[get_called_class()][$columnName]['attributeField'])) {
                 $this->$columnName = $value;
             }
             $this->_isDirty = true;

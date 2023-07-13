@@ -26,7 +26,7 @@ class RecordValidatorTest extends TestCase
         $this->assertEquals($c, $v->getProtected('_record'));
 
         // careless user input whitespaces
-        $untrimmedRecord = Canary::avis();
+        $untrimmedRecord = Canary::mock();
         $untrimmedRecord['Name'] = "\t".$untrimmedRecord['Name'].' ';
         $untrimmedRecord['Handle'] = "\t".$untrimmedRecord['Handle'].' ';
         $a = strlen($untrimmedRecord['Name']);
@@ -319,7 +319,7 @@ class RecordValidatorTest extends TestCase
 
     public function testValidateCustomValidatorSuccess()
     {
-        $Record = Canary::avis();
+        $Record = Canary::mock();
 
         $v = new TestableRecordValidator($Record);
         $v->validate([
@@ -336,7 +336,7 @@ class RecordValidatorTest extends TestCase
 
     public function testValidateCustomValidatorFail()
     {
-        $Record = Canary::avis();
+        $Record = Canary::mock();
 
         $Record['DNA'][67] = 'X';
 

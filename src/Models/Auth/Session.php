@@ -28,9 +28,9 @@ class Session extends Model
     use Relations;
 
     // Session configurables
-    public static $cookieName = 's';
-    public static $cookieDomain = null;
-    public static $cookiePath = '/';
+    public static string $cookieName = 's';
+    public static string $cookieDomain = '';
+    public static string $cookiePath = '/';
     public static $cookieSecure = false;
     public static $cookieExpires = false;
     public static $timeout = 31536000; //3600;
