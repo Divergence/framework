@@ -148,8 +148,8 @@ class Session extends Model
     public function save($deep = true)
     {
         // set handle
-        if (!$this->Handle) {
-            $this->Handle = static::generateUniqueHandle();
+        if (!$this->__get('Handle')) {
+            $this->__set('Handle',static::generateUniqueHandle());
         }
 
         // call parent
