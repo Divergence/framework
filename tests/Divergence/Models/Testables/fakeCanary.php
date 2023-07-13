@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Models\Testables;
 
 use Divergence\Models\Versioning;
@@ -15,6 +16,11 @@ use Divergence\Tests\MockSite\Models\Canary;
 class fakeCanary extends Canary
 { /* so we can test init on a brand new class */
     use Versioning;
+
+    // support subclassing
+    public static $rootClass = __CLASS__;
+    public static $defaultClass = __CLASS__;
+    public static $subClasses = [__CLASS__];
 
     public static $nextErrorAsException = false;
     public static function handleError($query = null, $queryLog = null, $parameters = null)

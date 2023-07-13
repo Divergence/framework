@@ -7,12 +7,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models;
 
 use Exception;
 use Divergence\Helpers\Util;
 use Divergence\Models\ActiveRecord;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\IO\Database\Query\Select;
 
 /**
  * @property string $handleField Defined in the model
@@ -123,19 +125,7 @@ trait Getters
      */
     public static function getRecordByField($field, $value, $cacheIndex = false)
     {
-        $query = 'SELECT * FROM `%s` WHERE `%s` = "%s" LIMIT 1';
-        $params = [
-            static::$tableName,
-            static::_cn($field),
-            DB::escape($value),
-        ];
-
-        if ($cacheIndex) {
-            $key = sprintf('%s/%s:%s', static::$tableName, $field, $value);
-            return DB::oneRecordCached($key, $query, $params, [static::class,'handleError']);
-        } else {
-            return DB::oneRecord($query, $params, [static::class,'handleError']);
-        }
+        return static::getRecordByWhere([static::_cn($field) => DB::escape($value)], $cacheIndex);
     }
 
     /**
@@ -174,13 +164,9 @@ trait Getters
         $order = $options['order'] ? static::_mapFieldOrder($options['order']) : [];
 
         return DB::oneRecord(
-            'SELECT * FROM `%s` WHERE (%s) %s LIMIT 1',
-            [
-                static::$tableName,
-                join(') AND (', $conditions),
-                $order ? 'ORDER BY '.join(',', $order) : '',
-            ],
-            [static::class,'handleError']
+            (new Select())->setTable(static::$tableName)->where(join(') AND (', $conditions))->order($order ? join(',', $order) : '')->limit('1'),
+            null,
+            [static::class,'handleException']
         );
     }
 
@@ -193,7 +179,7 @@ trait Getters
      */
     public static function getByQuery($query, $params = [])
     {
-        return static::instantiateRecord(DB::oneRecord($query, $params, [static::class,'handleError']));
+        return static::instantiateRecord(DB::oneRecord($query, $params, [static::class,'handleException']));
     }
 
     /**
@@ -289,23 +275,19 @@ trait Getters
             'offset' => 0,
         ]);
 
-        $query = 'SELECT '.($options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : '').'* FROM `%s`';
-        $params = [
-            static::$tableName,
-        ];
+        $select = (new Select())->setTable(static::$tableName)->calcFoundRows();
 
         if ($options['order']) {
-            $query .= ' ORDER BY ' . join(',', static::_mapFieldOrder($options['order']));
+            $select->order(join(',', static::_mapFieldOrder($options['order'])));
         }
 
         if ($options['limit']) {
-            $query .= sprintf(' LIMIT %u,%u', $options['offset'], $options['limit']);
+            $select->limit(sprintf('%u,%u', $options['offset'], $options['limit']));
         }
-
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $query, $params, null, [static::class,'handleError']);
+            return DB::table(static::_cn($options['indexField']), $select, null, null, [static::class,'handleException']);
         } else {
-            return DB::allRecords($query, $params, [static::class,'handleError']);
+            return DB::allRecords($select, null, [static::class,'handleException']);
         }
     }
 
@@ -318,12 +300,12 @@ trait Getters
      */
     public static function getAllByQuery($query, $params = [])
     {
-        return static::instantiateRecords(DB::allRecords($query, $params, [static::class,'handleError']));
+        return static::instantiateRecords(DB::allRecords($query, $params, [static::class,'handleException']));
     }
 
     public static function getTableByQuery($keyField, $query, $params = [])
     {
-        return static::instantiateRecords(DB::table($keyField, $query, $params, [static::class,'handleError']));
+        return static::instantiateRecords(DB::table($keyField, $query, $params, [static::class,'handleException']));
     }
 
     /**
@@ -356,33 +338,34 @@ trait Getters
             $conditions = static::_mapConditions($conditions);
         }
 
-        // build query
-        $query  = 'SELECT %1$s `%3$s`.*';
-        $query .= static::buildExtraColumns($options['extraColumns']);
-        $query .= ' FROM `%2$s` AS `%3$s`';
-        $query .= ' WHERE (%4$s)';
+        $select = (new Select())->setTable(static::$tableName)->setTableAlias($className::$rootClass);
+        if ($options['calcFoundRows']) {
+            $select->calcFoundRows();
+        }
 
-        $query .= static::buildHaving($options['having']);
+        $expression = sprintf('`%s`.*', $className::$rootClass);
+        $select->expression($expression.static::buildExtraColumns($options['extraColumns']));
 
-        $params = [
-            $options['calcFoundRows'] ? 'SQL_CALC_FOUND_ROWS' : '',
-            static::$tableName,
-            $className::$rootClass,
-            $conditions ? join(') AND (', $conditions) : '1',
-        ];
+        if ($conditions) {
+            $select->where(join(') AND (', $conditions));
+        }
+
+        if ($options['having']) {
+            $select->having(static::buildHaving($options['having']));
+        }
 
         if ($options['order']) {
-            $query .= ' ORDER BY ' . join(',', static::_mapFieldOrder($options['order']));
+            $select->order(join(',', static::_mapFieldOrder($options['order'])));
         }
 
         if ($options['limit']) {
-            $query .= sprintf(' LIMIT %u,%u', $options['offset'], $options['limit']);
+            $select->limit(sprintf('%u,%u', $options['offset'], $options['limit']));
         }
 
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $query, $params, null, [static::class,'handleError']);
+            return DB::table(static::_cn($options['indexField']), $select, null, null, [static::class,'handleException']);
         } else {
-            return DB::allRecords($query, $params, [static::class,'handleError']);
+            return DB::allRecords($select, null, [static::class,'handleException']);
         }
     }
 
@@ -426,5 +409,47 @@ trait Getters
         } while (static::getByWhere(array_merge($options['domainConstraints'], [$options['handleField']=>$handle])));
 
         return $handle;
+    }
+
+    // TODO: make the handleField
+    public static function generateRandomHandle($length = 32)
+    {
+        do {
+            $handle = substr(md5(mt_rand(0, mt_getrandmax())), 0, $length);
+        } while (static::getByField(static::$handleField, $handle));
+
+        return $handle;
+    }
+
+    /**
+     * Builds the extra columns you might want to add to a database select query after the initial list of model fields.
+     *
+     * @param array|string $columns An array of keys and values or a string which will be added to a list of fields after the query's SELECT clause.
+     * @return string|null Extra columns to add after a SELECT clause in a query. Always starts with a comma.
+     */
+    public static function buildExtraColumns($columns)
+    {
+        if (!empty($columns)) {
+            if (is_array($columns)) {
+                foreach ($columns as $key => $value) {
+                    return ', '.$value.' AS '.$key;
+                }
+            } else {
+                return ', ' . $columns;
+            }
+        }
+    }
+
+    /**
+     * Builds the HAVING clause of a MySQL database query.
+     *
+     * @param array|string $having Same as conditions. Can provide a string to use or an array of field/value pairs which will be joined by the AND operator.
+     * @return string|null
+     */
+    public static function buildHaving($having)
+    {
+        if (!empty($having)) {
+            return ' (' . (is_array($having) ? join(') AND (', static::_mapConditions($having)) : $having) . ')';
+        }
     }
 }

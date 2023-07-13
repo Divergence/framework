@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Models;
 
 use PHPUnit\Framework\TestCase;
@@ -25,7 +26,7 @@ class RecordValidatorTest extends TestCase
         $this->assertEquals($c, $v->getProtected('_record'));
 
         // careless user input whitespaces
-        $untrimmedRecord = Canary::avis();
+        $untrimmedRecord = Canary::mock();
         $untrimmedRecord['Name'] = "\t".$untrimmedRecord['Name'].' ';
         $untrimmedRecord['Handle'] = "\t".$untrimmedRecord['Handle'].' ';
         $a = strlen($untrimmedRecord['Name']);
@@ -318,7 +319,7 @@ class RecordValidatorTest extends TestCase
 
     public function testValidateCustomValidatorSuccess()
     {
-        $Record = Canary::avis();
+        $Record = Canary::mock();
 
         $v = new TestableRecordValidator($Record);
         $v->validate([
@@ -335,7 +336,7 @@ class RecordValidatorTest extends TestCase
 
     public function testValidateCustomValidatorFail()
     {
-        $Record = Canary::avis();
+        $Record = Canary::mock();
 
         $Record['DNA'][67] = 'X';
 

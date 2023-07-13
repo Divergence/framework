@@ -7,17 +7,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Controllers;
 
 use Exception;
 use Divergence\Helpers\JSON;
-use Divergence\Responders\Response;
 use Divergence\Responders\JsonBuilder;
 use Divergence\Responders\TwigBuilder;
 use Divergence\IO\Database\MySQL as DB;
 use Divergence\Responders\JsonpBuilder;
 use Psr\Http\Message\ResponseInterface;
-use Divergence\Responders\ResponseBuilder;
 use Psr\Http\Message\ServerRequestInterface;
 use Divergence\Models\ActiveRecord as ActiveRecord;
 
@@ -53,8 +52,6 @@ abstract class RecordsRequestHandler extends RequestHandler
      * Start of routing for this controller.
      * Methods in this execution path will always respond either as an error or a normal response.
      * Responsible for detecting JSON or JSONP response modes.
-     *
-     * @return void
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -82,34 +79,34 @@ abstract class RecordsRequestHandler extends RequestHandler
     {
         switch ($action ? $action : $action = $this->shiftPath()) {
             case 'save':
-            {
-                return $this->handleMultiSaveRequest();
-            }
+                {
+                    return $this->handleMultiSaveRequest();
+                }
 
             case 'destroy':
-            {
-                return $this->handleMultiDestroyRequest();
-            }
+                {
+                    return $this->handleMultiDestroyRequest();
+                }
 
             case 'create':
-            {
-                return $this->handleCreateRequest();
-            }
+                {
+                    return $this->handleCreateRequest();
+                }
 
             case '':
             case false:
-            {
-                return $this->handleBrowseRequest();
-            }
+                {
+                    return $this->handleBrowseRequest();
+                }
 
             default:
-            {
-                if ($Record = $this->getRecordByHandle($action)) {
-                    return $this->handleRecordRequest($Record);
-                } else {
-                    return $this->throwRecordNotFoundError();
+                {
+                    if ($Record = $this->getRecordByHandle($action)) {
+                        return $this->handleRecordRequest($Record);
+                    } else {
+                        return $this->throwRecordNotFoundError();
+                    }
                 }
-            }
         }
     }
 
@@ -154,7 +151,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         return $options;
     }
 
-    public function handleBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = [])
+    public function handleBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = []): ResponseInterface
     {
         if (!$this->checkBrowseAccess(func_get_args())) {
             return $this->throwUnauthorizedError();
@@ -225,29 +222,29 @@ abstract class RecordsRequestHandler extends RequestHandler
         switch ($action ? $action : $action = $this->shiftPath()) {
             case '':
             case false:
-            {
-                $className = static::$recordClass;
+                {
+                    $className = static::$recordClass;
 
-                return $this->respond($this->getTemplateName($className::$singularNoun), [
-                    'success' => true,
-                    'data' => $Record,
-                ]);
-            }
+                    return $this->respond($this->getTemplateName($className::$singularNoun), [
+                        'success' => true,
+                        'data' => $Record,
+                    ]);
+                }
 
             case 'edit':
-            {
-                return $this->handleEditRequest($Record);
-            }
+                {
+                    return $this->handleEditRequest($Record);
+                }
 
             case 'delete':
-            {
-                return $this->handleDeleteRequest($Record);
-            }
+                {
+                    return $this->handleDeleteRequest($Record);
+                }
 
             default:
-            {
-                return $this->onRecordRequestNotHandled($Record, $action);
-            }
+                {
+                    return $this->onRecordRequestNotHandled($Record, $action);
+                }
         }
     }
 
@@ -315,9 +312,12 @@ abstract class RecordsRequestHandler extends RequestHandler
 
         $this->prepareResponseModeJSON(['POST','PUT']);
 
-        if ($className::fieldExists(key($_REQUEST['data']))) {
-            $_REQUEST['data'] = [$_REQUEST['data']];
+        if (!empty($_REQUEST['data'])) {
+            if ($className::fieldExists(key($_REQUEST['data']))) {
+                $_REQUEST['data'] = [$_REQUEST['data']];
+            }
         }
+
 
         if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
             return $this->respond('error', [
@@ -387,8 +387,10 @@ abstract class RecordsRequestHandler extends RequestHandler
 
         $this->prepareResponseModeJSON(['POST','PUT','DELETE']);
 
-        if ($className::fieldExists(key($_REQUEST['data']))) {
-            $_REQUEST['data'] = [$_REQUEST['data']];
+        if (!empty($_REQUEST['data'])) {
+            if ($className::fieldExists(key($_REQUEST['data']))) {
+                $_REQUEST['data'] = [$_REQUEST['data']];
+            }
         }
 
         if (empty($_REQUEST['data']) || !is_array($_REQUEST['data'])) {
@@ -553,7 +555,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         return true;
     }
 
-    public function throwUnauthorizedError()
+    public function throwUnauthorizedError(): ResponseInterface
     {
         return $this->respond('Unauthorized', [
             'success' => false,
@@ -563,7 +565,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         ]);
     }
 
-    public function throwAPIUnAuthorizedError()
+    public function throwAPIUnAuthorizedError(): ResponseInterface
     {
         return $this->respond('Unauthorized', [
             'success' => false,
@@ -573,7 +575,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         ]);
     }
 
-    public function throwNotFoundError()
+    public function throwNotFoundError(): ResponseInterface
     {
         return $this->respond('error', [
             'success' => false,
@@ -583,7 +585,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         ]);
     }
 
-    public function onRecordRequestNotHandled(ActiveRecord $Record, $action)
+    public function onRecordRequestNotHandled(ActiveRecord $Record, $action): ResponseInterface
     {
         return $this->respond('error', [
             'success' => false,

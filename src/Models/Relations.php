@@ -7,13 +7,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models;
 
 use Exception;
-
-use ReflectionClass;
-
-use Divergence\IO\Database\MySQL as DB;
 
 /**
  * Relations.
@@ -21,6 +18,10 @@ use Divergence\IO\Database\MySQL as DB;
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
  *
+ * @property array $_classRelationships
+ * @property array $_classFields
+ * @property string $rootClass
+ * @property array $contextClasses
  */
 trait Relations
 {
@@ -54,7 +55,7 @@ trait Relations
         }
     }
 
-    
+
     /**
      * Called after _defineRelationships to initialize and apply defaults to the relationships property
      * Must be idempotent as it may be applied multiple times up the inheritence chain
@@ -72,7 +73,61 @@ trait Relations
             static::$_classRelationships[$className] = $relationships;
         }
     }
-    
+
+    protected static function _prepareOneOne(string $relationship, array $options): array
+    {
+        $options['local'] = $options['local'] ?? $relationship . 'ID';
+        $options['foreign'] = $options['foreign'] ?? 'ID';
+        return $options;
+    }
+
+    protected static function _prepareOneMany(string $classShortName, array $options): array
+    {
+        $options['local'] = $options['local'] ?? 'ID';
+        $options['foreign'] = $options['foreign'] ?? $classShortName. 'ID';
+        $options['indexField'] = $options['indexField'] ?? false;
+        $options['conditions'] = $options['conditions'] ?? [];
+        $options['conditions'] = is_string($options['conditions']) ? [$options['conditions']] : $options['conditions'];
+        $options['order'] = $options['order'] ?? false;
+        return $options;
+    }
+
+    protected static function _prepareContextChildren($options): array {
+        $options['local'] = $options['local'] ?? 'ID';
+        $options['contextClass'] = $options['contextClass'] ?? get_called_class();
+        $options['indexField'] = $options['indexField'] ?? false;
+        $options['conditions'] = $options['conditions'] ?? [];
+        $options['order'] = $options['order'] ?? false;
+        return $options;
+    }
+
+    protected static function _prepareContextParent($options): array {
+        $options['local'] = $options['local'] ?? 'ContextID';
+        $options['foreign'] = $options['foreign'] ?? 'ID';
+        $options['classField'] = $options['classField'] ?? 'ContextClass';
+        $options['allowedClasses'] = $options['allowedClasses'] ?? (!empty(static::$contextClasses)?static::$contextClasses:null);
+        return $options;
+    }
+
+    protected static function _prepareManyMany($classShortName, $options): array {
+        if (empty($options['class'])) {
+            throw new Exception('Relationship type many-many option requires a class setting.');
+        }
+
+        if (empty($options['linkClass'])) {
+            throw new Exception('Relationship type many-many option requires a linkClass setting.');
+        }
+
+        $options['linkLocal'] = $options['linkLocal'] ?? $classShortName . 'ID';
+        $options['linkForeign'] = $options['linkForeign'] ?? basename(str_replace('\\', '/', $options['class']::$rootClass)).'ID';
+        $options['local'] = $options['local'] ?? 'ID';
+        $options['foreign'] = $options['foreign'] ?? 'ID';
+        $options['indexField'] = $options['indexField'] ?? false;
+        $options['conditions'] = $options['conditions'] ?? [];
+        $options['order'] = $options['order'] ?? false;
+        return $options;
+    }
+
     // TODO: Make relations getPrimaryKeyValue() instead of using ID all the time.
     protected static function _initRelationship($relationship, $options)
     {
@@ -82,123 +137,36 @@ trait Relations
         if (empty($options['type'])) {
             $options['type'] = 'one-one';
         }
-        
-        if ($options['type'] == 'one-one') {
-            if (empty($options['local'])) {
-                $options['local'] = $relationship . 'ID';
-            }
-                
-            if (empty($options['foreign'])) {
-                $options['foreign'] = 'ID';
-            }
-        } elseif ($options['type'] == 'one-many') {
-            if (empty($options['local'])) {
-                $options['local'] = 'ID';
-            }
-                    
-            if (empty($options['foreign'])) {
-                $options['foreign'] =  $classShortName. 'ID';
-            }
-                
-            if (!isset($options['indexField'])) {
-                $options['indexField'] = false;
-            }
-                
-            if (!isset($options['conditions'])) {
-                $options['conditions'] = [];
-            } elseif (is_string($options['conditions'])) {
-                $options['conditions'] = [$options['conditions']];
-            }
-                
-            if (!isset($options['order'])) {
-                $options['order'] = false;
-            }
-        } elseif ($options['type'] == 'context-children') {
-            if (empty($options['local'])) {
-                $options['local'] = 'ID';
-            }
-                    
-            if (empty($options['contextClass'])) {
-                $options['contextClass'] = get_called_class();
-            }
-                
-            if (!isset($options['indexField'])) {
-                $options['indexField'] = false;
-            }
-                
-            if (!isset($options['conditions'])) {
-                $options['conditions'] = [];
-            }
-                
-            if (!isset($options['order'])) {
-                $options['order'] = false;
-            }
-        } elseif ($options['type'] == 'context-parent') {
-            if (empty($options['local'])) {
-                $options['local'] = 'ContextID';
-            }
-                    
-            if (empty($options['foreign'])) {
-                $options['foreign'] = 'ID';
-            }
 
-            if (empty($options['classField'])) {
-                $options['classField'] = 'ContextClass';
-            }
-
-            if (empty($options['allowedClasses'])) {
-                $options['allowedClasses'] = static::$contextClasses;
-            }
-        } elseif ($options['type'] == 'many-many') {
-            if (empty($options['class'])) {
-                throw new Exception('Relationship type many-many option requires a class setting.');
-            }
-        
-            if (empty($options['linkClass'])) {
-                throw new Exception('Relationship type many-many option requires a linkClass setting.');
-            }
-                
-            if (empty($options['linkLocal'])) {
-                $options['linkLocal'] = $classShortName . 'ID';
-            }
-        
-            if (empty($options['linkForeign'])) {
-                $foreignShortname = basename(str_replace('\\', '/', $options['class']::$rootClass));
-                $options['linkForeign'] =  $foreignShortname . 'ID';
-            }
-        
-            if (empty($options['local'])) {
-                $options['local'] = 'ID';
-            }
-
-            if (empty($options['foreign'])) {
-                $options['foreign'] = 'ID';
-            }
-
-            if (!isset($options['indexField'])) {
-                $options['indexField'] = false;
-            }
-                
-            if (!isset($options['conditions'])) {
-                $options['conditions'] = [];
-            }
-                
-            if (!isset($options['order'])) {
-                $options['order'] = false;
-            }
+        switch($options['type']) {
+            case 'one-one':
+                $options = static::_prepareOneOne($relationship, $options);
+                break;
+            case 'one-many':
+                $options = static::_prepareOneMany($classShortName, $options);
+                break;
+            case 'context-children':
+                $options = static::_prepareContextChildren($options);
+                break;
+            case 'context-parent':
+                $options = static::_prepareContextParent($options);
+                break;
+            case 'many-many':
+                $options = static::_prepareManyMany($classShortName,$options);
+                break;
         }
-           
+
         if (static::isVersioned() && $options['type'] == 'history') {
             if (empty($options['class'])) {
                 $options['class'] = get_called_class();
             }
         }
-                
+
         return $options;
     }
-    
+
     /**
-     * Retrieves given relationships' value
+     * Retrieves given relationship's value
      * @param string $relationship Name of relationship
      * @return mixed value
      */
@@ -210,7 +178,7 @@ trait Relations
             if ($rel['type'] == 'one-one') {
                 if ($value = $this->_getFieldValue($rel['local'])) {
                     $this->_relatedObjects[$relationship] = $rel['class']::getByField($rel['foreign'], $value);
-                
+
                     // hook relationship for invalidation
                     static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
                 } else {
@@ -220,7 +188,7 @@ trait Relations
                 if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
-                
+
                 $this->_relatedObjects[$relationship] = $rel['class']::getAllByWhere(
                     array_merge($rel['conditions'], [
                         $rel['foreign'] => $this->_getFieldValue($rel['local']),
@@ -231,8 +199,8 @@ trait Relations
                         'conditions' => $rel['conditions'],
                     ]
                 );
-                
-                
+
+
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'context-children') {
@@ -244,7 +212,7 @@ trait Relations
                     'ContextClass' => $rel['contextClass'],
                     'ContextID' => $this->_getFieldValue($rel['local']),
                 ]);
-            
+
                 $this->_relatedObjects[$relationship] = $rel['class']::getAllByWhere(
                     $conditions,
                     [
@@ -252,13 +220,13 @@ trait Relations
                         'order' => $rel['order'],
                     ]
                 );
-                
+
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'context-parent') {
                 $className = $this->_getFieldValue($rel['classField']);
                 $this->_relatedObjects[$relationship] = $className ? $className::getByID($this->_getFieldValue($rel['local'])) : null;
-                
+
                 // hook both relationships for invalidation
                 static::$_classFields[get_called_class()][$rel['classField']]['relationships'][$relationship] = true;
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
@@ -266,9 +234,9 @@ trait Relations
                 if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
-                
+
                 // TODO: support indexField, conditions, and order
-                
+
                 $this->_relatedObjects[$relationship] = $rel['class']::getAllByQuery(
                     'SELECT Related.* FROM `%s` Link JOIN `%s` Related ON (Related.`%s` = Link.%s) WHERE Link.`%s` = %u AND %s',
                     [
@@ -281,14 +249,14 @@ trait Relations
                         $rel['conditions'] ? join(' AND ', $rel['conditions']) : '1',
                     ]
                 );
-                
+
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
             } elseif ($rel['type'] == 'history' && static::isVersioned()) {
                 $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->getPrimaryKeyValue(), $rel);
             }
         }
-        
+
         return $this->_relatedObjects[$relationship];
     }
 }

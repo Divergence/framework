@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Models;
 
 use Closure;
@@ -23,10 +24,13 @@ use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\Models\Testables\fakeCanary;
 use Divergence\Tests\Models\Testables\relationalCanary;
+use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 
 class ActiveRecordTest extends TestCase
 {
-    public function setUp()
+    use ArraySubsetAsserts;
+
+    public function setUp(): void
     {
         //App::init();
         //$x = Tag::create();
@@ -68,7 +72,7 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(false, fakeCanary::getProtected('_relationshipsDefined')[fakeCanary::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
         $this->assertEquals(false, fakeCanary::getProtected('_eventsDefined')[fakeCanary::class]);
 
-        $x = fakeCanary::create(fakeCanary::avis(), false);
+        $x = fakeCanary::create(fakeCanary::mock(), false);
 
         $this->assertEquals(true, Tag::getProtected('_fieldsDefined')[Tag::class]);
         $this->assertEquals(false, Tag::getProtected('_relationshipsDefined')[Tag::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
@@ -348,6 +352,7 @@ class ActiveRecordTest extends TestCase
             "default" => null,
             "values" => null,
             "columnName" => "ID",
+            'attributeField' => true,
           ], $classFields['ID']);
     }
 
@@ -371,6 +376,7 @@ class ActiveRecordTest extends TestCase
             "default" => null,
             "values" => null,
             "columnName" => "ID",
+            "attributeField" => true,
         ], $A->getFieldOptions('ID'));
         $this->assertEquals('integer', $A->getFieldOptions('ID', 'type'));
     }
@@ -569,7 +575,7 @@ class ActiveRecordTest extends TestCase
      */
     public function testSaveCanary()
     {
-        $data = Canary::avis();
+        $data = Canary::mock();
         $data['DateOfBirth'] = date('Y-m-d', $data['DateOfBirth']);
         $Canary = Canary::create($data);
         $Canary->setFields($data);
@@ -579,10 +585,11 @@ class ActiveRecordTest extends TestCase
         // fix this later
         unset($data['Colors']);
         unset($returnData['Colors']);
+        $data['SerializedData'] = unserialize($data['SerializedData']);
 
         $this->assertArraySubset($data, $returnData);
 
-        $data = Canary::avis();
+        $data = Canary::mock();
         $data['DateOfBirth'] = date('Y-m-d', $data['DateOfBirth']);
         $Canary = new Canary();
         $Canary->setFields($data);
@@ -593,6 +600,7 @@ class ActiveRecordTest extends TestCase
         // fix this later
         unset($data['Colors']);
         unset($returnData['Colors']);
+        $data['SerializedData'] = unserialize($data['SerializedData']);
 
         $this->assertArraySubset($data, $returnData);
 
@@ -1069,7 +1077,7 @@ class ActiveRecordTest extends TestCase
 
 
         fakeCanary::throwExceptionNextError();
-        $this->expectExceptionMessage('fakeCanary handlError exception');
+        $this->expectExceptionMessageMatches('/(Database error|fakeCanary handlError exception)/');
         fakeCanary::getAllByQuery('SELECT nothing(*)');
     }
 
@@ -1087,7 +1095,7 @@ class ActiveRecordTest extends TestCase
         fakeCanary::$tableName = 'fake';
         fakeCanary::$historyTable = 'history_fake';
 
-        $x = fakeCanary::create(fakeCanary::avis(), true);
+        $x = fakeCanary::create(fakeCanary::mock(), true);
 
         $this->assertCount(2, DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
         fakeCanary::$tableName = $a;

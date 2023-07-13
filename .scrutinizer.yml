@@ -1,0 +1,36 @@
+checks:
+  php:
+    code_rating: true
+    duplication: true
+
+build:
+  image: default-bionic
+  environment:
+    php: 8.1.12
+    variables:
+      XDEBUG_MODE: 'coverage'
+  nodes:
+    coverage:
+      services:
+        mariadb:
+            image: docker.io/library/mariadb:10.6.12
+            env:
+              MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: yes
+            ports:
+                - 3306
+            ramdisks:
+                - /var/run/mysqld
+      dependencies:
+        before:
+          - mysql -u root -e "CREATE DATABASE IF NOT EXISTS test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+      tests:
+        override:
+          - command: ./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml  # Or "./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml"
+            idle_timeout: 300
+            coverage:
+              file: 'build/coverage/clover.xml'
+              format: 'php-clover'
+    analysis:
+      tests:
+        override:
+        - php-scrutinizer-run

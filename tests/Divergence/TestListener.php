@@ -7,14 +7,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests;
 
 use PHPUnit\Framework\Test;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\TestSuite;
-use \Divergence\IO\Database\MySQL;
+use Divergence\IO\Database\MySQL;
 
-use \Divergence\Tests\MockSite\App;
+use Divergence\Tests\MockSite\App;
 use PHPUnit\Framework\TestListener as PHPUnit_TestListener;
 
 class TestListener implements PHPUnit_TestListener

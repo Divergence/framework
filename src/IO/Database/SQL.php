@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\IO\Database;
 
 use Exception;
@@ -98,7 +99,7 @@ class SQL
      *
      * @param string $recordClass Class name
      * @param boolean $historyVariant
-     * @return void
+     * @return string
      */
     public static function getCreateTable($recordClass, $historyVariant = false)
     {

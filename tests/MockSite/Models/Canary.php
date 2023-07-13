@@ -7,11 +7,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\MockSite\Models;
 
-use Divergence\Models\Relations;
-use Divergence\Models\Versioning;
+use ReflectionClass;
 
+use Divergence\Models\Versioning;
+use Divergence\Models\Mapping\Column;
 use Divergence\Tests\MockSite\Mock\Data;
 
 /*
@@ -22,7 +24,6 @@ use Divergence\Tests\MockSite\Mock\Data;
 class Canary extends \Divergence\Models\Model
 {
     use Versioning;
-    //use \Divergence\Models\Relations;
 
     // support subclassing
     public static $rootClass = __CLASS__;
@@ -40,97 +41,76 @@ class Canary extends \Divergence\Models\Model
     public static $createRevisionOnDestroy = true;
     public static $createRevisionOnSave = true;
 
-    public static $fields = [
-        'ContextID' => [
-            'type' => 'int',
-            'default' => 7,
-        ],
-        'ContextClass' => [
-            'type' => 'enum',
-            'values' => [Tag::class],
-            'default' => Tag::class,
-        ],
-        'DNA' => [
-            'type' => 'clob',
-            'notnull' => true,
-        ],
-        'Name' => [
-            'type' => 'string',
-            'required' => true,
-            'notnull' => true,
-        ],
-        'Handle' => [
-            'type' => 'string',
-            'blankisnull' => true,
-            'notnull' => false,
-        ],
-        'isAlive' => [
-            'type' => 'boolean',
-            'default' => true,
-        ],
-        'DNAHash' => [
-            'type' => 'password',
-        ],
-        'StatusCheckedLast' => [
-            'type' => 'timestamp',
-            'notnull' => false,
-        ],
-        'SerializedData' => [
-            'type' => 'serialized',
-        ],
-        'Colors' => [
-            'type' => 'set',
-            'values' => [
-                "red",
-                "pink",
-                "purple",
-                "deep-purple",
-                "indigo",
-                "blue",
-                "light-blue",
-                "cyan",
-                "teal",
-                "green",
-                "light-green",
-                "lime",
-                "yellow",
-                "amber",
-                "orange",
-                "deep-orange",
-                "brown",
-                "grey",
-                "blue-grey",
-            ],
-        ],
-        'EyeColors' => [
-            'type' => 'list',
-            'delimiter' => '|',
-        ],
-        'Height' => [
-            'type' => 'float',
-        ],
-        'LongestFlightTime' => [
-            'type' => 'int',
-            'notnull' => false,
-        ],
-        'HighestRecordedAltitude' => [
-            'type' => 'uint',
-        ],
-        'ObservationCount' => [
-            'type' => 'integer',
-            'notnull' => true,
-        ],
-        'DateOfBirth' => [
-            'type' => 'date',
-        ],
-        'Weight' => [
-            'type' => 'decimal',
-            'notnull' => false,
-            'precision' => '5',
-            'scale' => '2',
-        ],
-    ];
+    #[Column(type: 'int', default:7)]
+    protected $ContextID;
 
+    #[Column(type: 'enum', values: [Tag::class], default: Tag::class)]
+    protected $ContextClass;
+
+    #[Column(type: 'clob', notnull:true)]
+    protected $DNA;
+
+    #[Column(type: 'string', required: true, notnull:true)]
+    protected $Name;
+
+    #[Column(type: 'string', blankisnull: true, notnull:false)]
+    protected $Handle;
+
+    #[Column(type: 'boolean', default: true)]
+    protected $isAlive;
+
+    #[Column(type: 'password')]
+    protected $DNAHash;
+
+    #[Column(type: 'timestamp', notnull: false)]
+    protected $StatusCheckedLast;
+
+    #[Column(type: 'serialized')]
+    protected $SerializedData;
+
+    #[Column(type: 'set', values: [
+        "red",
+        "pink",
+        "purple",
+        "deep-purple",
+        "indigo",
+        "blue",
+        "light-blue",
+        "cyan",
+        "teal",
+        "green",
+        "light-green",
+        "lime",
+        "yellow",
+        "amber",
+        "orange",
+        "deep-orange",
+        "brown",
+        "grey",
+        "blue-grey",
+    ])]
+    protected $Colors;
+
+    #[Column(type: 'list', delimiter: '|')]
+    protected $EyeColors;
+
+    #[Column(type: 'float')]
+    protected $Height;
+
+    #[Column(type: 'int', notnull: false)]
+    protected $LongestFlightTime;
+
+    #[Column(type: 'uint')]
+    protected $HighestRecordedAltitude;
+
+    #[Column(type: 'integer', notnull: true)]
+    protected $ObservationCount;
+
+    #[Column(type: 'date')]
+    protected $DateOfBirth;
+
+    #[Column(type: 'decimal', notnull: false, precision: 5, scale: 2)]
+    protected $Weight;
 
     public static $indexes = [
         'Handle' => [
@@ -163,14 +143,23 @@ class Canary extends \Divergence\Models\Model
     }
 
     /*
-     *  @incantation        (AH-viss)
-     *  @url                http://harrypotter.wikia.com/wiki/Bird-Conjuring_Charm
-     *  @desc_for_muggles   Bird-Conjuring Charm
+     *  manifests a canary
      */
-    public static function avis()
+    public static function mock(): array
     {
-        $allowedColors = static::$fields['Colors']['values'];
-
+        $properties = (new ReflectionClass(static::class))->getProperties();
+        if (!empty($properties)) {
+            foreach ($properties as $property) {
+                if ($property->getName() === 'Colors') {
+                    $attributes = $property->getAttributes();
+                    foreach ($attributes as $attribute) {
+                        if ($attribute->getName()===Column::class) {
+                            $allowedColors = $attribute->getArguments()['values'];
+                        }
+                    }
+                }
+            }
+        }
         $colors = array_rand($allowedColors, mt_rand(1, 5));
         if (is_array($colors)) {
             foreach ($colors as &$color) {
@@ -197,7 +186,7 @@ class Canary extends \Divergence\Models\Model
 
         $output['Handle'] = static::getUniqueHandle($output['Name']);
 
-        $output['DNAHash'] = password_hash($output['DNA'], PASSWORD_DEFAULT);
+        $output['DNAHash'] = md5($output['DNA']);
 
         $output['SerializedData'] = serialize($output);
 
@@ -207,8 +196,9 @@ class Canary extends \Divergence\Models\Model
     public static function randomDNA()
     {
         $raw = '';
+        $letters = ['A','T','G','C'];
         while (strlen($raw)<1000) {
-            $raw .= str_replace([0,1,2,3], ['A','T','G','C'], mt_rand(0, 3));
+            $raw .= $letters[mt_rand(0, 3)];
         }
         return $raw;
     }

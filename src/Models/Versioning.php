@@ -7,12 +7,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models;
 
 use Exception;
 
 use Divergence\Helpers\Util;
+use Divergence\Models\Mapping\Column;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\IO\Database\Query\Insert;
+use Divergence\IO\Database\Query\Select;
 
 /**
  * Versioning.
@@ -22,19 +26,15 @@ use Divergence\IO\Database\MySQL as DB;
  * @inheritDoc
  * @property int $RevisionID ID of revision in the history table.
  * @property static[] $History All revisions for this object. This is hooked in the Relations trait.
+ * @property string $historyTable
+ * @property callable $createRevisionOnSave
  */
 trait Versioning
 {
     public $wasDirty = false;
 
-    public static $versioningFields = [
-        'RevisionID' => [
-            'columnName' => 'RevisionID',
-            'type' => 'integer',
-            'unsigned' => true,
-            'notnull' => false,
-        ],
-    ];
+    #[Column(type: "integer", unsigned:true, notnull:false)]
+    protected $RevisionID;
 
     public static $versioningRelationships = [
         'History' => [
@@ -101,25 +101,25 @@ trait Versioning
             'offset' => 0,
         ]);
 
-        $query = 'SELECT * FROM `%s` WHERE (%s)';
-        $params = [
-            static::getHistoryTable(),
-            count($options['conditions']) ? join(') AND (', static::_mapConditions($options['conditions'])) : 1,
-        ];
+
+        $select = (new Select())->setTable(static::getHistoryTable());
+
+        if ($options['conditions']) {
+            $select->where(join(') AND (', static::_mapConditions($options['conditions'])));
+        }
 
         if ($options['order']) {
-            $query .= ' ORDER BY ' . join(',', static::_mapFieldOrder($options['order']));
+            $select->order(join(',', static::_mapFieldOrder($options['order'])));
         }
 
         if ($options['limit']) {
-            $query .= sprintf(' LIMIT %u,%u', $options['offset'], $options['limit']);
+            $select->limit(sprintf('%u,%u', $options['offset'], $options['limit']));
         }
 
-
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $query, $params);
+            return DB::table(static::_cn($options['indexField']), $select);
         } else {
-            return DB::allRecords($query, $params);
+            return DB::allRecords($select);
         }
     }
 
@@ -149,13 +149,7 @@ trait Versioning
             // save a copy to history table
             $recordValues = $this->_prepareRecordValues();
             $set = static::_mapValuesToSet($recordValues);
-            DB::nonQuery(
-                'INSERT INTO `%s` SET %s',
-                [
-                    static::getHistoryTable(),
-                    join(',', $set),
-                ]
-            );
+            DB::nonQuery((new Insert())->setTable(static::getHistoryTable())->set($set), null, [static::class,'handleError']);
         }
     }
 }

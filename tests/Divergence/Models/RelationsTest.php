@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Models;
 
 use Divergence\Models\Model;
@@ -121,7 +122,7 @@ class RelationsTest extends TestCase
         $Post = Post::getByID(1);
         $Category = Category::getByID(1);
         $Threads = $Category->ThreadsAlpha;
-        
+
         $Expected = Thread::getAllByField('CategoryID', 1, [
             'order' => ['Title'=>'ASC'],
         ]);
@@ -255,7 +256,7 @@ class RelationsTest extends TestCase
             'class' => fakeCanary::class,
             'linkClass' => 'linkyClass',
             'linkLocal' => 'CategoryID',
-            'linkForeign' => 'CanaryID',
+            'linkForeign' => 'fakeCanaryID',
             'local' => 'ID',
             'foreign' => 'ID',
             'indexField' => false,
@@ -284,7 +285,7 @@ class RelationsTest extends TestCase
     public function testHistoryRelationshipType()
     {
         $Canary = relationalCanary::getByID(1);
-        
+
         $expected = relationalCanary::getRevisionsByID($Canary->ID, [
             'order' => [
                 'RevisionID' => 'DESC',

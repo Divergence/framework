@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
@@ -20,14 +21,14 @@ use Divergence\Controllers\MediaRequestHandler;
 
 class MediaRequestHandlerTest extends TestCase
 {
-    public function tearDown()
+    public function tearDown(): void
     {
         foreach (scandir(App::$App->ApplicationPath.'/media/original/') as $file) {
             if (in_array($file, ['.','..'])) {
                 unlink(realpath(App::$App->ApplicationPath.'/media/original/'.$file));
             }
         }
-        
+
         unlink(realpath(App::$App->ApplicationPath.'/media/original/'));
         unlink(realpath(App::$App->ApplicationPath.'/media/'));
     }
@@ -140,7 +141,7 @@ class MediaRequestHandlerTest extends TestCase
         copy($PNG, $tempName);
         $media = Media::createFromFile($tempName);
         $_SERVER['REQUEST_METHOD'] = 'POST';
-        
+
         App::$App->Path = new Path('/json/'.$media->ID);
         $controller = new MediaRequestHandler();
         $controller->uploadFileFieldName = 'test';
@@ -174,7 +175,7 @@ class MediaRequestHandlerTest extends TestCase
                 'ID' => 'DESC',
             ],
         ]);
-        $this->expectOutputString(json_encode(['success'=>true,'data'=>$media,'conditions'=>[],'total'=>(string)count($media),'limit'=>false,'offset'=>false]));
+        $this->expectOutputString(json_encode(['success'=>true,'data'=>$media,'conditions'=>[],'total'=>count($media),'limit'=>false,'offset'=>false]));
         (new Emitter($response))->emit();
     }
 

@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence;
 
 use Divergence\Routing\Path;
@@ -17,7 +18,7 @@ use Divergence\Controllers\SiteRequestHandler;
 
 class App
 {
-    const VERSION = '1.1';
+    public const VERSION = '1.1';
     public $ApplicationPath;
     public $Config;
     public Path $Path;
@@ -34,7 +35,9 @@ class App
     {
         $this->ApplicationPath = $Path;
 
-        $this->Path = new Path($_SERVER['REQUEST_URI']);
+        if (php_sapi_name()!=='cli') {
+            $this->Path = new Path($_SERVER['REQUEST_URI']);
+        }
 
         $this->Config = $this->config('app');
 
@@ -61,7 +64,7 @@ class App
     {
         // only show errors in dev environment
         if ($this->Config['environment'] == 'dev') {
-            $this->whoops = new \Whoops\Run;
+            $this->whoops = new \Whoops\Run();
 
             $Handler = new \Whoops\Handler\PrettyPageHandler();
             $Handler->setPageTitle("Divergence Error");

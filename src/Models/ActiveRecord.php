@@ -7,12 +7,19 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models;
 
 use Exception;
+use ReflectionClass;
 use JsonSerializable;
-use Divergence\IO\Database\SQL as SQL;
+use Divergence\IO\Database\SQL;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\Models\Mapping\Column;
+use Divergence\Models\Mapping\Relation;
+use Divergence\IO\Database\Query\Delete;
+use Divergence\IO\Database\Query\Insert;
+use Divergence\IO\Database\Query\Update;
 use Divergence\Models\Interfaces\FieldSetMapper;
 use Divergence\Models\SetMappers\DefaultSetMapper;
 
@@ -39,6 +46,7 @@ use Divergence\Models\SetMappers\DefaultSetMapper;
  * @property-read array $data                A plain PHP array of the fields and values for this model object.
  * @property-read array $originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
  *
+ * @property array $versioningFields
  */
 class ActiveRecord implements JsonSerializable
 {
@@ -303,7 +311,7 @@ class ActiveRecord implements JsonSerializable
 
         // set Class
         if (static::fieldExists('Class') && !$this->Class) {
-            $this->Class = get_class($this);
+            $this->_setFieldValue('Class', get_class($this));
         }
     }
 
@@ -350,7 +358,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return string ID by default or static::$primaryKey if it's set.
      */
-    public function getPrimaryKey()
+    public static function getPrimaryKey()
     {
         return isset(static::$primaryKey) ? static::$primaryKey : 'ID';
     }
@@ -363,9 +371,9 @@ class ActiveRecord implements JsonSerializable
     public function getPrimaryKeyValue()
     {
         if (isset(static::$primaryKey)) {
-            return $this->__get(static::$primaryKey);
+            return $this->{static::$primaryKey} ?? $this->_getFieldValue(static::$primaryKey);
         } else {
-            return $this->ID;
+            return $this->_getFieldValue('ID');
         }
     }
 
@@ -444,22 +452,22 @@ class ActiveRecord implements JsonSerializable
                 return $this->_originalValues;
 
             default:
-            {
-                // handle field
-                if (static::fieldExists($name)) {
-                    return $this->_getFieldValue($name);
-                }
-                // handle relationship
-                elseif (static::isRelational()) {
-                    if (static::_relationshipExists($name)) {
-                        return $this->_getRelationshipValue($name);
+                {
+                    // handle field
+                    if (static::fieldExists($name)) {
+                        return $this->_getFieldValue($name);
+                    }
+                    // handle relationship
+                    elseif (static::isRelational()) {
+                        if (static::_relationshipExists($name)) {
+                            return $this->_getRelationshipValue($name);
+                        }
+                    }
+                    // default Handle to ID if not caught by fieldExists
+                    elseif ($name == static::$handleField) {
+                        return $this->_getFieldValue('ID');
                     }
                 }
-                // default Handle to ID if not caught by fieldExists
-                elseif ($name == static::$handleField) {
-                    return $this->ID;
-                }
-            }
         }
         // undefined
         return null;
@@ -532,7 +540,7 @@ class ActiveRecord implements JsonSerializable
      * @param string $class Check if the model matches this class.
      * @return boolean True if model matches the class provided. False otherwise.
      */
-    public function isA($class)
+    public function isA($class): bool
     {
         return is_a($this, $class);
     }
@@ -594,7 +602,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return array Return for extension JsonSerializable
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->getData();
     }
@@ -604,7 +612,7 @@ class ActiveRecord implements JsonSerializable
      *
      *  @return array The model's data as a normal array with any validation errors included.
      */
-    public function getData()
+    public function getData(): array
     {
         $data = [];
 
@@ -625,7 +633,7 @@ class ActiveRecord implements JsonSerializable
      * @param string $field
      * @return boolean
      */
-    public function isFieldDirty($field)
+    public function isFieldDirty($field): bool
     {
         return $this->isPhantom || array_key_exists($field, $this->_originalValues);
     }
@@ -699,7 +707,8 @@ class ActiveRecord implements JsonSerializable
 
         // set created
         if (static::fieldExists('Created') && (!$this->Created || ($this->Created == 'CURRENT_TIMESTAMP'))) {
-            $this->Created = time();
+            $this->Created = $this->_record['Created'] = time();
+            unset($this->_convertedValues['Created']);
         }
 
         // validate
@@ -715,30 +724,24 @@ class ActiveRecord implements JsonSerializable
 
             // transform record to set array
             $set = static::_mapValuesToSet($recordValues);
+
             // create new or update existing
             if ($this->_isPhantom) {
-                DB::nonQuery(
-                    'INSERT INTO `%s` SET %s',
-                    [
-                        static::$tableName,
-                        join(',', $set),
-                    ],
-                    [static::class,'handleError']
-                );
-                $this->_record[static::$primaryKey ? static::$primaryKey : 'ID'] = DB::insertID();
+                DB::nonQuery((new Insert())->setTable(static::$tableName)->set($set), null, [static::class,'handleException']);
+                $primaryKey = $this->getPrimaryKey();
+                $insertID = DB::insertID();
+                $fields = static::getClassFields();
+                if (($fields[$primaryKey]['type'] ?? false) === 'integer') {
+                    $insertID = intval($insertID);
+                }
+                $this->_record[$primaryKey] = $insertID;
+                $this->$primaryKey = $insertID;
                 $this->_isPhantom = false;
                 $this->_isNew = true;
             } elseif (count($set)) {
-                DB::nonQuery(
-                    'UPDATE `%s` SET %s WHERE `%s` = %u',
-                    [
-                        static::$tableName,
-                        join(',', $set),
-                        static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'),
-                        $this->getPrimaryKeyValue(),
-                    ],
-                    [static::class,'handleError']
-                );
+                DB::nonQuery((new Update())->setTable(static::$tableName)->set($set)->where(
+                    sprintf('`%s` = %u', static::_cn($this->getPrimaryKey()), $this->getPrimaryKeyValue())
+                ), null, [static::class,'handleException']);
 
                 $this->_isUpdated = true;
             }
@@ -758,7 +761,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return bool True if database returns number of affected rows above 0. False otherwise.
      */
-    public function destroy()
+    public function destroy(): bool
     {
         if (static::isVersioned()) {
             if (static::$createRevisionOnDestroy) {
@@ -770,13 +773,7 @@ class ActiveRecord implements JsonSerializable
                 $recordValues = $this->_prepareRecordValues();
                 $set = static::_mapValuesToSet($recordValues);
 
-                DB::nonQuery(
-                    'INSERT INTO `%s` SET %s',
-                    [
-                                static::getHistoryTable(),
-                                join(',', $set),
-                        ]
-                );
+                DB::nonQuery((new Insert())->setTable(static::getHistoryTable())->set($set), null, [static::class,'handleException']);
             }
         }
 
@@ -789,58 +786,11 @@ class ActiveRecord implements JsonSerializable
      * @param int $id
      * @return bool True if database returns number of affected rows above 0. False otherwise.
      */
-    public static function delete($id)
+    public static function delete($id): bool
     {
-        DB::nonQuery('DELETE FROM `%s` WHERE `%s` = %u', [
-            static::$tableName,
-            static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'),
-            $id,
-        ], [static::class,'handleError']);
+        DB::nonQuery((new Delete())->setTable(static::$tableName)->where(sprintf('`%s` = %u', static::_cn(static::$primaryKey ? static::$primaryKey : 'ID'), $id)), null, [static::class,'handleException']);
 
         return DB::affectedRows() > 0;
-    }
-
-    /**
-     * Builds the extra columns you might want to add to a database select query after the initial list of model fields.
-     *
-     * @param array|string $columns An array of keys and values or a string which will be added to a list of fields after the query's SELECT clause.
-     * @return string|null Extra columns to add after a SELECT clause in a query. Always starts with a comma.
-     */
-    public static function buildExtraColumns($columns)
-    {
-        if (!empty($columns)) {
-            if (is_array($columns)) {
-                foreach ($columns as $key => $value) {
-                    return ', '.$value.' AS '.$key;
-                }
-            } else {
-                return ', ' . $columns;
-            }
-        }
-    }
-
-    /**
-     * Builds the HAVING clause of a MySQL database query.
-     *
-     * @param array|string $having Same as conditions. Can provide a string to use or an array of field/value pairs which will be joined by the AND operator.
-     * @return string|null
-     */
-    public static function buildHaving($having)
-    {
-        if (!empty($having)) {
-            return ' HAVING (' . (is_array($having) ? join(') AND (', static::_mapConditions($having)) : $having) . ')';
-        }
-    }
-
-
-    // TODO: make the handleField
-    public static function generateRandomHandle($length = 32)
-    {
-        do {
-            $handle = substr(md5(mt_rand(0, mt_getrandmax())), 0, $length);
-        } while (static::getByField(static::$handleField, $handle));
-
-        return $handle;
     }
 
     /**
@@ -849,7 +799,7 @@ class ActiveRecord implements JsonSerializable
      * @param string $field Name of the field
      * @return bool True if the field exists. False otherwise.
      */
-    public static function fieldExists($field)
+    public static function fieldExists($field): bool
     {
         static::init();
         return array_key_exists($field, static::$_classFields[get_called_class()]);
@@ -860,7 +810,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return array Current configuration of class fields for the called class.
      */
-    public static function getClassFields()
+    public static function getClassFields(): array
     {
         static::init();
         return static::$_classFields[get_called_class()];
@@ -871,7 +821,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @param string $field Name of the field.
      * @param boolean $optionKey
-     * @return void
+     * @return array|mixed
      */
     public static function getFieldOptions($field, $optionKey = false)
     {
@@ -912,7 +862,7 @@ class ActiveRecord implements JsonSerializable
      *
      * @return string static::$rootClass for the called class.
      */
-    public function getRootClass()
+    public function getRootClass(): string
     {
         return static::$rootClass;
     }
@@ -1026,17 +976,17 @@ class ActiveRecord implements JsonSerializable
     /**
      * Handle any errors that come from the database client in the process of running a query.
      * If the error code from MySQL 42S02 (table not found) is thrown this method will attempt to create the table before running the original query and returning.
-     * Other errors will be routed through to DB::handleError
+     * Other errors will be routed through to DB::handleException
      *
+     * @param Exception $exception
      * @param string $query
      * @param array $queryLog
      * @param array|string $parameters
-     * @return mixed Retried query result or the return from DB::handleError
+     * @return mixed Retried query result or the return from DB::handleException
      */
-    public static function handleError($query = null, $queryLog = null, $parameters = null)
+    public static function handleException(\Exception $e, $query = null, $queryLog = null, $parameters = null)
     {
         $Connection = DB::getConnection();
-
         if ($Connection->errorCode() == '42S02' && static::$autoCreateTables) {
             $CreateTable = SQL::getCreateTable(static::$rootClass);
 
@@ -1052,15 +1002,15 @@ class ActiveRecord implements JsonSerializable
 
             // handle query error
             if ($ErrorInfo[0] != '00000') {
-                self::handleError($query, $queryLog);
+                self::handleException($query, $queryLog);
             }
 
             // clear buffer (required for the next query to work without running fetchAll first
             $Statement->closeCursor();
 
-            return $Connection->query($query); // now the query should finish with no error
+            return $Connection->query((string)$query); // now the query should finish with no error
         } else {
-            return DB::handleError($query, $queryLog);
+            return DB::handleException($e, $query, $queryLog);
         }
     }
 
@@ -1130,12 +1080,66 @@ class ActiveRecord implements JsonSerializable
             if (!empty($class::$fields)) {
                 static::$_classFields[$className] = array_merge(static::$_classFields[$className], $class::$fields);
             }
+            $attributeFields = $class::_definedAttributeFields();
+            if (!empty($attributeFields['fields'])) {
+                static::$_classFields[$className] = array_merge(static::$_classFields[$className], $attributeFields['fields']);
+            }
+            if (!empty($attributeFields['relations'])) {
+                $class::$relationships = $attributeFields['relations'];
+            }
         }
+    }
 
-        // versioning
-        if (static::isVersioned()) {
-            static::$_classFields[$className] = array_merge(static::$_classFields[$className], static::$versioningFields);
+    /**
+     * This function grabs all protected fields on the model and uses that as the basis for what constitutes a mapped field
+     * It skips a certain list of protected fields that are built in for ORM operation
+     *
+     * @return array
+     */
+    public static function _definedAttributeFields(): array
+    {
+        $fields = [];
+        $relations = [];
+        $properties = (new ReflectionClass(static::class))->getProperties();
+        if (!empty($properties)) {
+            foreach ($properties as $property) {
+                if ($property->isProtected()) {
+
+                    // skip these because they are built in
+                    if (in_array($property->getName(), [
+                        '_classFields','_classRelationships','_classBeforeSave','_classAfterSave','_fieldsDefined','_relationshipsDefined','_eventsDefined','_record','_validator'
+                        ,'_validationErrors','_isDirty','_isValid','fieldSetMapper','_convertedValues','_originalValues','_isPhantom','_wasPhantom','_isNew','_isUpdated','_relatedObjects'
+                    ])) {
+                        continue;
+                    }
+
+                    $isRelationship = false;
+
+                    if ($attributes = $property->getAttributes()) {
+                        foreach ($attributes as $attribute) {
+                            $attributeName = $attribute->getName();
+                            if ($attributeName === Column::class) {
+                                $fields[$property->getName()] = array_merge($attribute->getArguments(), ['attributeField'=>true]);
+                            }
+
+                            if ($attributeName === Relation::class) {
+                                $isRelationship = true;
+                                $relations[$property->getName()] = $attribute->getArguments();
+                            }
+                        }
+                    } else {
+                        // default
+                        if (!$isRelationship) {
+                            $fields[$property->getName()] = [];
+                        }
+                    }
+                }
+            }
         }
+        return [
+            'fields' => $fields,
+            'relations' => $relations
+        ];
     }
 
 
@@ -1246,40 +1250,42 @@ class ActiveRecord implements JsonSerializable
             // apply type-dependent transformations
             switch ($fieldOptions['type']) {
                 case 'password':
-                {
-                    return $value;
-                }
+                    {
+                        return $value;
+                    }
 
                 case 'timestamp':
-                {
-                    if (!isset($this->_convertedValues[$field])) {
-                        if ($value && $value != '0000-00-00 00:00:00') {
-                            $this->_convertedValues[$field] = strtotime($value);
-                        } else {
-                            $this->_convertedValues[$field] = null;
+                    {
+                        if (!isset($this->_convertedValues[$field])) {
+                            if ($value && is_string($value) && $value != '0000-00-00 00:00:00') {
+                                $this->_convertedValues[$field] = strtotime($value);
+                            } elseif (is_integer($value)) {
+                                $this->_convertedValues[$field] = $value;
+                            } else {
+                                unset($this->_convertedValues[$field]);
+                            }
                         }
-                    }
 
-                    return $this->_convertedValues[$field];
-                }
+                        return $this->_convertedValues[$field];
+                    }
                 case 'serialized':
-                {
-                    if (!isset($this->_convertedValues[$field])) {
-                        $this->_convertedValues[$field] = is_string($value) ? unserialize($value) : $value;
-                    }
+                    {
+                        if (!isset($this->_convertedValues[$field])) {
+                            $this->_convertedValues[$field] = is_string($value) ? unserialize($value) : $value;
+                        }
 
-                    return $this->_convertedValues[$field];
-                }
+                        return $this->_convertedValues[$field];
+                    }
                 case 'set':
                 case 'list':
-                {
-                    if (!isset($this->_convertedValues[$field])) {
-                        $delim = empty($fieldOptions['delimiter']) ? ',' : $fieldOptions['delimiter'];
-                        $this->_convertedValues[$field] = array_filter(preg_split('/\s*'.$delim.'\s*/', $value));
-                    }
+                    {
+                        if (!isset($this->_convertedValues[$field])) {
+                            $delim = empty($fieldOptions['delimiter']) ? ',' : $fieldOptions['delimiter'];
+                            $this->_convertedValues[$field] = array_filter(preg_split('/\s*'.$delim.'\s*/', $value));
+                        }
 
-                    return $this->_convertedValues[$field];
-                }
+                        return $this->_convertedValues[$field];
+                    }
 
                 case 'int':
                 case 'integer':
@@ -1292,20 +1298,20 @@ class ActiveRecord implements JsonSerializable
                         }
                     }
                     return $this->_convertedValues[$field];
-                    
+
                 case 'boolean':
-                {
-                    if (!isset($this->_convertedValues[$field])) {
-                        $this->_convertedValues[$field] = (boolean)$value;
+                    {
+                        if (!isset($this->_convertedValues[$field])) {
+                            $this->_convertedValues[$field] = (bool)$value;
+                        }
+
+                        return $this->_convertedValues[$field];
                     }
 
-                    return $this->_convertedValues[$field];
-                }
-
                 default:
-                {
-                    return $value;
-                }
+                    {
+                        return $value;
+                    }
             }
         } elseif ($useDefault && isset($fieldOptions['default'])) {
             // return default
@@ -1314,13 +1320,13 @@ class ActiveRecord implements JsonSerializable
             switch ($fieldOptions['type']) {
                 case 'set':
                 case 'list':
-                {
-                    return [];
-                }
+                    {
+                        return [];
+                    }
                 default:
-                {
-                    return null;
-                }
+                    {
+                        return null;
+                    }
             }
         }
     }
@@ -1335,7 +1341,7 @@ class ActiveRecord implements JsonSerializable
     {
         // ignore setting versioning fields
         if (static::isVersioned()) {
-            if (array_key_exists($field, static::$versioningFields)) {
+            if ($field === 'RevisionID') {
                 return false;
             }
         }
@@ -1359,69 +1365,73 @@ class ActiveRecord implements JsonSerializable
         switch ($fieldOptions['type']) {
             case 'clob':
             case 'string':
-            {
-                $value = $this->fieldSetMapper->setStringValue($value);
-                if (!$fieldOptions['notnull'] && $fieldOptions['blankisnull'] && ($value === '' || $value === null)) {
-                    $value = null;
+                {
+                    $value = $this->fieldSetMapper->setStringValue($value);
+                    if (!$fieldOptions['notnull'] && $fieldOptions['blankisnull'] && ($value === '' || $value === null)) {
+                        $value = null;
+                    }
+                    break;
                 }
-                break;
-            }
 
             case 'boolean':
-            {
-                $value = $this->fieldSetMapper->setBooleanValue($value);
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setBooleanValue($value);
+                    break;
+                }
 
             case 'decimal':
-            {
-                $value = $this->fieldSetMapper->setDecimalValue($value);
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setDecimalValue($value);
+                    break;
+                }
 
             case 'int':
             case 'uint':
             case 'integer':
-            {
-                $value = $this->fieldSetMapper->setIntegerValue($value);
-                if (!$fieldOptions['notnull'] && ($value === '' || is_null($value))) {
-                    $value = null;
+                {
+                    $value = $this->fieldSetMapper->setIntegerValue($value);
+                    if (!$fieldOptions['notnull'] && ($value === '' || is_null($value))) {
+                        $value = null;
+                    }
+                    break;
                 }
-                break;
-            }
 
             case 'timestamp':
-            {
-                $value = $this->fieldSetMapper->setTimestampValue($value);
-                break;
-            }
+                {
+                    unset($this->_convertedValues[$field]);
+                    $value = $this->fieldSetMapper->setTimestampValue($value);
+                    break;
+                }
 
             case 'date':
-            {
-                $value = $this->fieldSetMapper->setDateValue($value);
-                break;
-            }
+                {
+                    unset($this->_convertedValues[$field]);
+                    $value = $this->fieldSetMapper->setDateValue($value);
+                    break;
+                }
 
-            // these types are converted to strings from another PHP type on save
+                // these types are converted to strings from another PHP type on save
             case 'serialized':
-            {
-                $this->_convertedValues[$field] = $value;
-                $value = $this->fieldSetMapper->setSerializedValue($value);
-                break;
-            }
+                {
+                    // if the value is a string we assume it's already serialized data
+                    if (!is_string($value)) {
+                        $value = $this->fieldSetMapper->setSerializedValue($value);
+                    }
+                    break;
+                }
             case 'enum':
-            {
-                $value = $this->fieldSetMapper->setEnumValue($fieldOptions['values'], $value);
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setEnumValue($fieldOptions['values'], $value);
+                    break;
+                }
             case 'set':
             case 'list':
-            {
-                $value = $this->fieldSetMapper->setListValue($value, isset($fieldOptions['delimiter']) ? $fieldOptions['delimiter'] : null);
-                $this->_convertedValues[$field] = $value;
-                $forceDirty = true;
-                break;
-            }
+                {
+                    $value = $this->fieldSetMapper->setListValue($value, isset($fieldOptions['delimiter']) ? $fieldOptions['delimiter'] : null);
+                    $this->_convertedValues[$field] = $value;
+                    $forceDirty = true;
+                    break;
+                }
         }
 
         if ($forceDirty || (empty($this->_record[$field]) && isset($value)) || ($this->_record[$field] !== $value)) {
@@ -1430,6 +1440,10 @@ class ActiveRecord implements JsonSerializable
                 $this->_originalValues[$field] = $this->_record[$columnName];
             }
             $this->_record[$columnName] = $value;
+            // only set value if this is an attribute mapped field
+            if (isset($this->_classFields[get_called_class()][$columnName]['attributeField'])) {
+                $this->$columnName = $value;
+            }
             $this->_isDirty = true;
 
             // unset invalidated relationships
@@ -1453,8 +1467,8 @@ class ActiveRecord implements JsonSerializable
         foreach (static::$_classFields[get_called_class()] as $field => $options) {
             $columnName = static::_cn($field);
 
-            if (array_key_exists($columnName, $this->_record)) {
-                $value = $this->_record[$columnName];
+            if (array_key_exists($columnName, $this->_record) || isset($this->$columnName)) {
+                $value = $this->_record[$columnName] ?? $this->$columnName;
 
                 if (!$value && !empty($options['blankisnull'])) {
                     $value = null;

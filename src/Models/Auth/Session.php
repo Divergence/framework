@@ -7,10 +7,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models\Auth;
 
 use Divergence\Models\Model;
 use Divergence\Models\Relations;
+use Divergence\Models\Mapping\Column;
 
 /**
  * Session object
@@ -27,9 +29,9 @@ class Session extends Model
     use Relations;
 
     // Session configurables
-    public static $cookieName = 's';
-    public static $cookieDomain = null;
-    public static $cookiePath = '/';
+    public static string $cookieName = 's';
+    public static string $cookieDomain = '';
+    public static string $cookiePath = '/';
     public static $cookieSecure = false;
     public static $cookieExpires = false;
     public static $timeout = 31536000; //3600;
@@ -44,22 +46,20 @@ class Session extends Model
     public static $singularNoun = 'session';
     public static $pluralNoun = 'sessions';
 
-    public static $fields = [
-        'ContextClass' => null,
-        'ContextID' => null,
-        'Handle' => [
-            'unique' => true,
-        ],
-        'LastRequest' => [
-            'type' => 'timestamp',
-            'notnull' => false,
-        ],
-        'LastIP' => [
-            'type' => 'binary',
-            'length' => 16,
-        ],
-    ];
+    #[Column(notnull: false, default:null)]
+    protected $ContextClass;
 
+    #[Column(type:'int', notnull: false, default:null)]
+    protected $ContextID;
+
+    #[Column(unique:true, length:32)]
+    protected $Handle;
+
+    #[Column(type:'timestamp', notnull:false)]
+    protected $LastRequest;
+
+    #[Column(type:'binary', length:16)]
+    protected $LastIP;
 
     /**
      * Gets or sets up a session based on current cookies.
@@ -104,7 +104,7 @@ class Session extends Model
     public static function updateSession(Session $Session, $sessionData)
     {
         // check timestamp
-        if (time() > $Session->LastRequest + static::$timeout) {
+        if (time() > $Session->__get('LastRequest') + static::$timeout) {
             $Session->terminate();
 
             return false;
@@ -148,8 +148,8 @@ class Session extends Model
     public function save($deep = true)
     {
         // set handle
-        if (!$this->Handle) {
-            $this->Handle = static::generateUniqueHandle();
+        if (!$this->__get('Handle')) {
+            $this->__set('Handle', static::generateUniqueHandle());
         }
 
         // call parent
@@ -160,7 +160,7 @@ class Session extends Model
             // @codeCoverageIgnoreStart
             setcookie(
                 static::$cookieName,
-                $this->Handle,
+                $this->__get('Handle'),
                 static::$cookieExpires ? (time() + static::$cookieExpires) : 0,
                 static::$cookiePath,
                 static::$cookieDomain,
@@ -194,7 +194,7 @@ class Session extends Model
      * Is cryptographically secure.
      * @see http://php.net/manual/en/function.random-bytes.php
      *
-     * @return void
+     * @return string
      */
     public static function generateUniqueHandle()
     {

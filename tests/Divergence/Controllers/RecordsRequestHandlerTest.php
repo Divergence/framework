@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
@@ -30,6 +31,7 @@ use Divergence\Tests\MockSite\Controllers\TagRequestHandler;
 use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\SecureCanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\ParanoidCanaryRequestHandler;
+use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 
 /*
  * About Unit Testing Divergence Controllers
@@ -52,13 +54,15 @@ use Divergence\Tests\MockSite\Controllers\ParanoidCanaryRequestHandler;
 
 class RecordsRequestHandlerTest extends TestCase
 {
-    public function setUp()
+    use ArraySubsetAsserts;
+
+    public function setUp(): void
     {
 
         //$this->App->Config['environment'] = 'production';
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         if (in_array($this->getName(), ['testProcessDatumDestroyFailed','testEditWithError'])) {
             DB::nonQuery('UNLOCK TABLES');
@@ -91,7 +95,7 @@ class RecordsRequestHandlerTest extends TestCase
         foreach ($Records as $Record) {
             $expected['data'][] = $Record->data;
         }
-        $expected['total'] = count($Records)."";
+        $expected['total'] = count($Records);
         $expected = json_encode($expected);
 
 
@@ -187,7 +191,7 @@ class RecordsRequestHandlerTest extends TestCase
     public function testCreate()
     {
         // create
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -199,6 +203,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/create');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -207,7 +212,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -218,6 +223,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/edit');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -226,7 +232,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -238,7 +244,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/edit');
         $x = json_decode(ob_get_clean(), true);
         $this->assertFalse($x['success']);
-        $this->assertContains('Database error', $x['failed']['errors']);
+        $this->assertStringContainsString('Database error', $x['failed']['errors']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
 
@@ -246,7 +252,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -293,7 +299,7 @@ class RecordsRequestHandlerTest extends TestCase
     public function testCreateFromJSON()
     {
         // create
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $PUT = ['data'=>$MockData];
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -308,6 +314,7 @@ class RecordsRequestHandlerTest extends TestCase
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -316,7 +323,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $PUT = ['data'=>$MockData];
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -330,6 +337,7 @@ class RecordsRequestHandlerTest extends TestCase
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data']);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -527,7 +535,7 @@ class RecordsRequestHandlerTest extends TestCase
 
     public function testMultiSaveRequestWithOneSave()
     {
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
             $MockData['Colors'] = [$MockData['Colors']];
@@ -538,6 +546,7 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/save');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData['SerializedData'] = unserialize($MockData['SerializedData']);
         $this->assertArraySubset($MockData, $x['data'][0]);
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }
@@ -546,7 +555,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         $x = 0;
         while ($x < 3) {
-            $MockData[$x] = Canary::avis();
+            $MockData[$x] = Canary::mock();
             $MockData[$x]['DateOfBirth'] = date('Y-m-d', $MockData[$x]['DateOfBirth']);
             if (is_integer($MockData[$x]['Colors'])) {
                 $MockData[$x]['Colors'] = [$MockData[$x]['Colors']];
@@ -559,6 +568,9 @@ class RecordsRequestHandlerTest extends TestCase
         $this->emit(CanaryRequestHandler::class, '/json/save');
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData[0]['SerializedData'] = unserialize($MockData[0]['SerializedData']);
+        $MockData[1]['SerializedData'] = unserialize($MockData[1]['SerializedData']);
+        $MockData[2]['SerializedData'] = unserialize($MockData[2]['SerializedData']);
         $this->assertArraySubset($MockData[0], $x['data'][0]);
         $this->assertArraySubset($MockData[1], $x['data'][1]);
         $this->assertArraySubset($MockData[2], $x['data'][2]);
@@ -581,7 +593,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         $x = 0;
         while ($x < 3) {
-            $MockData[$x] = Canary::avis();
+            $MockData[$x] = Canary::mock();
             $MockData[$x]['DateOfBirth'] = date('Y-m-d', $MockData[$x]['DateOfBirth']);
             if (is_integer($MockData[$x]['Colors'])) {
                 $MockData[$x]['Colors'] = [$MockData[$x]['Colors']];
@@ -597,6 +609,9 @@ class RecordsRequestHandlerTest extends TestCase
         JSON::$inputStream = 'php://input';
         $x = json_decode(ob_get_clean(), true);
         $this->assertTrue($x['success']);
+        $MockData[0]['SerializedData'] = unserialize($MockData[0]['SerializedData']);
+        $MockData[1]['SerializedData'] = unserialize($MockData[1]['SerializedData']);
+        $MockData[2]['SerializedData'] = unserialize($MockData[2]['SerializedData']);
         $this->assertArraySubset($MockData[0], $x['data'][0]);
         $this->assertArraySubset($MockData[1], $x['data'][1]);
         $this->assertArraySubset($MockData[2], $x['data'][2]);
@@ -612,8 +627,8 @@ class RecordsRequestHandlerTest extends TestCase
             'limit' => 3,
         ]);
 
-        $Existing[0]->setFields(Canary::avis());
-        $Existing[2]->setFields(Canary::avis());
+        $Existing[0]->setFields(Canary::mock());
+        $Existing[2]->setFields(Canary::mock());
 
         $MockData = [
             $Existing[0]->data,
@@ -765,7 +780,7 @@ class RecordsRequestHandlerTest extends TestCase
         $controller = new CanaryRequestHandler();
 
         $controller->editableFields = ['Name'];
-        $data = Canary::avis();
+        $data = Canary::mock();
         $Canary = new Canary();
         $controller->applyRecordDelta($Canary, $data);
         $this->assertEquals($data['Name'], $Canary->Name);
@@ -788,7 +803,7 @@ class RecordsRequestHandlerTest extends TestCase
     public function testAccessDeniedCreate()
     {
         // create
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -807,7 +822,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -839,7 +854,7 @@ class RecordsRequestHandlerTest extends TestCase
     public function testAPIAccessDeniedCreate()
     {
         // create
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {
@@ -858,7 +873,7 @@ class RecordsRequestHandlerTest extends TestCase
     {
         // edit
         $ID = DB::oneValue('SELECT ID FROM `canaries` ORDER BY ID DESC');
-        $MockData = Canary::avis();
+        $MockData = Canary::mock();
         $_POST = $MockData;
         $MockData['DateOfBirth'] = date('Y-m-d', $MockData['DateOfBirth']);
         if (is_integer($MockData['Colors'])) {

@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Models\Media;
 
 use Exception;
@@ -138,9 +139,9 @@ class Media extends Model
 
 
     // privates
-    protected $_webPath;
-    protected $_filesystemPath;
-    protected $_mediaInfo;
+    private $_webPath;
+    private $_filesystemPath;
+    private $_mediaInfo;
 
 
     // magic methods
@@ -238,7 +239,7 @@ class Media extends Model
 
             case 'application/pdf':
 
-               return PDF::getImage($sourceFile);
+                return PDF::getImage($sourceFile);
 
             case 'application/postscript':
 

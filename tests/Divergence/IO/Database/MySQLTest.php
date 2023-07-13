@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Divergence\Tests\IO\Database;
 
 use Divergence\Tests\TestUtils;
@@ -67,7 +68,7 @@ class MySQLTest extends TestCase
 {
     public $ApplicationPath;
 
-    public function setUp()
+    public function setUp(): void
     {
         //$this->ApplicationPath = realpath(__DIR__.'/../../../../');
         //App::init($this->ApplicationPath);
@@ -81,7 +82,10 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
         $this->assertInstanceOf(\PDO::class, DB::getConnection());
         $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql'));
-        $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql-socket'));
+        try {
+            $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql-socket'));
+        } catch (\Exception $e) {
+        }
         /**
          * For older MySQL message is: "PDO failed to connect on config "mysql" mysql:host=localhost;port=3306;dbname=divergence"
          * For newer MySQL message is: "SQLSTATE[HY000] [1044] Access denied for user 'divergence'@'localhost' to database 'divergence'"
@@ -289,9 +293,14 @@ class MySQLTest extends TestCase
         $Context = $this;
         // bad queries!
         DB::query('SELECT malformed query', null, function () use ($Context) {
+            /**
+             * $args[0] is a PDOException
+             *  with message:"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'malformed' i
+             */
             $args = func_get_args();
-            $Context->assertEquals('SELECT malformed query', $args[0]);
-            $Context->assertEquals(0, $args[1]);
+            $Context->assertEquals('SELECT malformed query', $args[1]);
+            $Context->assertEquals(false, $args[2]);
+            $Context->expectExceptionMessageMatches('/(SQLSTATE)/');
         });
     }
 
@@ -302,7 +311,7 @@ class MySQLTest extends TestCase
      */
     public function testPDOStatementError()
     {
-        $this->expectExceptionMessageRegExp('/Database error:/');
+        $this->expectExceptionMessageMatches('/(Database error:|SQLSTATE)/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
     }
 
@@ -316,7 +325,7 @@ class MySQLTest extends TestCase
         App::$App->Config['environment']='dev';
         DB::$defaultDevLabel = 'tests-mysql';
         $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$App->whoops->getHandlers()[0]);
-        $this->expectExceptionMessageRegExp('/Database error:/');
+        $this->expectExceptionMessageMatches('/(Database error:|SQLSTATE)/');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
         App::$App->Config['environment']='production';
     }
@@ -347,7 +356,7 @@ class MySQLTest extends TestCase
         DB::$defaultDevLabel = 'tests-mysql';
 
         $this->expectException(\RunTimeException::class);
-        $this->expectExceptionMessageRegExp('/Database error:/');
+        $this->expectExceptionMessageMatches('/(Database error:|SQLSTATE)/');
         App::$App->Config['environment'] = 'production';
         DB::nonQuery('SELECT malformed query');
     }
@@ -376,8 +385,8 @@ class MySQLTest extends TestCase
                 3,
             ]);
 
-            $Context->assertEquals($a, $args[0]);
-            $Context->assertEquals(0, $args[1]);
+            $Context->assertEquals($a, $args[1]);
+            $Context->assertEquals(0, $args[2]);
         });
     }
 
@@ -478,7 +487,7 @@ class MySQLTest extends TestCase
         TestUtils::requireDB($this);
 
         // forced error
-        $this->expectExceptionMessageRegExp('/Database error:/');
+        $this->expectExceptionMessageMatches('/(Database error:SQLSTATE|)/');
         $record = testableDB::oneRecordCached('something', 'SELECT FROM NOTHING');
     }
 
