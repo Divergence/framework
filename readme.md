@@ -16,13 +16,10 @@ Unit testing the code base and providing code coverage is a primary goal of this
 # Main Features
  * Models
     * Real PHP classes.
-    * Extend an `ActiveRecord` class.
-    * Use `traits` to unlock Relationships and Versioning as needed.
-    * Automatically creates table on first time use.
+    * Map fields with array or attributes.
+    * Built in support for relationships and object versioning.
+    * Speed up prototyping and automate new deployments by automatically creates table based on your models when none are found.
     * Built in support for MySQL.
-
- * Database
-    * Use the existing DB class or access PDO directly by calling `DB::getConnection()`.
 
  * Routing
     * Simpler, faster, tree based routing system.
@@ -31,7 +28,7 @@ Unit testing the code base and providing code coverage is a primary goal of this
 * Controllers
     * Psr7 compatible controllers.
     * Pre-made REST API controllers allow you to build APIs rapidly.
-    * 100% Unit test coverage for filters, sorters, and conditions go ive you peace of mind.
+    * 100% Unit test coverage for filters, sorters, and conditions.
     * Build HTTP APIs in minutes by extending `RecordsRequestHandler` and setting the one config variable: the name of your model class.
     * Use a pre-made security trait with RecordsRequestHandler or extend it and write in your own permissions.
     * Standard permissions interface allows reuse of permission traits from one model to another.
