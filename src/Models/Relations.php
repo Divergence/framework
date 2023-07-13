@@ -74,6 +74,60 @@ trait Relations
         }
     }
 
+    protected static function _prepareOneOne(string $relationship, array $options): array
+    {
+        $options['local'] = $options['local'] ?? $relationship . 'ID';
+        $options['foreign'] = $options['foreign'] ?? 'ID';
+        return $options;
+    }
+
+    protected static function _prepareOneMany(string $classShortName, array $options): array
+    {
+        $options['local'] = $options['local'] ?? 'ID';
+        $options['foreign'] = $options['foreign'] ?? $classShortName. 'ID';
+        $options['indexField'] = $options['indexField'] ?? false;
+        $options['conditions'] = $options['conditions'] ?? [];
+        $options['conditions'] = is_string($options['conditions']) ? [$options['conditions']] : $options['conditions'];
+        $options['order'] = $options['order'] ?? false;
+        return $options;
+    }
+
+    protected static function _prepareContextChildren($options): array {
+        $options['local'] = $options['local'] ?? 'ID';
+        $options['contextClass'] = $options['contextClass'] ?? get_called_class();
+        $options['indexField'] = $options['indexField'] ?? false;
+        $options['conditions'] = $options['conditions'] ?? [];
+        $options['order'] = $options['order'] ?? false;
+        return $options;
+    }
+
+    protected static function _prepareContextParent($options): array {
+        $options['local'] = $options['local'] ?? 'ContextID';
+        $options['foreign'] = $options['foreign'] ?? 'ID';
+        $options['classField'] = $options['classField'] ?? 'ContextClass';
+        $options['allowedClasses'] = $options['allowedClasses'] ?? (!empty(static::$contextClasses)?static::$contextClasses:null);
+        return $options;
+    }
+
+    protected static function _prepareManyMany($classShortName, $options): array {
+        if (empty($options['class'])) {
+            throw new Exception('Relationship type many-many option requires a class setting.');
+        }
+
+        if (empty($options['linkClass'])) {
+            throw new Exception('Relationship type many-many option requires a linkClass setting.');
+        }
+
+        $options['linkLocal'] = $options['linkLocal'] ?? $classShortName . 'ID';
+        $options['linkForeign'] = $options['linkForeign'] ?? basename(str_replace('\\', '/', $options['class']::$rootClass)).'ID';
+        $options['local'] = $options['local'] ?? 'ID';
+        $options['foreign'] = $options['foreign'] ?? 'ID';
+        $options['indexField'] = $options['indexField'] ?? false;
+        $options['conditions'] = $options['conditions'] ?? [];
+        $options['order'] = $options['order'] ?? false;
+        return $options;
+    }
+
     // TODO: Make relations getPrimaryKeyValue() instead of using ID all the time.
     protected static function _initRelationship($relationship, $options)
     {
@@ -84,109 +138,22 @@ trait Relations
             $options['type'] = 'one-one';
         }
 
-        if ($options['type'] == 'one-one') {
-            if (empty($options['local'])) {
-                $options['local'] = $relationship . 'ID';
-            }
-
-            if (empty($options['foreign'])) {
-                $options['foreign'] = 'ID';
-            }
-        } elseif ($options['type'] == 'one-many') {
-            if (empty($options['local'])) {
-                $options['local'] = 'ID';
-            }
-
-            if (empty($options['foreign'])) {
-                $options['foreign'] =  $classShortName. 'ID';
-            }
-
-            if (!isset($options['indexField'])) {
-                $options['indexField'] = false;
-            }
-
-            if (!isset($options['conditions'])) {
-                $options['conditions'] = [];
-            } elseif (is_string($options['conditions'])) {
-                $options['conditions'] = [$options['conditions']];
-            }
-
-            if (!isset($options['order'])) {
-                $options['order'] = false;
-            }
-        } elseif ($options['type'] == 'context-children') {
-            if (empty($options['local'])) {
-                $options['local'] = 'ID';
-            }
-
-            if (empty($options['contextClass'])) {
-                $options['contextClass'] = get_called_class();
-            }
-
-            if (!isset($options['indexField'])) {
-                $options['indexField'] = false;
-            }
-
-            if (!isset($options['conditions'])) {
-                $options['conditions'] = [];
-            }
-
-            if (!isset($options['order'])) {
-                $options['order'] = false;
-            }
-        } elseif ($options['type'] == 'context-parent') {
-            if (empty($options['local'])) {
-                $options['local'] = 'ContextID';
-            }
-
-            if (empty($options['foreign'])) {
-                $options['foreign'] = 'ID';
-            }
-
-            if (empty($options['classField'])) {
-                $options['classField'] = 'ContextClass';
-            }
-
-            if (empty($options['allowedClasses'])) {
-                $options['allowedClasses'] = static::$contextClasses;
-            }
-        } elseif ($options['type'] == 'many-many') {
-            if (empty($options['class'])) {
-                throw new Exception('Relationship type many-many option requires a class setting.');
-            }
-
-            if (empty($options['linkClass'])) {
-                throw new Exception('Relationship type many-many option requires a linkClass setting.');
-            }
-
-            if (empty($options['linkLocal'])) {
-                $options['linkLocal'] = $classShortName . 'ID';
-            }
-
-            if (empty($options['linkForeign'])) {
-                $foreignShortname = basename(str_replace('\\', '/', $options['class']::$rootClass));
-                $options['linkForeign'] =  $foreignShortname . 'ID';
-            }
-
-            if (empty($options['local'])) {
-                $options['local'] = 'ID';
-            }
-
-            if (empty($options['foreign'])) {
-                $options['foreign'] = 'ID';
-            }
-
-            if (!isset($options['indexField'])) {
-                $options['indexField'] = false;
-            }
-
-            if (!isset($options['conditions'])) {
-                $options['conditions'] = [];
-            }
-
-            if (!isset($options['order'])) {
-                $options['order'] = false;
-            }
+        switch($options['type']) {
+            case 'one-one':
+                $options = static::_prepareOneOne($relationship, $options);
+                break;
+            case 'one-many':
+                $options = static::_prepareOneMany($classShortName, $options);
+                break;
+            case 'context-children':
+                $options = static::_prepareContextChildren($options);
+                break;
+            case 'context-parent':
+                $options = static::_prepareContextParent($options);
+                break;
+            case 'many-many':
+                $options = static::_prepareManyMany($classShortName,$options);
+                break;
         }
 
         if (static::isVersioned() && $options['type'] == 'history') {
