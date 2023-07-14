@@ -10,6 +10,7 @@
 
 namespace Divergence\Responders;
 
+use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\Psr7\MessageTrait;
 use Psr\Http\Message\ResponseInterface;
 
@@ -122,7 +123,7 @@ class Response implements ResponseInterface
         $this->statusCode = $status;
 
         if ($body !== '' && $body !== null) {
-            $this->stream = \GuzzleHttp\Psr7\stream_for($body);
+            $this->stream = Utils::streamFor($body);
         }
 
         $this->setHeaders($headers);
