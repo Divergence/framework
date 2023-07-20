@@ -13,6 +13,7 @@ namespace Divergence\Models\Media;
 use Exception;
 use Divergence\App;
 use Divergence\Models\Model;
+use Divergence\Models\Mapping\Column;
 
 /**
  * Media Model
@@ -36,37 +37,26 @@ class Media extends Model
 
     public static $tableName = 'media';
 
-    public static $fields = [
-        'ContextClass' => [
-            'type' => 'string',
-            'notnull' => false,
-        ],
-        'ContextID' => [
-            'type' => 'integer',
-            'notnull' => false,
-        ],
-        'MIMEType' => 'string',
-        'Width' => [
-            'type' => 'integer',
-            'unsigned' => true,
-            'notnull' => false,
-        ],
-        'Height' => [
-            'type' => 'integer',
-            'unsigned' => true,
-            'notnull' => false,
-        ],
-        'Duration' => [
-            'type' => 'float',
-            'unsigned' => true,
-            'notnull' => false,
-            'default' => 0,
-        ],
-        'Caption' => [
-            'type' => 'string',
-            'notnull' => false,
-        ],
-    ];
+    #[Column(notnull: false, default:null)]
+    protected $ContextClass;
+
+    #[Column(type:'int', notnull: false, default:null)]
+    protected $ContextID;
+
+    protected $MIMEType;
+
+    #[Column(type:'int', unsigned: true, notnull:false)]
+    protected $Width;
+
+    #[Column(type:'int', unsigned: true, notnull:false)]
+    protected $Height;
+
+    #[Column(type:'float', unsigned: true, notnull:false, default: 0)]
+    protected $Duration;
+
+    #[Column(notnull:false)]
+    protected $Caption;
+
 
     public static $relationships = [
         'Creator' => [
@@ -104,7 +94,7 @@ class Media extends Model
 
     public static $webPathFormat = '/media/open/%u'; // 1=mediaID
     public static $thumbnailRequestFormat = '/thumbnail/%1$u/%2$ux%3$u%4$s'; // 1=media_id 2=width 3=height 4=fill_color
-    public static $blankThumbnailRequestFormat = '/thumbnail/%1$s/%2$ux%3$u%4$s'; // 1=class 2=width 3=height 4=fill_color
+    #public static $blankThumbnailRequestFormat = '/thumbnail/%1$s/%2$ux%3$u%4$s'; // 1=class 2=width 3=height 4=fill_color
     public static $thumbnailJPEGCompression = 90;
     public static $thumbnailPNGCompression = 9;
     public static $defaultFilenameFormat = 'default.%s.jpg';
@@ -137,14 +127,6 @@ class Media extends Model
         'image/vnd.adobe.photoshop'    => 'application/psd',
     ];
 
-
-    // privates
-    private $_webPath;
-    private $_filesystemPath;
-    private $_mediaInfo;
-
-
-    // magic methods
     public function getValue($name)
     {
         switch ($name) {
@@ -152,44 +134,33 @@ class Media extends Model
             case 'SummaryData':
             case 'JsonTranslation':
                 return [
-                    'ID' => $this->ID,
-                    'Class' => $this->Class,
-                    'ContextClass' => $this->ContextClass,
-                    'ContextID' => $this->ContextID,
-                    'MIMEType' => $this->MIMEType,
-                    'Width' => $this->Width,
-                    'Height' => $this->Height,
-                    'Duration' => $this->Duration,
+                    'ID' => $this->getValue('ID'),
+                    'Class' => $this->getValue('Class'),
+                    'ContextClass' => $this->getValue('ContextClass'),
+                    'ContextID' => $this->getValue('ContextID'),
+                    'MIMEType' => $this->getValue('MIMEType'),
+                    'Width' => $this->getValue('Width'),
+                    'Height' => $this->getValue('Height'),
+                    'Duration' => $this->getValue('Duration'),
                 ];
 
             case 'Filename':
                 return $this->getFilename();
 
             case 'ThumbnailMIMEType':
-                return $this->MIMEType;
+                return $this->getValue('MIMEType');
 
             case 'Extension':
-                throw new Exception('Unable to find extension for mime-type: '.$this->MIMEType);
+                throw new Exception('Unable to find extension for mime-type: '.$this->getValue('MIMEType'));
 
             case 'WebPath':
-
-                if (!isset($this->_webPath)) {
-                    $this->_webPath = sprintf(
+                return sprintf(
                         static::$webPathFormat,
-                        $this->ID
+                        $this->getValue('ID')
                     );
-                }
-
-                return $this->_webPath;
-
 
             case 'FilesystemPath':
                 return $this->getFilesystemPath();
-
-
-            case 'BlankPath':
-
-                return static::getBlankPath($this->ContextClass);
 
 
             default:
@@ -197,24 +168,11 @@ class Media extends Model
         }
     }
 
-
-    // public methods
-    public static function getBlankThumbnailRequest($class, $width, $height, $fillColor = null)
-    {
-        return sprintf(
-            static::$blankThumbnailRequestFormat,
-            $class,
-            $width,
-            $height,
-            (isset($fillColor) ? 'x'.$fillColor : '')
-        );
-    }
-
     public function getThumbnailRequest($width, $height = null, $fillColor = null, $cropped = false)
     {
         return sprintf(
             static::$thumbnailRequestFormat,
-            $this->ID,
+            $this->getValue('ID'),
             $width,
             $height ?: $width,
             (is_string($fillColor) ? 'x'.$fillColor : '')
@@ -224,16 +182,16 @@ class Media extends Model
     public function getImage($sourceFile = null)
     {
         if (!isset($sourceFile)) {
-            $sourceFile = $this->FilesystemPath ? $this->FilesystemPath : $this->BlankPath;
+            $sourceFile = $this->getValue('FilesystemPath') ? $this->getValue('FilesystemPath') : $this->getValue('BlankPath');
         }
 
-        switch ($this->MIMEType) {
+        switch ($this->getValue('MIMEType')) {
             case 'application/psd':
             case 'image/tiff':
 
                 //Converts PSD to PNG temporarily on the real file system.
                 $tempFile = tempnam('/tmp', 'media_convert');
-                exec("convert -density 100 ".$this->FilesystemPath."[0] -flatten $tempFile.png");
+                exec("convert -density 100 ".$this->getValue('FilesystemPath')."[0] -flatten $tempFile.png");
 
                 return imagecreatefrompng("$tempFile.png");
 
@@ -243,7 +201,7 @@ class Media extends Model
 
             case 'application/postscript':
 
-                return imagecreatefromstring(shell_exec("gs -r150 -dEPSCrop -dNOPAUSE -dBATCH -sDEVICE=png48 -sOutputFile=- -q $this->FilesystemPath"));
+                return imagecreatefromstring(shell_exec("gs -r150 -dEPSCrop -dNOPAUSE -dBATCH -sDEVICE=png48 -sOutputFile=- -q $this->getValue('FilesystemPath')"));
 
             default:
 
@@ -253,7 +211,7 @@ class Media extends Model
 
                 $image = imagecreatefromstring($fileData);
 
-                if ($this->MIMEType == 'image/jpeg' && ($exifData = exif_read_data($sourceFile)) && !empty($exifData['Orientation'])) {
+                if ($this->getValue('MIMEType') == 'image/jpeg' && ($exifData = exif_read_data($sourceFile)) && !empty($exifData['Orientation'])) {
                     switch ($exifData['Orientation']) {
                         case 1: // nothing
                             break;
@@ -261,24 +219,24 @@ class Media extends Model
                             imageflip($image, IMG_FLIP_HORIZONTAL); // TODO: need PHP 5.3 compat method
                             break;
                         case 3: // 180 rotate left
-                            $image = imagerotate($image, 180, null);
+                            $image = imagerotate($image, 180, 0);
                             break;
                         case 4: // vertical flip
                             imageflip($image, IMG_FLIP_VERTICAL); // TODO: need PHP 5.3 compat method
                             break;
                         case 5: // vertical flip + 90 rotate right
                             imageflip($image, IMG_FLIP_VERTICAL); // TODO: need PHP 5.3 compat method
-                            $image = imagerotate($image, -90, null);
+                            $image = imagerotate($image, -90, 0);
                             break;
                         case 6: // 90 rotate right
-                            $image = imagerotate($image, -90, null);
+                            $image = imagerotate($image, -90, 0);
                             break;
                         case 7: // horizontal flip + 90 rotate right
                             imageflip($image, IMG_FLIP_HORIZONTAL); // TODO: need PHP 5.3 compat method
-                            $image = imagerotate($image, -90, null);
+                            $image = imagerotate($image, -90, 0);
                             break;
                         case 8: // 90 rotate left
-                            $image = imagerotate($image, 90, null);
+                            $image = imagerotate($image, 90, 0);
                             break;
                     }
                 }
@@ -287,9 +245,17 @@ class Media extends Model
         }
     }
 
+    /**
+     * Gives us the path to a thumbnail and if it doesn't exist creates it
+     *
+     * @param int $maxWidth
+     * @param int $maxHeight
+     * @param string|bool $fillColor
+     * @param boolean $cropped
+     * @return void
+     */
     public function getThumbnail($maxWidth, $maxHeight, $fillColor = false, $cropped = false)
     {
-        // init thumbnail path
         $thumbFormat = sprintf('%ux%u', $maxWidth, $maxHeight);
 
         if ($fillColor) {
@@ -300,7 +266,7 @@ class Media extends Model
             $thumbFormat .= '.cropped';
         }
 
-        $thumbPath = App::$App->ApplicationPath.'/media/'.$thumbFormat.'/'.$this->Filename;
+        $thumbPath = App::$App->ApplicationPath.'/media/'.$thumbFormat.'/'.$this->getValue('Filename');
 
         // look for cached thumbnail
         if (!file_exists($thumbPath)) {
@@ -314,8 +280,6 @@ class Media extends Model
             $this->createThumbnailImage($thumbPath, $maxWidth, $maxHeight, $fillColor, $cropped);
         }
 
-
-        // return path
         return $thumbPath;
     }
 
@@ -366,7 +330,7 @@ class Media extends Model
 
             // fill background
             imagefill($image, 0, 0, $fillColor);
-        } elseif (($this->MIMEType == 'image/gif') || ($this->MIMEType == 'image/png')) {
+        } elseif (($this->getValue('MIMEType') == 'image/gif') || ($this->getValue('MIMEType') == 'image/png')) {
             $trans_index = imagecolortransparent($srcImage);
 
             // check if there is a specific transparent color
@@ -379,7 +343,7 @@ class Media extends Model
                 // fill background
                 imagefill($image, 0, 0, $trans_index);
                 imagecolortransparent($image, $trans_index);
-            } elseif ($this->MIMEType == 'image/png') {
+            } elseif ($this->getValue('MIMEType') == 'image/png') {
                 imagealphablending($image, false);
                 $trans_color = imagecolorallocatealpha($image, 0, 0, 0, 127);
                 imagefill($image, 0, 0, $trans_color);
@@ -417,7 +381,7 @@ class Media extends Model
         }
 
         // save thumbnail to disk
-        switch ($this->ThumbnailMIMEType) {
+        switch ($this->getValue('ThumbnailMIMEType')) {
             case 'image/gif':
                 imagegif($image, $thumbPath);
                 break;
@@ -438,25 +402,13 @@ class Media extends Model
         return true;
     }
 
-    /*
-    public function delete()
-    {
-        // remove file
-        @unlink($this->FilesystemPath);
-
-        // delete record
-        return $this->deleteRecord();
-    }
-    */
-
-
     // static methods
-    public static function createFromUpload($uploadedFile, $fieldValues = [])
+    public static function createFromUpload($uploadedFile, $fieldValues = []): static | false
     {
         // handle recieving a field array from $_FILES
         if (is_array($uploadedFile)) {
-            if (isset($uploadedFile['error']) && $uploadedFile['error'] != ERR_UPLOAD_OK) {
-                return null;
+            if (isset($uploadedFile['error'])) {
+                return false;
             }
 
             if (!empty($uploadedFile['name']) && empty($fieldValues['Caption'])) {
@@ -474,7 +426,7 @@ class Media extends Model
         return static::createFromFile($uploadedFile, $fieldValues);
     }
 
-    public static function createFromFile($file, $fieldValues = [])
+    public static function createFromFile($file, $fieldValues = []): static | false
     {
         try {
             // handle url input
@@ -512,15 +464,15 @@ class Media extends Model
             $Media->destroy();
         }
 
-        return null;
+        return false;
     }
 
     public function initializeFromAnalysis($mediaInfo)
     {
-        $this->MIMEType = $mediaInfo['mimeType'];
-        $this->Width = $mediaInfo['width'];
-        $this->Height = $mediaInfo['height'];
-        $this->Duration = $mediaInfo['duration'];
+        $this->setValue('MIMEType',$mediaInfo['mimeType']);
+        $this->setValue('Width',$mediaInfo['width']);
+        $this->setValue('Height',$mediaInfo['height']);
+        $this->setValue('Duration',$mediaInfo['duration']);
     }
 
 
@@ -560,9 +512,6 @@ class Media extends Model
             $mimeType = static::$mimeRewrites[$mimeType];
         }
 
-        // condense
-
-
         // compile mime data
         $mediaInfo = [
             'mimeType' => $mimeType,
@@ -571,66 +520,23 @@ class Media extends Model
         // determine handler
         $staticClass = get_called_class();
         if (!isset(static::$mimeHandlers[$mediaInfo['mimeType']]) || $staticClass != __CLASS__) {
-            // throw new Exception('No class registered for mime type "' . $mediaInfo['mimeType'] . '"');
-
-            $mediaInfo['className'] = $staticClass;
+            throw new Exception('No class registered for mime type "' . $mediaInfo['mimeType'] . '"');
         } else {
-            $mediaInfo['className'] = static::$mimeHandlers[$mediaInfo['mimeType']];
+            $className = $mediaInfo['className'] = static::$mimeHandlers[$mediaInfo['mimeType']];
 
             // call registered type's analyzer
-            $mediaInfo = call_user_func([$mediaInfo['className'], 'analyzeFile'], $filename, $mediaInfo);
+            $mediaInfo = $className::analyzeFile($filename, $mediaInfo);
         }
 
         return $mediaInfo;
     }
 
-    public static function getBlankPath($contextClass)
-    {
-        $path = ['site-root','img',sprintf(static::$defaultFilenameFormat, $contextClass)];
-
-        if ($node = Site::resolvePath($path)) {
-            return $node->RealPath;
-        } else {
-            throw new Exception('Could not load '.implode('/', $path));
-        }
-    }
-
-    public static function getBlank($contextClass)
-    {
-        // get image info
-        $sourcePath = static::getBlankPath($contextClass);
-        $sourceInfo = getimagesize($sourcePath);
-
-        if (!$sourceInfo) {
-            throw new Exception("Unable to load blank image for context '$contextClass' from '$sourcePath'");
-        }
-
-        // get mime type
-        $mimeType = image_type_to_mime_type($sourceInfo[2]);
-
-        // determine type
-        if (!isset(static::$mimeHandlers[$mimeType])) {
-            throw new Exception('No class registered for mime type "'.$mimeType.'"');
-        }
-
-        $className = static::$mimeHandlers[$mimeType];
-
-
-        $blankMedia = new $className();
-        $blankMedia->ContextClass = $contextClass;
-        $blankMedia->MIMEType = $mimeType;
-        $blankMedia->Width = $sourceInfo[0];
-        $blankMedia->Height = $sourceInfo[1];
-
-        return $blankMedia;
-    }
-
-    public static function getSupportedTypes()
+    public static function getSupportedTypes(): array
     {
         return array_unique(array_merge(array_keys(static::$mimeHandlers), array_keys(static::$mimeRewrites)));
     }
 
-    public function getFilesystemPath($variant = 'original', $filename = null)
+    public function getFilesystemPath($variant = 'original', $filename = null): ?string
     {
         if ($this->isPhantom) {
             return null;
@@ -639,23 +545,23 @@ class Media extends Model
         return App::$App->ApplicationPath.'/media/'.$variant.'/'.($filename ?: $this->getFilename($variant));
     }
 
-    public function getFilename($variant = 'original')
+    public function getFilename(): string
     {
         if ($this->isPhantom) {
-            return 'default.'.$this->Extension;
+            return 'default.'.$this->getValue('Extension');
         }
 
-        return $this->ID.'.'.$this->Extension;
+        return $this->getValue('ID').'.'.$this->getValue('Extension');
     }
 
-    public function getMIMEType($variant = 'original')
+    public function getMIMEType(): string
     {
-        return $this->MIMEType;
+        return $this->getValue('MIMEType');
     }
 
-    public function writeFile($sourceFile)
+    public function writeFile($sourceFile): bool
     {
-        $targetDirectory = dirname($this->FilesystemPath);
+        $targetDirectory = dirname($this->getValue('FilesystemPath'));
 
         // create target directory if needed
         if (!is_dir($targetDirectory)) {
@@ -663,16 +569,11 @@ class Media extends Model
         }
 
         // move source file to target path
-        if (!rename($sourceFile, $this->FilesystemPath)) {
+        if (!rename($sourceFile, $this->getValue('FilesystemPath'))) {
             throw new \Exception('Failed to move source file to destination');
         }
 
         // set file permissions
-        chmod($this->FilesystemPath, static::$newFilePermissions);
-    }
-
-    public function isVariantAvailable($variant)
-    {
-        return false;
+        return chmod($this->getValue('FilesystemPath'), static::$newFilePermissions);
     }
 }

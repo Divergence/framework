@@ -71,7 +71,7 @@ class Video extends Media
 
             case 'Extension':
 
-                switch ($this->MIMEType) {
+                switch ($this->getValue('MIMEType')) {
                     case 'video/x-flv':
                         return 'flv';
 
@@ -82,7 +82,7 @@ class Video extends Media
                         return 'mov';
 
                     default:
-                        throw new Exception('Unable to find video extension for mime-type: '.$this->MIMEType);
+                        throw new Exception('Unable to find video extension for mime-type: '.$this->getValue('MIMEType'));
                 }
 
                 // no break
@@ -96,15 +96,15 @@ class Video extends Media
     public function getImage($sourceFile = null)
     {
         if (!isset($sourceFile)) {
-            $sourceFile = $this->FilesystemPath ? $this->FilesystemPath : $this->BlankPath;
+            $sourceFile = $this->getValue('FilesystemPath') ? $this->getValue('FilesystemPath') : $this->getValue('BlankPath');
         }
 
-        $cmd = sprintf(self::$ExtractFrameCommand, $sourceFile, min(self::$ExtractFramePosition, floor($this->Duration)));
+        $cmd = sprintf(self::$ExtractFrameCommand, $sourceFile, min(self::$ExtractFramePosition, floor($this->getValue('Duration'))));
 
         if ($imageData = shell_exec($cmd)) {
             return imagecreatefromstring($imageData);
-        } elseif ($sourceFile != $this->BlankPath) {
-            return static::getImage($this->BlankPath);
+        } elseif ($sourceFile != $this->getValue('BlankPath')) {
+            return static::getImage($this->getValue('BlankPath'));
         }
 
         return null;
@@ -117,7 +117,7 @@ class Video extends Media
         $output = shell_exec("avprobe -of json -show_streams -v quiet $filename");
 
         if (!$output || !($output = json_decode($output, true)) || empty($output['streams'])) {
-            throw new MediaTypeException('Unable to examine video with avprobe, ensure lib-avtools is installed on the host system');
+            throw new \Exception('Unable to examine video with avprobe, ensure lib-avtools is installed on the host system');
         }
 
         // extract video streams

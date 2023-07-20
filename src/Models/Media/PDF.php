@@ -34,7 +34,7 @@ class PDF extends Media
 
             case 'Extension':
 
-                switch ($this->MIMEType) {
+                switch ($this->getValue('MIMEType')) {
                     case 'application/pdf':
                         return 'pdf';
                     case 'application/postscript':
@@ -42,7 +42,7 @@ class PDF extends Media
                     case 'image/svg+xml':
                         return 'svg';
                     default:
-                        throw new Exception('Unable to find document extension for mime-type: '.$this->MIMEType);
+                        throw new Exception('Unable to find document extension for mime-type: '.$this->getValue('MIMEType'));
                 }
 
                 // no break

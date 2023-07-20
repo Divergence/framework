@@ -41,25 +41,17 @@ class Audio extends Media
 
             case 'Extension':
 
-                switch ($this->MIMEType) {
+                switch ($this->getValue('MIMEType')) {
                     case 'audio/mpeg':
                         return 'mp3';
                     default:
-                        throw new Exception('Unable to find audio extension for mime-type: '.$this->MIMEType);
+                        throw new Exception('Unable to find audio extension for mime-type: '.$this->getValue('MIMEType'));
                 }
 
                 // no break
             default:
                 return parent::getValue($name);
         }
-    }
-
-
-    // public methods
-    public static function getBlankPath($contextClass)
-    {
-        $node = Site::resolvePath(static::$iconPath);
-        return $node ? $node->RealPath : null;
     }
 
     public function getImage($sourceFile = null)
@@ -75,7 +67,7 @@ class Audio extends Media
     {
         // check if a preview already exists
 
-        if (!empty($_REQUEST['startTime']) && is_numeric($_REQUEST['startTime']) && ($_REQUEST['startTime'] >= 0) && ($_REQUEST['startTime'] < $this->Duration)) {
+        if (!empty($_REQUEST['startTime']) && is_numeric($_REQUEST['startTime']) && ($_REQUEST['startTime'] >= 0) && ($_REQUEST['startTime'] < $this->getValue('Duration'))) {
             $startTime = $_REQUEST['startTime'];
         } else {
             $startTime = 0;
@@ -94,25 +86,10 @@ class Audio extends Media
         // create media instance
         $PreviewMedia = Media::createFromFile($previewPath, [
             'ContextClass' => 'Media'
-            ,'ContextID' => $this->ID
+            ,'ContextID' => $this->getValue('ID')
             ,'Caption' => sprintf('%u sec preview (%us-%us)', static::$previewDuration, $startTime, $startTime+static::$previewDuration),
         ]);
 
         return $PreviewMedia;
     }
-
-    // static methods
-#    public static function analyzeFile($filename, $mediaInfo = array())
-#    {
-#        // Initialize getID3 engine
-#        $getID3 = new getID3();
-#
-#        $mediaInfo['id3Info'] = $getID3->analyze($filename);
-#
-#        $mediaInfo['width'] = 0;
-#        $mediaInfo['height'] = 0;
-#        $mediaInfo['duration'] = $mediaInfo['id3Info']['playtime_seconds'];
-#
-#        return $mediaInfo;
-#    }
 }
