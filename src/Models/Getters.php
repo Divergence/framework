@@ -227,7 +227,7 @@ trait Getters
 
     /**
      * @param string $contextClass
-     * @param string $contextID
+     * @param mixed $contextID
      * @param array $options
      * @return array<ActiveRecord>|null Array of instantiated ActiveRecord models returned from the database result.
      */
@@ -331,7 +331,7 @@ trait Getters
      * Loops over the data returned from the raw query and writes a new array where the key uses the $keyField parameter instead.
      *
      * @param string $keyField
-     * @param [type] $query
+     * @param string $query
      * @param array $params
      * @return array<ActiveRecord>|null 
      */

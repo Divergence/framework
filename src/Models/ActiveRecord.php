@@ -53,8 +53,8 @@ use Divergence\Models\SetMappers\DefaultSetMapper;
  * 
  * @method static void _defineRelationships()
  * @method static void _initRelationships() 
- * @method static void _relationshipExists(string $value)
- * @method static _getRelationshipValue(string $value)
+ * @method static bool _relationshipExists(string $value)
+ * @method static array<ActiveRecord>|ActiveRecord|null _getRelationshipValue(string $value)
  * @method void beforeVersionedSave()
  * @method void afterVersionedSave()
  * @method static string getHistoryTable()
@@ -751,7 +751,7 @@ class ActiveRecord implements JsonSerializable
                 $this->_isNew = true;
             } elseif (count($set)) {
                 DB::nonQuery((new Update())->setTable(static::$tableName)->set($set)->where(
-                    sprintf('`%s` = %u', static::_cn($this->getPrimaryKey()), $this->getPrimaryKeyValue())
+                    sprintf('`%s` = %u', static::_cn($this->getPrimaryKey()), (string)$this->getPrimaryKeyValue())
                 ), null, [static::class,'handleException']);
 
                 $this->_isUpdated = true;
@@ -788,13 +788,13 @@ class ActiveRecord implements JsonSerializable
             }
         }
 
-        return static::delete($this->getPrimaryKeyValue());
+        return static::delete((string)$this->getPrimaryKeyValue());
     }
 
     /**
      * Delete by ID
      *
-     * @param int $id
+     * @param int|string $id
      * @return bool True if database returns number of affected rows above 0. False otherwise.
      */
     public static function delete($id): bool
@@ -1562,6 +1562,10 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * @param array<string,null|string|array{'operator': string, 'value': string}> $conditions
+     * @return array 
+     */
     protected static function _mapConditions($conditions)
     {
         foreach ($conditions as $field => &$condition) {
