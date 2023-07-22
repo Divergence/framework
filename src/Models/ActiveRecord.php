@@ -14,8 +14,10 @@ use Exception;
 use ReflectionClass;
 use JsonSerializable;
 use Divergence\IO\Database\SQL;
-use Divergence\IO\Database\MySQL as DB;
+use Divergence\Models\ActiveRecord;
 use Divergence\Models\Mapping\Column;
+use Divergence\Models\RecordValidator;
+use Divergence\IO\Database\MySQL as DB;
 use Divergence\Models\Mapping\Relation;
 use Divergence\IO\Database\Query\Delete;
 use Divergence\IO\Database\Query\Insert;
@@ -47,6 +49,15 @@ use Divergence\Models\SetMappers\DefaultSetMapper;
  * @property-read array $originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
  *
  * @property array $versioningFields
+ * @property-read array $_relatedObjects Relationship cache 
+ * 
+ * @method static void _defineRelationships()
+ * @method static void _initRelationships() 
+ * @method static void _relationshipExists(string $value)
+ * @method static _getRelationshipValue(string $value)
+ * @method void beforeVersionedSave()
+ * @method void afterVersionedSave()
+ * @method static string getHistoryTable()
  */
 class ActiveRecord implements JsonSerializable
 {
