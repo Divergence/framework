@@ -243,6 +243,15 @@ class MediaRequestHandler extends RecordsRequestHandler
         ]);
     }
 
+    public function respondRangeNotSatisfiable(string $responseID, int $start, int $end, int $size): Response
+    {
+        $this->responseBuilder = EmptyBuilder::class;
+
+        return $this->respondEmpty($responseID)
+            ->withStatus(416) // Range Not Satisfiable
+            ->withHeader('Content-Range', "bytes $start-$end/$size");
+    }
+
     /**
      * Set caching headers
      *
@@ -281,12 +290,9 @@ class MediaRequestHandler extends RecordsRequestHandler
 
             list(, $range) = explode('=', $_server['HTTP_RANGE'], 2);
 
+            // comma indicates multiple ranges which we currently do not support
             if (strpos($range, ',') !== false) {
-                $this->responseBuilder = EmptyBuilder::class;
-
-                return $this->respondEmpty($responseID)
-                    ->withStatus(416) // Range Not Satisfiable
-                    ->withHeader('Content-Range', "bytes $start-$end/$size");
+                return $this->respondRangeNotSatisfiable($responseID, $start, $end, $size);
             }
 
             if ($range == '-') { // missing range start and end
@@ -299,12 +305,10 @@ class MediaRequestHandler extends RecordsRequestHandler
 
 
             $chunkEnd = ($chunkEnd > $end) ? $end : $chunkEnd;
-            if ($chunkStart > $chunkEnd || $chunkStart > $size - 1 || $chunkEnd >= $size) {
-                $this->responseBuilder = EmptyBuilder::class;
 
-                return $this->respondEmpty($responseID)
-                    ->withStatus(416) // Range Not Satisfiable
-                    ->withHeader('Content-Range', "bytes $start-$end/$size");
+            // requested content out of bounds
+            if ($chunkStart > $chunkEnd || $chunkStart > $size - 1 || $chunkEnd >= $size) {
+                return $this->respondRangeNotSatisfiable($responseID, $start, $end, $size);
             }
 
             $start = intval($chunkStart);
