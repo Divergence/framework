@@ -311,7 +311,18 @@ class Media extends Model
         return $thumbPath;
     }
 
-    public function createThumbnailImage($thumbPath, $maxWidth, $maxHeight, $fillColor = false, $cropped = false)
+    /**
+     * Creates a thumbnail using the gd php extension.
+     * Keeps aspect ratio.
+     *
+     * @param string $thumbPath
+     * @param int $maxWidth
+     * @param int $maxHeight
+     * @param boolean|int $fillColor Background canvas color. See gd documentation.
+     * @param boolean $cropped If cropped is enable the image will instead fill the smaller of width or height and cut the edges off.
+     * @return void
+     */
+    public function createThumbnailImage($thumbPath, $maxWidth, $maxHeight, $fillColor = false, $cropped = false): void
     {
         $thumbWidth = $maxWidth;
         $thumbHeight = $maxHeight;
@@ -430,7 +441,6 @@ class Media extends Model
         }
 
         chmod($thumbPath, static::$newFilePermissions);
-        return true;
     }
 
     // static methods

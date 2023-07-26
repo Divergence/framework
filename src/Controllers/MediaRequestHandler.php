@@ -342,6 +342,25 @@ class MediaRequestHandler extends RecordsRequestHandler
         return $response;
     }
 
+    public function respondWithThumbnail(Media $Media, $variant, $responseID, $responseData = []): ResponseInterface
+    {
+        if ($this->responseBuilder != MediaBuilder::class) {
+            throw new Exception('Media responses require MediaBuilder for putting together a response.');
+        }
+        $className = $this->responseBuilder;
+        $responseBuilder = new $className($responseID, $responseData);
+
+        $responseBuilder->setContentType($Media->ThumbnailMIMEType);
+
+        $response = new MediaResponse($responseBuilder);
+        $response = $this->setCache($response);
+
+        $response = $response->withHeader('ETag', "media-$Media->ID-$variant")
+            ->withHeader('Content-Length', filesize($responseID));
+
+        return $response;
+    }
+
     public function respondEmpty($responseID, $responseData = [])
     {
         if ($this->responseBuilder != EmptyBuilder::class) {
@@ -550,22 +569,6 @@ class MediaRequestHandler extends RecordsRequestHandler
 
     public function handleThumbnailRequest(Media $Media = null): ResponseInterface
     {
-        // send caching headers
-        if (!headers_sent()) {
-            // @codeCoverageIgnoreStart
-            $expires = 60*60*24*365;
-            header("Cache-Control: public, max-age=$expires");
-            header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
-            header('Pragma: public');
-            // @codeCoverageIgnoreEnd
-        }
-
-        // thumbnails are immutable for a given URL, so no need to actually check anything if the browser wants to revalidate its cache
-        if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) || !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-            header('HTTP/1.0 304 Not Modified');
-            exit();
-        }
-
         // get media
         if (!$Media) {
             if (!$mediaID = $this->shiftPath()) {
@@ -573,6 +576,17 @@ class MediaRequestHandler extends RecordsRequestHandler
             } elseif (!$Media = Media::getByID($mediaID)) {
                 return $this->throwNotFoundError();
             }
+        }
+
+        $_server = $this->request->getServerParams();
+
+        // thumbnails are immutable for a given URL, so no need to actually check anything if the browser wants to revalidate its cache
+        if (!empty($_server['HTTP_IF_NONE_MATCH']) || !empty($_server['HTTP_IF_MODIFIED_SINCE'])) {
+            $this->responseBuilder = EmptyBuilder::class;
+            $response = $this->respondEmpty($Media->ID);
+            $response->withDefaults(304);
+
+            return $response;
         }
 
         // get format
@@ -597,20 +611,13 @@ class MediaRequestHandler extends RecordsRequestHandler
         // get thumbnail media
         try {
             $thumbPath = $Media->getThumbnail($maxWidth, $maxHeight, $fillColor, $cropped);
+
+            $this->responseBuilder = MediaBuilder::class;
+            $response = $this->respondWithThumbnail($Media, "$maxWidth-$maxHeight-$fillColor-$cropped", $thumbPath);
+            return $response;
         } catch (Exception $e) {
             return $this->throwNotFoundError();
         }
-
-        // emit
-        if (!headers_sent()) {
-            // @codeCoverageIgnoreStart
-            header("ETag: media-$Media->ID-$maxWidth-$maxHeight-$fillColor-$cropped");
-            header("Content-Type: $Media->ThumbnailMIMEType");
-            header('Content-Length: '.filesize($thumbPath));
-            readfile($thumbPath);
-            // @codeCoverageIgnoreEnd
-        }
-        exit();
     }
 
 
