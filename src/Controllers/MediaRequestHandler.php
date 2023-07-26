@@ -268,7 +268,6 @@ class MediaRequestHandler extends RecordsRequestHandler
         $responseBuilder->setContentType($Media->MIMEType);
 
 
-        $fp = fopen($responseID, 'rb');
         $size = filesize($responseID);
         $length = $size;
         $start = 0;
