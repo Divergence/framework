@@ -23,7 +23,7 @@ build:
       dependencies:
         before:
           - mysql -u root -e "CREATE DATABASE IF NOT EXISTS test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-          - sudo apt update && apt install ffmpeg exiftool
+          - sudo apt install ffmpeg exiftool
       tests:
         override:
           - command: ./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml  # Or "./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml"
