@@ -53,7 +53,7 @@ class PDF extends Media
 
 
     // public methods
-    public function getImage($sourceFile = null)
+    public function getImage($sourceFile = null): false|\GdImage
     {
         if (!isset($sourceFile)) {
             $sourceFile = $this->FilesystemPath ? $this->FilesystemPath : $this->BlankPath;

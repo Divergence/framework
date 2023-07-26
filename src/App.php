@@ -35,7 +35,7 @@ class App
     {
         $this->ApplicationPath = $Path;
 
-        if (php_sapi_name()!=='cli') {
+        if (php_sapi_name()!=='cli' || defined('PHPUNIT_TESTSUITE')) {
             $this->Path = new Path($_SERVER['REQUEST_URI']);
         }
 

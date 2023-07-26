@@ -22,6 +22,19 @@ use Divergence\Models\Mapping\Column;
  * @author  Chris Alfano <themightychris@gmail.com>
  *
  * {@inheritDoc}
+ * @property int        $CreatorID A standard user ID field for use by your login & authentication system. Part of Divergence\Models\Model but used in this file as a default.
+ *
+ * @property-read array $Data           JSON object about the media
+ * @property-read array $SummaryData    JSON object about the media
+ * @property-read array $JsonTranslation  JSON object about the media
+ *
+ * @property-read string $Filename Filename without path but appended
+ * @property-read string $ThumbnailMIMEType The mimetype for the thumbnail
+ * @property-read string $WebPath      Uses static::$webPathFormat to generate a URL path for you.
+ * @property-read string $getFilesystemPath Full filesystem path
+ *
+ * @method static void _defineRelationships()
+ * @method static void _initRelationships()
  */
 class Media extends Model
 {
@@ -51,7 +64,7 @@ class Media extends Model
     #[Column(type:'int', unsigned: true, notnull:false)]
     protected $Height;
 
-    #[Column(type:'float', unsigned: true, notnull:false, default: 0)]
+    #[Column(type: 'decimal', notnull: false, precision: 12, scale: 6, default: 0)]
     protected $Duration;
 
     #[Column(notnull:false)]
@@ -155,9 +168,9 @@ class Media extends Model
 
             case 'WebPath':
                 return sprintf(
-                        static::$webPathFormat,
-                        $this->getValue('ID')
-                    );
+                    static::$webPathFormat,
+                    $this->getValue('ID')
+                );
 
             case 'FilesystemPath':
                 return $this->getFilesystemPath();
@@ -168,7 +181,17 @@ class Media extends Model
         }
     }
 
-    public function getThumbnailRequest($width, $height = null, $fillColor = null, $cropped = false)
+    /**
+     * Builds a string for the correct path to the resource with all the options provided
+     *
+     * @param int|string $width
+     * @param int|string $height
+     * @param int|string $fillColor
+     * @param bool $cropped
+     * @return string
+     * @throws Exception
+     */
+    public function buildThumbnailRequest($width, $height = null, $fillColor = null, $cropped = false)
     {
         return sprintf(
             static::$thumbnailRequestFormat,
@@ -179,7 +202,16 @@ class Media extends Model
         ).($cropped ? '/cropped' : '');
     }
 
-    public function getImage($sourceFile = null)
+    /**
+     * Creates a GdImage object from a file
+     *
+     *  Supports psd, tiff, pdf, postscript, and anything else that gd supports natively
+     *
+     * @param ?string $sourceFile If not provided will try to figure it out from $this->FilesystemPath
+     * @throws Exception
+     * @return \GdImage|false
+     */
+    public function getImage($sourceFile = null): \GdImage|false
     {
         if (!isset($sourceFile)) {
             $sourceFile = $this->getValue('FilesystemPath') ? $this->getValue('FilesystemPath') : $this->getValue('BlankPath');
@@ -194,10 +226,6 @@ class Media extends Model
                 exec("convert -density 100 ".$this->getValue('FilesystemPath')."[0] -flatten $tempFile.png");
 
                 return imagecreatefrompng("$tempFile.png");
-
-            case 'application/pdf':
-
-                return PDF::getImage($sourceFile);
 
             case 'application/postscript':
 
@@ -216,23 +244,23 @@ class Media extends Model
                         case 1: // nothing
                             break;
                         case 2: // horizontal flip
-                            imageflip($image, IMG_FLIP_HORIZONTAL); // TODO: need PHP 5.3 compat method
+                            imageflip($image, IMG_FLIP_HORIZONTAL);
                             break;
                         case 3: // 180 rotate left
                             $image = imagerotate($image, 180, 0);
                             break;
                         case 4: // vertical flip
-                            imageflip($image, IMG_FLIP_VERTICAL); // TODO: need PHP 5.3 compat method
+                            imageflip($image, IMG_FLIP_VERTICAL);
                             break;
                         case 5: // vertical flip + 90 rotate right
-                            imageflip($image, IMG_FLIP_VERTICAL); // TODO: need PHP 5.3 compat method
+                            imageflip($image, IMG_FLIP_VERTICAL);
                             $image = imagerotate($image, -90, 0);
                             break;
                         case 6: // 90 rotate right
                             $image = imagerotate($image, -90, 0);
                             break;
                         case 7: // horizontal flip + 90 rotate right
-                            imageflip($image, IMG_FLIP_HORIZONTAL); // TODO: need PHP 5.3 compat method
+                            imageflip($image, IMG_FLIP_HORIZONTAL);
                             $image = imagerotate($image, -90, 0);
                             break;
                         case 8: // 90 rotate left
@@ -252,7 +280,7 @@ class Media extends Model
      * @param int $maxHeight
      * @param string|bool $fillColor
      * @param boolean $cropped
-     * @return void
+     * @return string
      */
     public function getThumbnail($maxWidth, $maxHeight, $fillColor = false, $cropped = false)
     {
@@ -290,6 +318,9 @@ class Media extends Model
 
         // load source image
         $srcImage = $this->getImage();
+        if (!$srcImage) {
+            throw new Exception('This type of media file can not create a thumbnail image.');
+        }
         $srcWidth = imagesx($srcImage);
         $srcHeight = imagesy($srcImage);
 
@@ -469,10 +500,10 @@ class Media extends Model
 
     public function initializeFromAnalysis($mediaInfo)
     {
-        $this->setValue('MIMEType',$mediaInfo['mimeType']);
-        $this->setValue('Width',$mediaInfo['width']);
-        $this->setValue('Height',$mediaInfo['height']);
-        $this->setValue('Duration',$mediaInfo['duration']);
+        $this->setValue('MIMEType', $mediaInfo['mimeType']);
+        $this->setValue('Width', $mediaInfo['width']);
+        $this->setValue('Height', $mediaInfo['height']);
+        $this->setValue('Duration', $mediaInfo['duration']);
     }
 
 

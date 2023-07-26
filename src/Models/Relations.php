@@ -92,7 +92,8 @@ trait Relations
         return $options;
     }
 
-    protected static function _prepareContextChildren($options): array {
+    protected static function _prepareContextChildren($options): array
+    {
         $options['local'] = $options['local'] ?? 'ID';
         $options['contextClass'] = $options['contextClass'] ?? get_called_class();
         $options['indexField'] = $options['indexField'] ?? false;
@@ -101,15 +102,17 @@ trait Relations
         return $options;
     }
 
-    protected static function _prepareContextParent($options): array {
+    protected static function _prepareContextParent($options): array
+    {
         $options['local'] = $options['local'] ?? 'ContextID';
         $options['foreign'] = $options['foreign'] ?? 'ID';
         $options['classField'] = $options['classField'] ?? 'ContextClass';
-        $options['allowedClasses'] = $options['allowedClasses'] ?? (!empty(static::$contextClasses)?static::$contextClasses:null);
+        $options['allowedClasses'] = $options['allowedClasses'] ?? (!empty(static::$contextClasses) ? static::$contextClasses : null);
         return $options;
     }
 
-    protected static function _prepareManyMany($classShortName, $options): array {
+    protected static function _prepareManyMany($classShortName, $options): array
+    {
         if (empty($options['class'])) {
             throw new Exception('Relationship type many-many option requires a class setting.');
         }
@@ -138,7 +141,7 @@ trait Relations
             $options['type'] = 'one-one';
         }
 
-        switch($options['type']) {
+        switch ($options['type']) {
             case 'one-one':
                 $options = static::_prepareOneOne($relationship, $options);
                 break;
@@ -152,7 +155,7 @@ trait Relations
                 $options = static::_prepareContextParent($options);
                 break;
             case 'many-many':
-                $options = static::_prepareManyMany($classShortName,$options);
+                $options = static::_prepareManyMany($classShortName, $options);
                 break;
         }
 

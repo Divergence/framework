@@ -27,7 +27,7 @@ trait Getters
      * Converts database record array to a model. Will attempt to use the record's Class field value to as the class to instantiate as or the name of this class if none is provided.
      *
      * @param array $record Database row as an array.
-     * @return ActiveRecord|null An instantiated ActiveRecord model from the provided data.
+     * @return static|null An instantiated ActiveRecord model from the provided data.
      */
     public static function instantiateRecord($record)
     {
@@ -39,7 +39,7 @@ trait Getters
      * Converts an array of database records to a model corresponding to each record. Will attempt to use the record's Class field value to as the class to instantiate as or the name of this class if none is provided.
      *
      * @param array $record An array of database rows.
-     * @return array<ActiveRecord>|null An array of instantiated ActiveRecord models from the provided data.
+     * @return array<static>|null An array of instantiated ActiveRecord models from the provided data.
      */
     public static function instantiateRecords($records)
     {
@@ -51,13 +51,13 @@ trait Getters
         return $records;
     }
 
-   /**
-    * Uses ContextClass and ContextID to get an object.
-    * Quick way to attach things to other objects in a one-to-one relationship
-    *
-    * @param array $record An array of database rows.
-    * @return ActiveRecord|null An array of instantiated ActiveRecord models from the provided data.
-    */
+    /**
+     * Uses ContextClass and ContextID to get an object.
+     * Quick way to attach things to other objects in a one-to-one relationship
+     *
+     * @param array $record An array of database rows.
+     * @return static|null An array of instantiated ActiveRecord models from the provided data.
+     */
     public static function getByContextObject(ActiveRecord $Record, $options = [])
     {
         return static::getByContext($Record::$rootClass, $Record->getPrimaryKeyValue(), $options);
@@ -67,7 +67,7 @@ trait Getters
     * Same as getByContextObject but this method lets you specify the ContextClass manually.
     *
     * @param array $record An array of database rows.
-    * @return ActiveRecord|null An array of instantiated ActiveRecord models from the provided data.
+    * @return static|null An array of instantiated ActiveRecord models from the provided data.
     */
     public static function getByContext($contextClass, $contextID, $options = [])
     {
@@ -94,7 +94,7 @@ trait Getters
      * Get model object by configurable static::$handleField value
      *
      * @param int $id
-     * @return ActiveRecord|null
+     * @return static|null
      */
     public static function getByHandle($handle)
     {
@@ -110,7 +110,7 @@ trait Getters
      * Get model object by primary key.
      *
      * @param int $id
-     * @return ActiveRecord|null
+     * @return static|null
      */
     public static function getByID($id)
     {
@@ -125,7 +125,7 @@ trait Getters
      * @param string $field Field name
      * @param string $value Field value
      * @param boolean $cacheIndex Optional. If we should cache the result or not. Default is false.
-     * @return ActiveRecord|null
+     * @return static|null
      */
     public static function getByField($field, $value, $cacheIndex = false)
     {
@@ -140,7 +140,7 @@ trait Getters
      * @param string $field Field name
      * @param string $value Field value
      * @param boolean $cacheIndex Optional. If we should cache the result or not. Default is false.
-     * @return array<ActiveRecord>|null First database result.
+     * @return array<static>|null First database result.
      */
     public static function getRecordByField($field, $value, $cacheIndex = false)
     {
@@ -152,7 +152,7 @@ trait Getters
      *
      * @param array|string $conditions If passed as a string a database Where clause. If an array of field/value pairs will convert to a series of `field`='value' conditions joined with an AND operator.
      * @param array|string $options Only takes 'order' option. A raw database string that will be inserted into the OR clause of the query or an array of field/direction pairs.
-     * @return ActiveRecord|null Single model instantiated from the first database result
+     * @return static|null Single model instantiated from the first database result
      */
     public static function getByWhere($conditions, $options = [])
     {
@@ -166,7 +166,7 @@ trait Getters
      *
      * @param array|string $conditions If passed as a string a database Where clause. If an array of field/value pairs will convert to a series of `field`='value' conditions joined with an AND operator.
      * @param array|string $options Only takes 'order' option. A raw database string that will be inserted into the OR clause of the query or an array of field/direction pairs.
-     * @return array<ActiveRecord>|null First database result.
+     * @return array<static>|null First database result.
      */
     public static function getRecordByWhere($conditions, $options = [])
     {
@@ -194,7 +194,7 @@ trait Getters
      *
      * @param string $query Database query. The passed in string will be passed through vsprintf or sprintf with $params.
      * @param array|string $params If an array will be passed through vsprintf as the second parameter with the query as the first. If a string will be used with sprintf instead. If nothing provided you must provide your own query.
-     * @return ActiveRecord|null Single model instantiated from the first database result
+     * @return static|null Single model instantiated from the first database result
      */
     public static function getByQuery($query, $params = [])
     {
@@ -206,7 +206,7 @@ trait Getters
      *
      * @param boolean $className The full name of the class including namespace. Optional. Will use the name of the current class if none provided.
      * @param array $options
-     * @return array<ActiveRecord>|null Array of instantiated ActiveRecord models returned from the database result.
+     * @return array<static>|null Array of instantiated ActiveRecord models returned from the database result.
      */
     public static function getAllByClass($className = false, $options = [])
     {
@@ -218,7 +218,7 @@ trait Getters
      *
      * @param ActiveRecord $Record
      * @param array $options
-     * @return array<ActiveRecord>|null Array of instantiated ActiveRecord models returned from the database result.
+     * @return array<static>|null Array of instantiated ActiveRecord models returned from the database result.
      */
     public static function getAllByContextObject(ActiveRecord $Record, $options = [])
     {
@@ -229,7 +229,7 @@ trait Getters
      * @param string $contextClass
      * @param mixed $contextID
      * @param array $options
-     * @return array<ActiveRecord>|null Array of instantiated ActiveRecord models returned from the database result.
+     * @return array<static>|null Array of instantiated ActiveRecord models returned from the database result.
      */
     public static function getAllByContext($contextClass, $contextID, $options = [])
     {
@@ -253,7 +253,7 @@ trait Getters
      * @param string $field Field name
      * @param string $value Field value
      * @param array $options
-     * @return array<ActiveRecord>|null Array of models instantiated from the database result.
+     * @return array<static>|null Array of models instantiated from the database result.
      */
     public static function getAllByField($field, $value, $options = [])
     {
@@ -265,7 +265,7 @@ trait Getters
      *
      * @param array|string $conditions If passed as a string a database Where clause. If an array of field/value pairs will convert to a series of `field`='value' conditions joined with an AND operator.
      * @param array|string $options
-     * @return array<ActiveRecord>|null Array of models instantiated from the database result.
+     * @return array<static>|null Array of models instantiated from the database result.
      */
     public static function getAllByWhere($conditions = [], $options = [])
     {
@@ -276,7 +276,7 @@ trait Getters
      * Attempts to get all database records for this class and return them as an array of instantiated models.
      *
      * @param array $options
-     * @return array<ActiveRecord>|null
+     * @return array<static>|null
      */
     public static function getAll($options = [])
     {
@@ -287,7 +287,7 @@ trait Getters
      * Attempts to get all database records for this class and returns them as is from the database.
      *
      * @param array $options
-     * @return array<ActiveRecord>|null
+     * @return array<static>|null
      */
     public static function getAllRecords($options = [])
     {
@@ -320,7 +320,7 @@ trait Getters
      *
      * @param string $query Database query. The passed in string will be passed through vsprintf or sprintf with $params.
      * @param array|string $params If an array will be passed through vsprintf as the second parameter with the query as the first. If a string will be used with sprintf instead. If nothing provided you must provide your own query.
-     * @return array<ActiveRecord>|null Array of models instantiated from the first database result
+     * @return array<static>|null Array of models instantiated from the first database result
      */
     public static function getAllByQuery($query, $params = [])
     {
@@ -333,7 +333,7 @@ trait Getters
      * @param string $keyField
      * @param string $query
      * @param array $params
-     * @return array<ActiveRecord>|null 
+     * @return array<static>|null
      */
     public static function getTableByQuery($keyField, $query, $params = [])
     {
@@ -345,7 +345,7 @@ trait Getters
      *
      * @param array|string $conditions If passed as a string a database Where clause. If an array of field/value pairs will convert to a series of `field`='value' conditions joined with an AND operator.
      * @param array|string $options
-     * @return array<ActiveRecord>|null  Array of records from the database result.
+     * @return array<static>|null  Array of records from the database result.
      */
     public static function getAllRecordsByWhere($conditions = [], $options = [])
     {

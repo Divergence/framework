@@ -11,11 +11,16 @@
 namespace Divergence\Controllers;
 
 use Exception;
-use Divergence\Helpers\JSON;
 use Divergence\Models\Media\Media;
 use Divergence\Models\ActiveRecord;
+use Divergence\Responders\Response;
 use Divergence\Responders\JsonBuilder;
+use Divergence\Responders\EmptyBuilder;
+use Divergence\Responders\EmptyResponse;
+use Divergence\Responders\MediaBuilder;
 use Psr\Http\Message\ResponseInterface;
+use Divergence\Responders\MediaResponse;
+use GuzzleHttp\Psr7\ServerRequest;
 use Psr\Http\Message\ServerRequestInterface;
 
 class MediaRequestHandler extends RecordsRequestHandler
@@ -61,8 +66,12 @@ class MediaRequestHandler extends RecordsRequestHandler
         ],
     ];
 
+    private ?ServerRequest $request;
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        $this->request = $request;
+
         // handle json response mode
         if ($this->peekPath() == 'json') {
             $this->shiftPath();
@@ -87,8 +96,9 @@ class MediaRequestHandler extends RecordsRequestHandler
             case 'download':
                 {
                     $mediaID = $this->shiftPath();
-                    $filename = urldecode($this->shiftPath());
-
+                    if ($filename = $this->shiftPath()) {
+                        $filename = urldecode($filename);
+                    }
                     return $this->handleDownloadRequest($mediaID, $filename);
                 }
 
@@ -233,11 +243,118 @@ class MediaRequestHandler extends RecordsRequestHandler
         ]);
     }
 
+    /**
+     * Set caching headers
+     *
+     * @param Response $response
+     * @return Response
+     */
+    public function setCache(Response $response): Response
+    {
+        $expires = 60*60*24*365;
+        return $response->withHeader('Cache-Control', "public, max-age= $expires")
+        ->withHeader('Expires', gmdate('D, d M Y H:i:s \G\M\T', time()+$expires))
+        ->withHeader('Pragma', 'public');
+    }
+
+    public function respondWithMedia(Media $Media, $variant, $responseID, $responseData = []): ResponseInterface
+    {
+        if ($this->responseBuilder != MediaBuilder::class) {
+            throw new Exception('Media responses require MediaBuilder for putting together a response.');
+        }
+        $className = $this->responseBuilder;
+        $responseBuilder = new $className($responseID, $responseData);
+
+        $responseBuilder->setContentType($Media->MIMEType);
+
+
+        $fp = fopen($responseID, 'rb');
+        $size = filesize($responseID);
+        $length = $size;
+        $start = 0;
+        $end = $size - 1;
+
+        // interpret range requests
+        $_server = $this->request->getServerParams();
+        if (!empty($_server['HTTP_RANGE'])) {
+            $chunkStart = $start;
+            $chunkEnd = $end;
+
+            list(, $range) = explode('=', $_server['HTTP_RANGE'], 2);
+
+            if (strpos($range, ',') !== false) {
+                $this->responseBuilder = EmptyBuilder::class;
+
+                return $this->respondEmpty($responseID)
+                    ->withStatus(416) // Range Not Satisfiable
+                    ->withHeader('Content-Range', "bytes $start-$end/$size");
+            }
+
+            if ($range == '-') { // missing range start and end
+                $range = '0-';
+            }
+
+            $range = explode('-', $range);
+            $chunkStart = $range[0];
+            $chunkEnd = (isset($range[1]) && is_numeric($range[1])) ? $range[1] : $size;
+
+
+            $chunkEnd = ($chunkEnd > $end) ? $end : $chunkEnd;
+            if ($chunkStart > $chunkEnd || $chunkStart > $size - 1 || $chunkEnd >= $size) {
+                $this->responseBuilder = EmptyBuilder::class;
+
+                return $this->respondEmpty($responseID)
+                    ->withStatus(416) // Range Not Satisfiable
+                    ->withHeader('Content-Range', "bytes $start-$end/$size");
+            }
+
+            $start = intval($chunkStart);
+            $end = intval($chunkEnd);
+            $length = $end - $start + 1;
+            $responseBuilder->setRange($start, $end, $length);
+        }
+
+
+        $response = new MediaResponse($responseBuilder);
+        $response = $this->setCache($response);
+
+        // tell browser ranges are accepted
+        $response = $response->withHeader('Accept-Ranges', 'bytes')
+        // provide a unique ID for this media
+        ->withHeader('ETag', 'media-'.$Media->ID.'-'.$variant);
+
+        // if partial content provide proper response header
+        if (isset($chunkStart)) {
+            $response = $response->withStatus(206)
+            ->withHeader('Content-Range', "bytes $start-$end/$size")
+            ->withHeader('Content-Length', $length);
+        } else {
+            // range
+            $filesize = filesize($Media->getFilesystemPath($variant));
+            $end = $filesize - 1;
+            $response = $response->withHeader('Content-Range', 'bytes 0-'.$end.'/'.$filesize)
+                ->withHeader('Content-Length', $filesize);
+        }
+
+        return $response;
+    }
+
+    public function respondEmpty($responseID, $responseData = [])
+    {
+        if ($this->responseBuilder != EmptyBuilder::class) {
+            throw new Exception('Media responses require MediaBuilder for putting together a response.');
+        }
+        $className = $this->responseBuilder;
+        $responseBuilder = new $className($responseID, $responseData);
+        $response = new EmptyResponse($responseBuilder);
+        return $response;
+    }
+
 
     public function handleMediaRequest($mediaID): ResponseInterface
     {
-        if (empty($mediaID) || !is_numeric($mediaID)) {
-            return $this->throwNotFoundError('Media ID #%u was not found', $mediaID);
+        if (empty($mediaID)) {
+            return $this->throwNotFoundError();
         }
 
         // get media
@@ -248,15 +365,18 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
 
         if (!$Media) {
-            return $this->throwNotFoundError('Media ID #%u was not found', $mediaID);
+            return $this->throwNotFoundError();
         }
 
         if (!$this->checkReadAccess($Media)) {
             return $this->throwNotFoundError();
         }
 
-        if (isset($_SERVER['HTTP_ACCEPT'])) {
-            if ($_SERVER['HTTP_ACCEPT'] == 'application/json') {
+
+        $_server = $this->request->getServerParams();
+
+        if (isset($_server['HTTP_ACCEPT'])) {
+            if ($_server['HTTP_ACCEPT'] == 'application/json') {
                 $this->responseBuilder = JsonBuilder::class;
             }
         }
@@ -277,105 +397,22 @@ class MediaRequestHandler extends RecordsRequestHandler
                 $variant = 'original';
             }
 
-            // send caching headers
-            $expires = 60*60*24*365;
-            if (!headers_sent()) {
-                // @codeCoverageIgnoreStart
-                header("Cache-Control: public, max-age=$expires");
-                header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
-                header('Pragma: public');
-                // @codeCoverageIgnoreEnd
-            }
-
-            // media are immutable for a given URL, so no need to actually check anything if the browser wants to revalidate its cache
-            if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) || !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-                // @codeCoverageIgnoreStart
-                header('HTTP/1.0 304 Not Modified');
-                exit();
-                // @codeCoverageIgnoreEnd
-            }
-
             // initialize response
+            $this->responseBuilder = MediaBuilder::class;
             set_time_limit(0);
             $filePath = $Media->getFilesystemPath($variant);
-            $fp = fopen($filePath, 'rb');
-            $size = filesize($filePath);
-            $length = $size;
-            $start = 0;
-            $end = $size - 1;
 
-            if (!headers_sent()) {
-                // @codeCoverageIgnoreStart
-                header('Content-Type: '.$Media->getMIMEType($variant));
-                header('ETag: media-'.$Media->ID.'-'.$variant);
-                header('Accept-Ranges: bytes');
-                // @codeCoverageIgnoreEnd
+            // media are immutable for a given URL, so no need to actually check anything if the browser wants to revalidate its cache
+            if (!empty($_server['HTTP_IF_NONE_MATCH']) || !empty($_server['HTTP_IF_MODIFIED_SINCE'])) {
+                $this->responseBuilder = EmptyBuilder::class;
+                $response = $this->respondEmpty($filePath);
+                $response->withDefaults(304);
+
+                return $response;
             }
 
-            // interpret range requests
-            if (!empty($_SERVER['HTTP_RANGE'])) {
-                $chunkStart = $start;
-                $chunkEnd = $end;
 
-                list(, $range) = explode('=', $_SERVER['HTTP_RANGE'], 2);
-
-                if (strpos($range, ',') !== false) {
-                    // @codeCoverageIgnoreStart
-                    header('HTTP/1.1 416 Requested Range Not Satisfiable');
-                    header("Content-Range: bytes $start-$end/$size");
-                    exit();
-                    // @codeCoverageIgnoreEnd
-                }
-
-                if ($range == '-') {
-                    $chunkStart = $size - substr($range, 1);
-                } else {
-                    $range = explode('-', $range);
-                    $chunkStart = $range[0];
-                    $chunkEnd = (isset($range[1]) && is_numeric($range[1])) ? $range[1] : $size;
-                }
-
-                $chunkEnd = ($chunkEnd > $end) ? $end : $chunkEnd;
-                if ($chunkStart > $chunkEnd || $chunkStart > $size - 1 || $chunkEnd >= $size) {
-                    // @codeCoverageIgnoreStart
-                    header('HTTP/1.1 416 Requested Range Not Satisfiable');
-                    header("Content-Range: bytes $start-$end/$size");
-                    exit();
-                    // @codeCoverageIgnoreEnd
-                }
-
-                $start = $chunkStart;
-                $end = $chunkEnd;
-                $length = $end - $start + 1;
-
-                fseek($fp, $start);
-                // @codeCoverageIgnoreStart
-                header('HTTP/1.1 206 Partial Content');
-                // @codeCoverageIgnoreEnd
-            }
-
-            // finish response
-            if (!headers_sent()) {
-                // @codeCoverageIgnoreStart
-                header("Content-Range: bytes $start-$end/$size");
-                header("Content-Length: $length");
-                // @codeCoverageIgnoreEnd
-            }
-
-            $buffer = 1024 * 8;
-            while (!feof($fp) && ($p = ftell($fp)) <= $end) {
-                if ($p + $buffer > $end) {
-                    $buffer = $end - $p + 1;
-                }
-
-                echo fread($fp, $buffer);
-                flush();
-            }
-
-            fclose($fp);
-            if ($this->responseBuilder != JsonBuilder::class) {
-                exit;
-            }
+            return $this->respondWithMedia($Media, $variant, $filePath);
         }
     }
 
@@ -425,26 +462,14 @@ class MediaRequestHandler extends RecordsRequestHandler
             return $this->throwUnauthorizedError();
         }
 
-        // determine filename
-        if (empty($filename)) {
-            $filename = $Media->Caption ? $Media->Caption : sprintf('%s_%u', $Media->ContextClass, $Media->ContextID);
-        }
+        $filePath = $Media->getFilesystemPath('original');
 
-        if (strpos($filename, '.') === false) {
-            // add extension
-            $filename .= '.'.$Media->Extension;
-        }
+        $this->responseBuilder = MediaBuilder::class;
+        $response = $this->respondWithMedia($Media, 'original', $filePath);
 
-        if (!headers_sent()) {
-            // @codeCoverageIgnoreStart
-            header('Content-Type: '.$Media->MIMEType);
-            header('Content-Disposition: attachment; filename="'.str_replace('"', '', $filename).'"');
-            header('Content-Length: '.filesize($Media->FilesystemPath));
-            // @codeCoverageIgnoreEnd
-        }
+        $response = $response->withHeader('Content-Disposition', 'attachment; filename="'.($filename ? $filename : $filePath).'"');
 
-        readfile($Media->FilesystemPath);
-        exit();
+        return $response;
     }
 
     public function handleCaptionRequest($media_id): ResponseInterface

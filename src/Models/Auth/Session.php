@@ -151,7 +151,7 @@ class Session extends Model
         if (!$this->getValue('Handle')) {
             $this->setValue('Handle', static::generateUniqueHandle());
         }
-        
+
         // call parent
         parent::save($deep);
 
