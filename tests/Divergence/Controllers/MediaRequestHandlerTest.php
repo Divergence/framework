@@ -207,6 +207,60 @@ class MediaRequestHandlerTest extends TestCase
         $emitter->emit();
     }
 
+    public function testReadThumbnail()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        App::$App->Path = new Path('/thumbnail/1');
+        $controller = new MediaRequestHandler();
+        $response = $controller->handle(ServerRequest::fromGlobals());
+        $media = Media::getByID(1);
+        $this->expectOutputString(file_get_contents($media->getFilesystemPath('100x100')));
+        $emitter = new Emitter($response);
+        $this->assertEquals('image/png', $response->getHeader('Content-Type')[0]);
+        $this->assertEquals('public, max-age= 31536000', $response->getHeader('Cache-Control')[0]);
+        $this->assertEquals(gmdate('D, d M Y H:i:s \G\M\T', time()+60*60*24*365), $response->getHeader('Expires')[0]);
+        $this->assertEquals('public', $response->getHeader('Pragma')[0]);
+        $emitter->emit();
+        $size = getimagesizefromstring(file_get_contents($media->getFilesystemPath('100x100')));
+        $this->assertEquals([100,100,3,'width="100" height="100"',"bits"=>8,"mime"=>"image/png"], $size);
+    }
+
+    public function testReadThumbnail10x10()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        App::$App->Path = new Path('/thumbnail/1/10x10');
+        $controller = new MediaRequestHandler();
+        $response = $controller->handle(ServerRequest::fromGlobals());
+        $media = Media::getByID(1);
+        $this->expectOutputString(file_get_contents($media->getFilesystemPath('10x10')));
+        $emitter = new Emitter($response);
+        $this->assertEquals('image/png', $response->getHeader('Content-Type')[0]);
+        $this->assertEquals('public, max-age= 31536000', $response->getHeader('Cache-Control')[0]);
+        $this->assertEquals(gmdate('D, d M Y H:i:s \G\M\T', time()+60*60*24*365), $response->getHeader('Expires')[0]);
+        $this->assertEquals('public', $response->getHeader('Pragma')[0]);
+        $emitter->emit();
+        $size = getimagesizefromstring(file_get_contents($media->getFilesystemPath('10x10')));
+        $this->assertEquals([10,10,3,'width="10" height="10"',"bits"=>8,"mime"=>"image/png"], $size);
+    }
+
+    public function testReadThumbnail25()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        App::$App->Path = new Path('/thumbnail/1/25x25');
+        $controller = new MediaRequestHandler();
+        $response = $controller->handle(ServerRequest::fromGlobals());
+        $media = Media::getByID(1);
+        $this->expectOutputString(file_get_contents($media->getFilesystemPath('25x25')));
+        $emitter = new Emitter($response);
+        $this->assertEquals('image/png', $response->getHeader('Content-Type')[0]);
+        $this->assertEquals('public, max-age= 31536000', $response->getHeader('Cache-Control')[0]);
+        $this->assertEquals(gmdate('D, d M Y H:i:s \G\M\T', time()+60*60*24*365), $response->getHeader('Expires')[0]);
+        $this->assertEquals('public', $response->getHeader('Pragma')[0]);
+        $emitter->emit();
+        $size = getimagesizefromstring(file_get_contents($media->getFilesystemPath('25x25')));
+        $this->assertEquals([25,25,3,'width="25" height="25"',"bits"=>8,"mime"=>"image/png"], $size);
+    }
+
     public function testHttpConditional()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
@@ -449,10 +503,6 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals(416, $response->getStatusCode());
     }
 
-    /**
-     * @see https://www.zeng.dev/post/2023-http-range-and-play-mp4-in-browser/
-     *
-     */
     public function testNotFound()
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
