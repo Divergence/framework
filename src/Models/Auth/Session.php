@@ -148,8 +148,8 @@ class Session extends Model
     public function save($deep = true)
     {
         // set handle
-        if (!$this->__get('Handle')) {
-            $this->__set('Handle', static::generateUniqueHandle());
+        if (!$this->getValue('Handle')) {
+            $this->setValue('Handle', static::generateUniqueHandle());
         }
 
         // call parent
@@ -160,7 +160,7 @@ class Session extends Model
             // @codeCoverageIgnoreStart
             setcookie(
                 static::$cookieName,
-                $this->__get('Handle'),
+                $this->getValue('Handle'),
                 static::$cookieExpires ? (time() + static::$cookieExpires) : 0,
                 static::$cookiePath,
                 static::$cookieDomain,

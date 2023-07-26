@@ -9,3 +9,4 @@ docs
 .vscode
 composer.lock
 .phpunit.result.cache
+clover.xml

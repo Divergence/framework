@@ -14,8 +14,9 @@ use Exception;
 use ReflectionClass;
 use JsonSerializable;
 use Divergence\IO\Database\SQL;
-use Divergence\IO\Database\MySQL as DB;
 use Divergence\Models\Mapping\Column;
+use Divergence\Models\RecordValidator;
+use Divergence\IO\Database\MySQL as DB;
 use Divergence\Models\Mapping\Relation;
 use Divergence\IO\Database\Query\Delete;
 use Divergence\IO\Database\Query\Insert;
@@ -47,6 +48,15 @@ use Divergence\Models\SetMappers\DefaultSetMapper;
  * @property-read array $originalValues      A plain PHP array of the fields and values for this model object when it was instantiated.
  *
  * @property array $versioningFields
+ * @property-read array $_relatedObjects Relationship cache
+ *
+ * @method static void _defineRelationships()
+ * @method static void _initRelationships()
+ * @method static bool _relationshipExists(string $value)
+ * @method static array<ActiveRecord>|ActiveRecord|null _getRelationshipValue(string $value)
+ * @method void beforeVersionedSave()
+ * @method void afterVersionedSave()
+ * @method static string getHistoryTable()
  */
 class ActiveRecord implements JsonSerializable
 {
@@ -740,7 +750,7 @@ class ActiveRecord implements JsonSerializable
                 $this->_isNew = true;
             } elseif (count($set)) {
                 DB::nonQuery((new Update())->setTable(static::$tableName)->set($set)->where(
-                    sprintf('`%s` = %u', static::_cn($this->getPrimaryKey()), $this->getPrimaryKeyValue())
+                    sprintf('`%s` = %u', static::_cn($this->getPrimaryKey()), (string)$this->getPrimaryKeyValue())
                 ), null, [static::class,'handleException']);
 
                 $this->_isUpdated = true;
@@ -777,13 +787,13 @@ class ActiveRecord implements JsonSerializable
             }
         }
 
-        return static::delete($this->getPrimaryKeyValue());
+        return static::delete((string)$this->getPrimaryKeyValue());
     }
 
     /**
      * Delete by ID
      *
-     * @param int $id
+     * @param int|string $id
      * @return bool True if database returns number of affected rows above 0. False otherwise.
      */
     public static function delete($id): bool
@@ -1308,6 +1318,16 @@ class ActiveRecord implements JsonSerializable
                         return $this->_convertedValues[$field];
                     }
 
+                case 'decimal':
+                    if (!isset($this->_convertedValues[$field])) {
+                        if (!$fieldOptions['notnull'] && is_null($value)) {
+                            $this->_convertedValues[$field] = $value;
+                        } else {
+                            $this->_convertedValues[$field] = floatval($value);
+                        }
+                    }
+                    return $this->_convertedValues[$field];
+
                 default:
                     {
                         return $value;
@@ -1551,6 +1571,10 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * @param array<string,null|string|array{'operator': string, 'value': string}> $conditions
+     * @return array
+     */
     protected static function _mapConditions($conditions)
     {
         foreach ($conditions as $field => &$condition) {

@@ -12,6 +12,7 @@ namespace Divergence\Responders;
 
 use Divergence\App;
 use Twig\Environment;
+use GuzzleHttp\Psr7\Utils;
 use Twig\Loader\FilesystemLoader;
 use Psr\Http\Message\StreamInterface;
 use Twig\Extension\StringLoaderExtension;
@@ -26,6 +27,6 @@ class TwigBuilder extends ResponseBuilder
         $env = new Environment($loader, ['strict_variables' => true]);
         $env->addExtension(new StringLoaderExtension());
         $output = $env->render($this->template, $this->data);
-        return \GuzzleHttp\Psr7\stream_for($output);
+        return Utils::streamFor($output);
     }
 }

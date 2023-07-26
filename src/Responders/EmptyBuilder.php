@@ -11,16 +11,12 @@
 namespace Divergence\Responders;
 
 use GuzzleHttp\Psr7\Utils;
-use Divergence\Helpers\JSON;
 use Psr\Http\Message\StreamInterface;
 
-class JsonBuilder extends ResponseBuilder
+class EmptyBuilder extends ResponseBuilder
 {
-    protected string $contentType = 'application/json';
-
     public function getBody(): StreamInterface
     {
-        $output = json_encode(JSON::translateObjects($this->data));
-        return Utils::streamFor($output);
+        return Utils::streamFor('');
     }
 }

@@ -71,7 +71,7 @@ class Video extends Media
 
             case 'Extension':
 
-                switch ($this->MIMEType) {
+                switch ($this->getValue('MIMEType')) {
                     case 'video/x-flv':
                         return 'flv';
 
@@ -82,7 +82,7 @@ class Video extends Media
                         return 'mov';
 
                     default:
-                        throw new Exception('Unable to find video extension for mime-type: '.$this->MIMEType);
+                        throw new Exception('Unable to find video extension for mime-type: '.$this->getValue('MIMEType'));
                 }
 
                 // no break
@@ -93,35 +93,41 @@ class Video extends Media
 
 
     // public methods
-    public function getImage($sourceFile = null)
+    public function getImage($sourceFile = null): false|\GdImage
     {
         if (!isset($sourceFile)) {
-            $sourceFile = $this->FilesystemPath ? $this->FilesystemPath : $this->BlankPath;
+            $sourceFile = $this->getValue('FilesystemPath') ? $this->getValue('FilesystemPath') : $this->getValue('BlankPath');
         }
 
-        $cmd = sprintf(self::$ExtractFrameCommand, $sourceFile, min(self::$ExtractFramePosition, floor($this->Duration)));
+        $cmd = sprintf(self::$ExtractFrameCommand, $sourceFile, min(self::$ExtractFramePosition, floor($this->getValue('Duration'))));
 
         if ($imageData = shell_exec($cmd)) {
             return imagecreatefromstring($imageData);
-        } elseif ($sourceFile != $this->BlankPath) {
-            return static::getImage($this->BlankPath);
+        } elseif ($sourceFile != $this->getValue('BlankPath')) {
+            return static::getImage($this->getValue('BlankPath'));
         }
 
         return null;
     }
 
-    // static methods
+    /**
+     * Uses ffprobe to analyze the given file and returns meta data from the first video stream found
+     *
+     * @param string $filename
+     * @param array $mediaInfo
+     * @return array
+     */
     public static function analyzeFile($filename, $mediaInfo = [])
     {
-        // examine media with avprobe
-        $output = shell_exec("avprobe -of json -show_streams -v quiet $filename");
+        // examine media with ffprobe
+        $output = shell_exec("ffprobe -of json -show_streams -v quiet $filename");
 
-        if (!$output || !($output = json_decode($output, true)) || empty($output['streams'])) {
-            throw new MediaTypeException('Unable to examine video with avprobe, ensure lib-avtools is installed on the host system');
+        if (!$output || !($json = json_decode($output, true)) || empty($json['streams'])) {
+            throw new \Exception('Unable to examine video with ffprobe, ensure ffmpeg with ffprobe is installed');
         }
 
         // extract video streams
-        $videoStreams = array_filter($output['streams'], function ($streamInfo) {
+        $videoStreams = array_filter($json['streams'], function ($streamInfo) {
             return $streamInfo['codec_type'] == 'video';
         });
 
@@ -130,7 +136,7 @@ class Video extends Media
         }
 
         // convert and write interesting information to mediaInfo
-        $mediaInfo['streams'] = $output['streams'];
+        $mediaInfo['streams'] = $json['streams'];
         $mediaInfo['videoStream'] = array_shift($videoStreams);
 
         $mediaInfo['width'] = (int)$mediaInfo['videoStream']['width'];
@@ -140,7 +146,7 @@ class Video extends Media
         return $mediaInfo;
     }
 
-    public function writeFile($sourceFile)
+    public function writeFile($sourceFile): bool
     {
         parent::writeFile($sourceFile);
 
@@ -226,9 +232,11 @@ class Video extends Media
             $pid = exec($cmd);
             // TODO: store PID somewhere in APCU cache so we can do something smarter when a video is requested before it's done encoding
         }
+
+        return true;
     }
 
-    public function getFilesystemPath($variant = 'original', $filename = null)
+    public function getFilesystemPath($variant = 'original', $filename = null): string
     {
         if (!$filename && array_key_exists($variant, static::$encodingProfiles)) {
             $filename = $this->ID.'.'.static::$encodingProfiles[$variant]['extension'];
@@ -238,13 +246,13 @@ class Video extends Media
         return parent::getFilesystemPath($variant, $filename);
     }
 
-    public function getMIMEType($variant = 'original')
+    public function getMIMEType($variant = 'original'): string
     {
         if (array_key_exists($variant, static::$encodingProfiles)) {
             return static::$encodingProfiles[$variant]['mimeType'];
         }
 
-        return parent::getMIMEType($variant, $filename);
+        return parent::getMIMEType($variant);
     }
 
     public function isVariantAvailable($variant)

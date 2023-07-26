@@ -29,19 +29,19 @@ class Image extends Media
     {
         switch ($name) {
             case 'ThumbnailMIMEType':
-                switch ($this->MIMEType) {
+                switch ($this->getValue('MIMEType')) {
                     case 'application/psd':
                         return 'image/png';
                     case 'image/tiff':
                         return 'image/jpeg';
                     default:
-                        return $this->MIMEType;
+                        return $this->getValue('MIMEType');
                 }
 
                 // no break
             case 'Extension':
 
-                switch ($this->MIMEType) {
+                switch ($this->getValue('MIMEType')) {
                     case 'application/psd':
                         return 'psd';
 
@@ -58,7 +58,7 @@ class Image extends Media
                         return 'png';
 
                     default:
-                        throw new Exception('Unable to find photo extension for mime-type: '.$this->MIMEType);
+                        throw new Exception('Unable to find photo extension for mime-type: '.$this->getValue('MIMEType'));
                 }
 
                 // no break
@@ -67,14 +67,16 @@ class Image extends Media
         }
     }
 
-
-    // public methods
-
-
-    // static methods
+    /**
+     * Runs getimagesize on the file and returns an array with the output
+     *
+     * @param string $filename
+     * @param array $mediaInfo
+     * @return array $mediaInfo
+     */
     public static function analyzeFile($filename, $mediaInfo = [])
     {
-        if (!$mediaInfo['imageInfo'] = @getimagesize($filename)) {
+        if (!$mediaInfo['imageInfo'] = getimagesize($filename)) {
             throw new Exception('Failed to read image file information');
         }
 
