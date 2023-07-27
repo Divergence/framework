@@ -37,7 +37,7 @@ class Category extends \Divergence\Models\Model
 
     public static $indexes = [];
 
-    protected $Name;
+    protected string $Name;
 
     #[Relation(
         type:'one-many',
@@ -45,7 +45,7 @@ class Category extends \Divergence\Models\Model
         local: 'ID',
         foreign: 'CategoryID'
     )]
-    protected $Threads;
+    protected ?array $Threads;
 
     #[Relation(
         type:'one-many',
@@ -57,7 +57,7 @@ class Category extends \Divergence\Models\Model
         ],
         order: ['Title'=>'ASC']
     )]
-    protected $ThreadsAlpha;
+    protected ?array $ThreadsAlpha;
 
     public static function getProtected($field)
     {

@@ -40,10 +40,10 @@ class TagPost extends \Divergence\Models\Model
     public static $createRevisionOnSave = true;
 
     #[Column(type: "integer", required:true, notnull: true)]
-    protected $TagID;
+    protected int $TagID;
 
     #[Column(type: "integer", required:true, notnull: true)]
-    protected $PostID;
+    protected int $PostID;
 
     public static $indexes = [
         'TagPost' => [
@@ -61,7 +61,7 @@ class TagPost extends \Divergence\Models\Model
         local: 'ThreadID',
         foreign: 'ID',
     )]
-    protected $Tag;
+    protected ?Tag $Tag;
 
     #[Relation(
         type:'one-one',
@@ -69,5 +69,5 @@ class TagPost extends \Divergence\Models\Model
         local: 'PostID',
         foreign: 'ID',
     )]
-    protected $Post;
+    protected ?Post $Post;
 }

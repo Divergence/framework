@@ -40,10 +40,10 @@ class Thread extends \Divergence\Models\Model
     public static $indexes = [];
 
     #[Column(type: "string", required:true, notnull: true)]
-    protected $Title;
+    protected string $Title;
 
     #[Column(type: "integer", required:true, notnull: true)]
-    protected $CategoryID;
+    protected int $CategoryID;
 
     #[Relation(
         type:'one-many',
@@ -51,5 +51,5 @@ class Thread extends \Divergence\Models\Model
         local: 'ID',
         foreign: 'ThreadID',
     )]
-    protected $Categories;
+    protected ?Category $Categories;
 }

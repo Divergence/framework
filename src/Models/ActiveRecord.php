@@ -404,6 +404,11 @@ class ActiveRecord implements JsonSerializable
     public static function init()
     {
         $className = get_called_class();
+      
+        $className::$rootClass = $className::$rootClass ?? $className;
+        $className::$defaultClass = $className::$defaultClass ?? $className;
+        $className::$subClasses = $className::$subClasses ?? [$className];
+
         if (empty(static::$_fieldsDefined[$className])) {
             static::_defineFields();
             static::_initFields();
@@ -1413,14 +1418,14 @@ class ActiveRecord implements JsonSerializable
         }
 
         if ($forceDirty || (empty($this->_record[$field]) && isset($value)) || ($this->_record[$field] !== $value)) {
-            $this->_setDirtyValue($field, $value);
+            $this->_setValueAndMarkDirty($field, $value, $fieldOptions);
             return true;
         } else {
             return false;
         }
     }
 
-    protected function _setDirtyValue($field, $value)
+    protected function _setValueAndMarkDirty($field, $value, $fieldOptions)
     {
         $columnName = static::_cn($field);
         if (isset($this->_record[$columnName])) {
@@ -1428,12 +1433,13 @@ class ActiveRecord implements JsonSerializable
         }
         $this->_record[$columnName] = $value;
         // only set value if this is an attribute mapped field
-        if (isset($this->_classFields[get_called_class()][$columnName]['attributeField'])) {
+        if (isset(static::$_classFields[get_called_class()][$columnName]['attributeField'])) {
             $this->$columnName = $value;
         }
         $this->_isDirty = true;
 
-        // unset invalidated relationships
+        // If a model has been modified we should clear the relationship cache
+        // TODO: this can be smarter by only looking at fields that are used in the relationship configuration
         if (!empty($fieldOptions['relationships']) && static::isRelational()) {
             foreach ($fieldOptions['relationships'] as $relationship => $isCached) {
                 if ($isCached) {
