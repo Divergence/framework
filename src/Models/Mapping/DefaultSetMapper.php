@@ -8,9 +8,8 @@
  * file that was distributed with this source code.
  */
 
-namespace Divergence\Models\SetMappers;
+namespace Divergence\Models\Mapping;
 
-use Divergence\IO\Database\MySQL as DB;
 use Divergence\Models\Interfaces\FieldSetMapper;
 
 /**
@@ -22,27 +21,27 @@ use Divergence\Models\Interfaces\FieldSetMapper;
  */
 class DefaultSetMapper implements FieldSetMapper
 {
-    public function setStringValue($value): ?string
+    public static function setStringValue($value): ?string
     {
         return $value;
     }
 
-    public function setBooleanValue($value): bool
+    public static function setBooleanValue($value): bool
     {
         return (bool)$value;
     }
 
-    public function setDecimalValue($value): ?float
+    public static function setDecimalValue($value): ?float
     {
         return is_null($value) ? null : (float)preg_replace('/[^-\d.]/', '', $value);
     }
 
-    public function setIntegerValue($value): ?int
+    public static function setIntegerValue($value): ?int
     {
         return is_null($value) ? null : (int)preg_replace('/[^-\d]/', '', $value);
     }
 
-    public function setTimestampValue($value): ?string
+    public static function setTimestampValue($value): ?string
     {
         if (is_numeric($value)) {
             return date('Y-m-d H:i:s', $value);
@@ -69,7 +68,7 @@ class DefaultSetMapper implements FieldSetMapper
      * @param string|int|array $value Date or timestamp in various formats.
      * @return null|string Date formatted as Y-m-d
      */
-    public function setDateValue($value): ?string
+    public static function setDateValue($value): ?string
     {
         if (is_numeric($value)) {
             $value = date('Y-m-d', $value);
@@ -99,17 +98,17 @@ class DefaultSetMapper implements FieldSetMapper
         return $value;
     }
 
-    public function setSerializedValue($value): string
+    public static function setSerializedValue($value): string
     {
         return serialize($value);
     }
 
-    public function setEnumValue(array $values, $value)
+    public static function setEnumValue(array $values, $value)
     {
         return (in_array($value, $values) ? $value : null);
     }
 
-    public function setListValue($value, ?string $delimiter): array
+    public static function setListValue($value, ?string $delimiter): array
     {
         if (!is_array($value)) {
             $delim = empty($delimiter) ? ',' : $delimiter;
