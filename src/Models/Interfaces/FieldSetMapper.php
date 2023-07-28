@@ -21,13 +21,13 @@ namespace Divergence\Models\Interfaces;
  */
 interface FieldSetMapper
 {
-    public function setStringValue($value): ?string;
-    public function setBooleanValue($value): bool;
-    public function setDecimalValue($value): ?float;
-    public function setIntegerValue($value): ?int;
-    public function setDateValue($value): ?string;
-    public function setTimestampValue($value): ?string;
-    public function setSerializedValue($value): string;
-    public function setEnumValue(array $values, $value);
-    public function setListValue($value, ?string $delimiter): array;
+    public static function setStringValue($value): ?string;
+    public static function setBooleanValue($value): bool;
+    public static function setDecimalValue($value): ?float;
+    public static function setIntegerValue($value): ?int;
+    public static function setDateValue($value): ?string;
+    public static function setTimestampValue($value): ?string;
+    public static function setSerializedValue($value): string;
+    public static function setEnumValue(array $values, $value);
+    public static function setListValue($value, ?string $delimiter): array;
 }

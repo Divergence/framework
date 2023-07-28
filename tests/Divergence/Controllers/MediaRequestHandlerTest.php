@@ -12,6 +12,7 @@ namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
 use GuzzleHttp\Psr7\Utils;
+use GuzzleHttp\Psr7\Stream;
 use Divergence\Routing\Path;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
@@ -301,9 +302,39 @@ class MediaRequestHandlerTest extends TestCase
 
     public function file_get_contents_at_seek(int $seek, string $file)
     {
-        $fp = fopen($file, 'r');
-        fseek($fp, $seek);
-        return Utils::streamFor($fp);
+        $fp = new Stream(fopen($file, 'r'));
+        $fp->seek($seek);
+        $amountToRead = 0;
+        if (!$amountToRead) {
+            $amountToRead = $fp->getSize();
+        }
+
+        $responseChunkSize = 4096;
+
+        $output = '';
+
+        if ($amountToRead) {
+            while ($amountToRead > 0 && !$fp->eof()) {
+                $length = min($responseChunkSize, $amountToRead);
+                $data = $fp->read($length);
+                
+                $output .= $data;
+
+                $amountToRead -= strlen($data);
+
+                if (connection_status() !== CONNECTION_NORMAL) {
+                    break;
+                }
+            }
+        } else {
+            while (!$fp->eof()) {
+                echo $fp->read($responseChunkSize);
+                if (connection_status() !== CONNECTION_NORMAL) {
+                    break;
+                }
+            }
+        }
+        return $output;
     }
 
     /**
@@ -327,8 +358,7 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('attachment; filename="'.$realfile.'"', $response->getHeader('Content-Disposition')[0]);
 
         $expectedOutput = $this->file_get_contents_at_seek(0, $realfile);
-        $binary = $expectedOutput->getContents();
-        $this->expectOutputString($binary);
+        $this->expectOutputString($expectedOutput);
         (new Emitter($response))->emit();
     }
 
@@ -351,9 +381,8 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('bytes 0-1062814/1062815', $response->getHeader('Content-Range')[0]);
         $this->assertEquals('1062815', $response->getHeader('Content-Length')[0]);
 
-        $expectedOutput = $this->file_get_contents_at_seek(1, $mp4);
-        $binary = $expectedOutput->getContents();
-        $this->expectOutputString($binary);
+        $expectedOutput = $this->file_get_contents_at_seek(0, $mp4); 
+        $this->expectOutputString($expectedOutput);
         (new Emitter($response))->emit();
     }
 
@@ -368,7 +397,6 @@ class MediaRequestHandlerTest extends TestCase
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         $_SERVER['HTTP_RANGE'] = 'bytes=1062814-';
-        //$_SERVER['HTTP_RANGE'] = 'bytes=720896-';
         App::$App->Path = new Path('/3');
         $controller = new MediaRequestHandler();
         $response = $controller->handle(ServerRequest::fromGlobals());
@@ -377,9 +405,8 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('bytes 1062814-1062814/1062815', $response->getHeader('Content-Range')[0]);
         $this->assertEquals('1', $response->getHeader('Content-Length')[0]);
 
-        $expectedOutput = $this->file_get_contents_at_seek(1062815, $mp4);
-        $binary = $expectedOutput->getContents();
-        $this->expectOutputString($binary);
+        $expectedOutput = $this->file_get_contents_at_seek(1062814, $mp4);
+        $this->expectOutputString($expectedOutput);
         (new Emitter($response))->emit();
     }
 
@@ -403,9 +430,8 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('bytes 531407-1062814/1062815', $response->getHeader('Content-Range')[0]);
         $this->assertEquals('531408', $response->getHeader('Content-Length')[0]);
 
-        $expectedOutput = $this->file_get_contents_at_seek(531408, $mp4);
-        $binary = $expectedOutput->getContents();
-        $this->expectOutputString($binary);
+        $expectedOutput = $this->file_get_contents_at_seek(531407, $mp4);
+        $this->expectOutputString($expectedOutput);
         (new Emitter($response))->emit();
     }
 
@@ -429,9 +455,8 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('bytes 720896-1062814/1062815', $response->getHeader('Content-Range')[0]);
         $this->assertEquals('341919', $response->getHeader('Content-Length')[0]);
 
-        $expectedOutput = $this->file_get_contents_at_seek(720897, $mp4);
-        $binary = $expectedOutput->getContents();
-        $this->expectOutputString($binary);
+        $expectedOutput = $this->file_get_contents_at_seek(720896, $mp4);
+        $this->expectOutputString($expectedOutput);
         (new Emitter($response))->emit();
     }
 
@@ -476,9 +501,8 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('bytes 0-1062814/1062815', $response->getHeader('Content-Range')[0]);
         $this->assertEquals('1062815', $response->getHeader('Content-Length')[0]);
 
-        $expectedOutput = $this->file_get_contents_at_seek(1, $mp4);
-        $binary = $expectedOutput->getContents();
-        $this->expectOutputString($binary);
+        $expectedOutput = $this->file_get_contents_at_seek(0, $mp4);
+        $this->expectOutputString($expectedOutput);
         (new Emitter($response))->emit();
     }
 

@@ -21,8 +21,8 @@ use Divergence\Models\Mapping\Relation;
 use Divergence\IO\Database\Query\Delete;
 use Divergence\IO\Database\Query\Insert;
 use Divergence\IO\Database\Query\Update;
-use Divergence\Models\Interfaces\FieldSetMapper;
-use Divergence\Models\SetMappers\DefaultSetMapper;
+use Divergence\Models\Mapping\DefaultGetMapper;
+use Divergence\Models\Mapping\DefaultSetMapper;
 
 /**
  * ActiveRecord
@@ -290,9 +290,9 @@ class ActiveRecord implements JsonSerializable
      */
     protected $_isUpdated;
 
-    /** Field Mapper */
-    protected ?FieldSetMapper $fieldSetMapper;
 
+    public const defaultSetMapper = DefaultSetMapper::class;
+    public const defaultGetMapper = DefaultGetMapper::class;
     /**
      * __construct Instantiates a Model and returns.
      *
@@ -404,6 +404,11 @@ class ActiveRecord implements JsonSerializable
     public static function init()
     {
         $className = get_called_class();
+      
+        $className::$rootClass = $className::$rootClass ?? $className;
+        $className::$defaultClass = $className::$defaultClass ?? $className;
+        $className::$subClasses = $className::$subClasses ?? [$className];
+
         if (empty(static::$_fieldsDefined[$className])) {
             static::_defineFields();
             static::_initFields();
@@ -1118,7 +1123,7 @@ class ActiveRecord implements JsonSerializable
                     // skip these because they are built in
                     if (in_array($property->getName(), [
                         '_classFields','_classRelationships','_classBeforeSave','_classAfterSave','_fieldsDefined','_relationshipsDefined','_eventsDefined','_record','_validator'
-                        ,'_validationErrors','_isDirty','_isValid','fieldSetMapper','_convertedValues','_originalValues','_isPhantom','_wasPhantom','_isNew','_isUpdated','_relatedObjects'
+                        ,'_validationErrors','_isDirty','_isValid','_convertedValues','_originalValues','_isPhantom','_wasPhantom','_isNew','_isUpdated','_relatedObjects'
                     ])) {
                         continue;
                     }
@@ -1245,8 +1250,21 @@ class ActiveRecord implements JsonSerializable
     }
 
 
+    private function applyNewValue($type, $field, $value)
+    {
+        if (!isset($this->_convertedValues[$field])) {
+            if (is_null($value) && !in_array($type, ['set','list'])) {
+                unset($this->_convertedValues[$field]);
+                return null;
+            }
+            $this->_convertedValues[$field] = $value;
+        }
+        return $this->_convertedValues[$field];
+    }
+
     /**
-     * Retrieves given field's value
+     * Applies type-dependent transformations to the value in $this->_record[$fieldOptions['columnName']]
+     * Caches to $this->_convertedValues[$field] and returns the value in there.
      * @param string $field Name of field
      * @return mixed value
      */
@@ -1257,81 +1275,34 @@ class ActiveRecord implements JsonSerializable
         if (isset($this->_record[$fieldOptions['columnName']])) {
             $value = $this->_record[$fieldOptions['columnName']];
 
+            $defaultGetMapper = static::defaultGetMapper;
+
             // apply type-dependent transformations
             switch ($fieldOptions['type']) {
-                case 'password':
-                    {
-                        return $value;
-                    }
-
                 case 'timestamp':
-                    {
-                        if (!isset($this->_convertedValues[$field])) {
-                            if ($value && is_string($value) && $value != '0000-00-00 00:00:00') {
-                                $this->_convertedValues[$field] = strtotime($value);
-                            } elseif (is_integer($value)) {
-                                $this->_convertedValues[$field] = $value;
-                            } else {
-                                unset($this->_convertedValues[$field]);
-                            }
-                        }
+                        return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getTimestampValue($value));
 
-                        return $this->_convertedValues[$field];
-                    }
                 case 'serialized':
-                    {
-                        if (!isset($this->_convertedValues[$field])) {
-                            $this->_convertedValues[$field] = is_string($value) ? unserialize($value) : $value;
-                        }
+                        return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getSerializedValue($value));
 
-                        return $this->_convertedValues[$field];
-                    }
                 case 'set':
                 case 'list':
-                    {
-                        if (!isset($this->_convertedValues[$field])) {
-                            $delim = empty($fieldOptions['delimiter']) ? ',' : $fieldOptions['delimiter'];
-                            $this->_convertedValues[$field] = array_filter(preg_split('/\s*'.$delim.'\s*/', $value));
-                        }
-
-                        return $this->_convertedValues[$field];
-                    }
+                        return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getListValue($value, $fieldOptions['delimiter']));
 
                 case 'int':
                 case 'integer':
                 case 'uint':
-                    if (!isset($this->_convertedValues[$field])) {
-                        if (!$fieldOptions['notnull'] && is_null($value)) {
-                            $this->_convertedValues[$field] = $value;
-                        } else {
-                            $this->_convertedValues[$field] = intval($value);
-                        }
-                    }
-                    return $this->_convertedValues[$field];
+                    return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getIntegerValue($value));
 
                 case 'boolean':
-                    {
-                        if (!isset($this->_convertedValues[$field])) {
-                            $this->_convertedValues[$field] = (bool)$value;
-                        }
-
-                        return $this->_convertedValues[$field];
-                    }
+                    return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getBooleanValue($value));
 
                 case 'decimal':
-                    if (!isset($this->_convertedValues[$field])) {
-                        if (!$fieldOptions['notnull'] && is_null($value)) {
-                            $this->_convertedValues[$field] = $value;
-                        } else {
-                            $this->_convertedValues[$field] = floatval($value);
-                        }
-                    }
-                    return $this->_convertedValues[$field];
+                    return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getDecimalValue($value));
 
+                case 'password':
                 default:
-                    {
-                        return $value;
-                    }
+                    return $value;
             }
         } elseif ($useDefault && isset($fieldOptions['default'])) {
             // return default
@@ -1340,13 +1311,9 @@ class ActiveRecord implements JsonSerializable
             switch ($fieldOptions['type']) {
                 case 'set':
                 case 'list':
-                    {
-                        return [];
-                    }
+                    return [];
                 default:
-                    {
-                        return null;
-                    }
+                    return null;
             }
         }
     }
@@ -1376,9 +1343,7 @@ class ActiveRecord implements JsonSerializable
             return false;
         }
 
-        if (!isset($this->fieldSetMapper)) {
-            $this->fieldSetMapper = new DefaultSetMapper();
-        }
+        $setMapper = static::defaultSetMapper;
 
         // pre-process value
         $forceDirty = false;
@@ -1386,7 +1351,7 @@ class ActiveRecord implements JsonSerializable
             case 'clob':
             case 'string':
                 {
-                    $value = $this->fieldSetMapper->setStringValue($value);
+                    $value = $setMapper::setStringValue($value);
                     if (!$fieldOptions['notnull'] && $fieldOptions['blankisnull'] && ($value === '' || $value === null)) {
                         $value = null;
                     }
@@ -1395,13 +1360,13 @@ class ActiveRecord implements JsonSerializable
 
             case 'boolean':
                 {
-                    $value = $this->fieldSetMapper->setBooleanValue($value);
+                    $value = $setMapper::setBooleanValue($value);
                     break;
                 }
 
             case 'decimal':
                 {
-                    $value = $this->fieldSetMapper->setDecimalValue($value);
+                    $value = $setMapper::setDecimalValue($value);
                     break;
                 }
 
@@ -1409,7 +1374,7 @@ class ActiveRecord implements JsonSerializable
             case 'uint':
             case 'integer':
                 {
-                    $value = $this->fieldSetMapper->setIntegerValue($value);
+                    $value = $setMapper::setIntegerValue($value);
                     if (!$fieldOptions['notnull'] && ($value === '' || is_null($value))) {
                         $value = null;
                     }
@@ -1419,35 +1384,33 @@ class ActiveRecord implements JsonSerializable
             case 'timestamp':
                 {
                     unset($this->_convertedValues[$field]);
-                    $value = $this->fieldSetMapper->setTimestampValue($value);
+                    $value = $setMapper::setTimestampValue($value);
                     break;
                 }
 
             case 'date':
                 {
                     unset($this->_convertedValues[$field]);
-                    $value = $this->fieldSetMapper->setDateValue($value);
+                    $value = $setMapper::setDateValue($value);
                     break;
                 }
 
-                // these types are converted to strings from another PHP type on save
             case 'serialized':
                 {
-                    // if the value is a string we assume it's already serialized data
                     if (!is_string($value)) {
-                        $value = $this->fieldSetMapper->setSerializedValue($value);
+                        $value = $setMapper::setSerializedValue($value);
                     }
                     break;
                 }
             case 'enum':
                 {
-                    $value = $this->fieldSetMapper->setEnumValue($fieldOptions['values'], $value);
+                    $value = $setMapper::setEnumValue($fieldOptions['values'], $value);
                     break;
                 }
             case 'set':
             case 'list':
                 {
-                    $value = $this->fieldSetMapper->setListValue($value, isset($fieldOptions['delimiter']) ? $fieldOptions['delimiter'] : null);
+                    $value = $setMapper::setListValue($value, isset($fieldOptions['delimiter']) ? $fieldOptions['delimiter'] : null);
                     $this->_convertedValues[$field] = $value;
                     $forceDirty = true;
                     break;
@@ -1455,28 +1418,34 @@ class ActiveRecord implements JsonSerializable
         }
 
         if ($forceDirty || (empty($this->_record[$field]) && isset($value)) || ($this->_record[$field] !== $value)) {
-            $columnName = static::_cn($field);
-            if (isset($this->_record[$columnName])) {
-                $this->_originalValues[$field] = $this->_record[$columnName];
-            }
-            $this->_record[$columnName] = $value;
-            // only set value if this is an attribute mapped field
-            if (isset($this->_classFields[get_called_class()][$columnName]['attributeField'])) {
-                $this->$columnName = $value;
-            }
-            $this->_isDirty = true;
-
-            // unset invalidated relationships
-            if (!empty($fieldOptions['relationships']) && static::isRelational()) {
-                foreach ($fieldOptions['relationships'] as $relationship => $isCached) {
-                    if ($isCached) {
-                        unset($this->_relatedObjects[$relationship]);
-                    }
-                }
-            }
+            $this->_setValueAndMarkDirty($field, $value, $fieldOptions);
             return true;
         } else {
             return false;
+        }
+    }
+
+    protected function _setValueAndMarkDirty($field, $value, $fieldOptions)
+    {
+        $columnName = static::_cn($field);
+        if (isset($this->_record[$columnName])) {
+            $this->_originalValues[$field] = $this->_record[$columnName];
+        }
+        $this->_record[$columnName] = $value;
+        // only set value if this is an attribute mapped field
+        if (isset(static::$_classFields[get_called_class()][$columnName]['attributeField'])) {
+            $this->$columnName = $value;
+        }
+        $this->_isDirty = true;
+
+        // If a model has been modified we should clear the relationship cache
+        // TODO: this can be smarter by only looking at fields that are used in the relationship configuration
+        if (!empty($fieldOptions['relationships']) && static::isRelational()) {
+            foreach ($fieldOptions['relationships'] as $relationship => $isCached) {
+                if ($isCached) {
+                    unset($this->_relatedObjects[$relationship]);
+                }
+            }
         }
     }
 

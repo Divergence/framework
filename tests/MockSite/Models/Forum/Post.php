@@ -47,10 +47,10 @@ class Post extends \Divergence\Models\Model
     ];
 
     #[Column(type: "clob", required:true, notnull: true)]
-    protected $Content;
+    protected string $Content;
 
     #[Column(type: "integer", required:true, notnull: true)]
-    protected $ThreadID;
+    protected int $ThreadID;
 
     /*
      *  The first one is testing the minimal configuration of a one-to-one relationship
@@ -60,7 +60,7 @@ class Post extends \Divergence\Models\Model
     #[Relation(
         class:Thread::class,
     )]
-    protected $Thread;
+    protected ?Thread $Thread;
 
     #[Relation(
         type:'one-one',
@@ -72,5 +72,5 @@ class Post extends \Divergence\Models\Model
         ],
         order: ['Title'=>'ASC']
     )]
-    protected $ThreadExplicit;
+    protected ?Thread $ThreadExplicit;
 }
