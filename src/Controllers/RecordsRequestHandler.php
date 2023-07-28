@@ -452,7 +452,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         if (in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT'])) {
             if ($this->responseBuilder === JsonBuilder::class) {
                 $_REQUEST = JSON::getRequestData();
-                if (is_array($_REQUEST['data'])) {
+                if (isset($_REQUEST['data']) && is_array($_REQUEST['data'])) {
                     $_REQUEST = $_REQUEST['data'];
                 }
             }
