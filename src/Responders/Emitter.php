@@ -144,6 +144,9 @@ class Emitter
         if (in_array($response->getStatusCode(), [204, 205, 304], true)) {
             return true;
         }
+        if (in_array($response->getStatusCode(), [206], true)) {
+            return false;
+        }
         $stream = $response->getBody();
         $seekable = $stream->isSeekable();
         if ($seekable) {

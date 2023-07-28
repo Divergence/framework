@@ -10,7 +10,8 @@
 
 namespace Divergence\Responders;
 
-use GuzzleHttp\Psr7\Utils;
+use GuzzleHttp\Psr7\Stream;
+use GuzzleHttp\Psr7\LimitStream;
 use Psr\Http\Message\StreamInterface;
 
 class MediaBuilder extends ResponseBuilder
@@ -33,12 +34,10 @@ class MediaBuilder extends ResponseBuilder
 
     public function getBody(): StreamInterface
     {
-        if (isset($this->start)) {
-            $fp = fopen($this->template, 'r');
-            fseek($fp, $this->start);
-            $stream = Utils::streamFor($fp);
-            return Utils::streamFor($stream->getContents());
+        $fp = new Stream(fopen($this->template, 'r'));
+        if (isset($this->start) && $this->start>0) {
+            return new LimitStream($fp, $this->length, $this->start);
         }
-        return Utils::streamFor(fopen($this->template, 'r'));
+        return $fp;
     }
 }
