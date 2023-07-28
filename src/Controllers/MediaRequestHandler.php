@@ -328,8 +328,11 @@ class MediaRequestHandler extends RecordsRequestHandler
 
         // if partial content provide proper response header
         if (isset($chunkStart)) {
-            $response = $response->withStatus(206)
-            ->withHeader('Content-Range', "bytes $start-$end/$size")
+            // only send 206 if response is less than the whole file
+            if ($end-$start+1<$size) {
+                $response = $response->withStatus(206);
+            }
+            $response = $response->withHeader('Content-Range', "bytes $start-$end/$size")
             ->withHeader('Content-Length', $length);
         } else {
             // range
