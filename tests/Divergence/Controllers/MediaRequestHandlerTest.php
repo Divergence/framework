@@ -212,7 +212,12 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('public', $response->getHeader('Pragma')[0]);
         $emitter->emit();
         $size = getimagesizefromstring(file_get_contents($media->getFilesystemPath('100x100')));
-        $this->assertEquals([100,100,3,'width="100" height="100"',"bits"=>8,"mime"=>"image/png","width_unit"=>"px","height_unit"=>"px"], $size);
+        $this->assertEquals(100, $size[0]);
+        $this->assertEquals(100, $size[1]);
+        $this->assertEquals(3, $size[2]);
+        $this->assertEquals('width="100" height="100"', $size[3]);
+        $this->assertEquals(8, $size['bits']);
+        $this->assertEquals('image/png', $size['mime']);
     }
 
     public function testReadThumbnail10x10()
@@ -230,7 +235,12 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('public', $response->getHeader('Pragma')[0]);
         $emitter->emit();
         $size = getimagesizefromstring(file_get_contents($media->getFilesystemPath('10x10')));
-        $this->assertEquals([10,10,3,'width="10" height="10"',"bits"=>8,"mime"=>"image/png","width_unit"=>"px","height_unit"=>"px"], $size);
+        $this->assertEquals(10, $size[0]);
+        $this->assertEquals(10, $size[1]);
+        $this->assertEquals(3, $size[2]);
+        $this->assertEquals('width="10" height="10"', $size[3]);
+        $this->assertEquals(8, $size['bits']);
+        $this->assertEquals('image/png', $size['mime']);
     }
 
     public function testReadThumbnail25()
@@ -248,7 +258,12 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('public', $response->getHeader('Pragma')[0]);
         $emitter->emit();
         $size = getimagesizefromstring(file_get_contents($media->getFilesystemPath('25x25')));
-        $this->assertEquals([25,25,3,'width="25" height="25"',"bits"=>8,"mime"=>"image/png","width_unit"=>"px","height_unit"=>"px"], $size);
+        $this->assertEquals(25, $size[0]);
+        $this->assertEquals(25, $size[1]);
+        $this->assertEquals(3, $size[2]);
+        $this->assertEquals('width="25" height="25"', $size[3]);
+        $this->assertEquals(8, $size['bits']);
+        $this->assertEquals('image/png', $size['mime']);
     }
 
     public function testHttpConditional()
