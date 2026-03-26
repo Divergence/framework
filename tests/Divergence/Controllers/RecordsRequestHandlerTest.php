@@ -291,7 +291,7 @@ class RecordsRequestHandlerTest extends TestCase
         ob_start();
         $this->emit(CanaryRequestHandler::class, '/json/'.$ID.'/delete');
         $x = json_decode(ob_get_clean(), true);
-        $this->assertEquals('Are you sure you want to delete this '.Canary::$singularNoun.'?', $x['question']);
+        $this->assertEquals('Are you sure you want to delete this '.Canary::getSingularNoun().'?', $x['question']);
         $this->assertArraySubset($Canary->data, $x['data']); // delete should return the record
         $_SERVER['REQUEST_METHOD'] = 'GET';
     }

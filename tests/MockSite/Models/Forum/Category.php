@@ -19,16 +19,8 @@ class Category extends \Divergence\Models\Model
     use Versioning;
     use Relations;
 
-    // support subclassing
-    public static $rootClass = __CLASS__;
-    public static $defaultClass = __CLASS__;
-    public static $subClasses = [__CLASS__];
-
-
     // ActiveRecord configuration
     public static $tableName = 'forum_categories';
-    public static $singularNoun = 'categories';
-    public static $pluralNoun = 'category';
 
     // versioning
     public static $historyTable = 'forum_categories_history';
@@ -37,7 +29,7 @@ class Category extends \Divergence\Models\Model
 
     public static $indexes = [];
 
-    protected string $Name;
+    private string $Name;
 
     #[Relation(
         type:'one-many',
@@ -45,7 +37,7 @@ class Category extends \Divergence\Models\Model
         local: 'ID',
         foreign: 'CategoryID'
     )]
-    protected ?array $Threads;
+    private ?array $Threads;
 
     #[Relation(
         type:'one-many',
@@ -57,7 +49,7 @@ class Category extends \Divergence\Models\Model
         ],
         order: ['Title'=>'ASC']
     )]
-    protected ?array $ThreadsAlpha;
+    private ?array $ThreadsAlpha;
 
     public static function getProtected($field)
     {

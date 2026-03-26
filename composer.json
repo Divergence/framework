@@ -50,7 +50,12 @@
     },
     "scripts": {
         "fix-code": "php-cs-fixer fix",
-        "test": "vendor/bin/phpunit --coverage-clover build/logs/clover.xml"
+        "test": [
+            "@test:mysql",
+            "@test:sqlite"
+        ],
+        "test:mysql": "DIVERGENCE_TEST_DB=tests-mysql vendor/bin/phpunit --coverage-clover build/logs/clover.xml",
+        "test:sqlite": "DIVERGENCE_TEST_DB=tests-sqlite-memory vendor/bin/phpunit"
     },
     "support": {
         "issues": "https://github.com/Divergence/framework/issues"

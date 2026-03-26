@@ -13,8 +13,8 @@ namespace Divergence\Models;
 use Exception;
 
 use Divergence\Helpers\Util;
+use Divergence\IO\Database\Connections;
 use Divergence\Models\Mapping\Column;
-use Divergence\IO\Database\MySQL as DB;
 use Divergence\IO\Database\Query\Insert;
 use Divergence\IO\Database\Query\Select;
 
@@ -34,7 +34,7 @@ trait Versioning
     public $wasDirty = false;
 
     #[Column(type: "integer", unsigned:true, notnull:false)]
-    protected $RevisionID;
+    private $RevisionID;
 
     public static $versioningRelationships = [
         'History' => [
@@ -93,6 +93,8 @@ trait Versioning
      */
     public static function getRevisionRecords($options = [])
     {
+        $storageClass = Connections::getConnectionType();
+
         $options = Util::prepareOptions($options, [
             'indexField' => false,
             'conditions' => [],
@@ -117,9 +119,9 @@ trait Versioning
         }
 
         if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $select);
+            return $storageClass::table(static::_cn($options['indexField']), $select);
         } else {
-            return DB::allRecords($select);
+            return $storageClass::allRecords($select);
         }
     }
 
@@ -146,10 +148,36 @@ trait Versioning
     public function afterVersionedSave()
     {
         if ($this->wasDirty && static::$createRevisionOnSave) {
-            // save a copy to history table
-            $recordValues = $this->_prepareRecordValues();
-            $set = static::_mapValuesToSet($recordValues);
-            DB::nonQuery((new Insert())->setTable(static::getHistoryTable())->set($set), null, [static::class,'handleError']);
+            $storageClass = Connections::getConnectionType();
+            $set = $this->getPreparedPersistedSet();
+
+            if ($set === null) {
+                $recordValues = $this->_prepareRecordValues();
+                $set = static::_mapValuesToSet($recordValues);
+            }
+
+            $primaryKey = static::getPrimaryKey();
+            $primaryKeyColumn = static::getColumnName($primaryKey);
+            $primaryKeyValue = $this->getPrimaryKeyValue();
+            $primaryKeyType = static::getClassFields()[$primaryKey]['type'] ?? null;
+
+            $primaryKeyAssignmentPrefix = sprintf('`%s` =', $primaryKeyColumn);
+            $hasPrimaryKeyAssignment = false;
+
+            foreach ($set as $assignment) {
+                if (str_starts_with($assignment, $primaryKeyAssignmentPrefix)) {
+                    $hasPrimaryKeyAssignment = true;
+                    break;
+                }
+            }
+
+            if ($primaryKeyValue !== null && !$hasPrimaryKeyAssignment) {
+                $set[] = in_array($primaryKeyType, ['int', 'integer', 'uint'], true)
+                    ? sprintf('`%s` = %u', $primaryKeyColumn, intval($primaryKeyValue))
+                    : sprintf('`%s` = %s', $primaryKeyColumn, $storageClass::quote($primaryKeyValue));
+            }
+
+            $storageClass::nonQuery((new Insert())->setTable(static::getHistoryTable())->set($set), null, [static::class,'handleException']);
         }
     }
 }

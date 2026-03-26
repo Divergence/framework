@@ -19,6 +19,10 @@ class fakeCategory extends Category
     use Versioning;
     use Relations;
 
+    public static $rootClass = __CLASS__;
+    public static $defaultClass = __CLASS__;
+    public static $subClasses = [__CLASS__];
+
     public static $relationships = [];
 
     public static function setClassRelationships($x)

@@ -19,7 +19,9 @@ use PHPUnit\Framework\TestCase;
 use Divergence\Models\Versioning;
 use Divergence\Models\ActiveRecord;
 
+use Divergence\IO\Database\Connections;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\IO\Database\SQLite;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\Models\Testables\fakeCanary;
@@ -35,6 +37,11 @@ class ActiveRecordTest extends TestCase
         //App::init();
         //$x = Tag::create();
         //xdump($x);
+    }
+
+    protected function isSQLite(): bool
+    {
+        return Connections::getConnectionType() === SQLite::class;
     }
 
     /**
@@ -68,9 +75,14 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(true, $A->isValid);
         $this->assertEquals([], $A->originalValues);
 
-        $this->assertEquals(false, fakeCanary::getProtected('_fieldsDefined')[fakeCanary::class]);
-        $this->assertEquals(false, fakeCanary::getProtected('_relationshipsDefined')[fakeCanary::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
-        $this->assertEquals(false, fakeCanary::getProtected('_eventsDefined')[fakeCanary::class]);
+        // These flags are false only on the very first initialization. If a prior
+        // suite already ran (e.g. tests-mysql), the static state is already true.
+        $alreadyInitialized = fakeCanary::getProtected('_fieldsDefined')[fakeCanary::class] ?? false;
+        if (!$alreadyInitialized) {
+            $this->assertEquals(false, fakeCanary::getProtected('_fieldsDefined')[fakeCanary::class]);
+            $this->assertEquals(false, fakeCanary::getProtected('_relationshipsDefined')[fakeCanary::class]); // we didn't include use \Divergence\Models\Relations when defining the class so it should be false
+            $this->assertEquals(false, fakeCanary::getProtected('_eventsDefined')[fakeCanary::class]);
+        }
 
         $x = fakeCanary::create(fakeCanary::mock(), false);
 
@@ -218,6 +230,22 @@ class ActiveRecordTest extends TestCase
         Tag::$primaryKey = 'Tag';
         $this->assertEquals('Linux', $A->getPrimaryKeyValue());
         Tag::$primaryKey = null;
+    }
+
+    public function testTypedMappedPropertiesCanBeReadDirectlyInsideModelMethods()
+    {
+        $reflection = new \ReflectionClass(Tag::class);
+        $tag = $reflection->newInstanceWithoutConstructor();
+
+        $setRecord = \Closure::bind(function ($record) {
+            $this->_record = $record;
+        }, $tag, \Divergence\Models\ActiveRecord::class);
+
+        $setRecord([
+            'Slug' => 'my-tag',
+        ]);
+
+        $this->assertSame('/my-tag/', $tag->getSlugPath());
     }
 
     /**
@@ -433,8 +461,8 @@ class ActiveRecordTest extends TestCase
 
         $this->assertEquals([
             "Handle" => "`Handle` IS NULL",
-            "Name" => "`Name` NOT \"Frank\"",
-            "isAlive" => "`isAlive` = \"1\"",
+            "Name" => "`Name` NOT 'Frank'",
+            "isAlive" => "`isAlive` = '1'",
         ], Canary::mapConditions($conditions));
 
         $conditions = [
@@ -448,8 +476,8 @@ class ActiveRecordTest extends TestCase
 
         $this->assertEquals([
             "Handle" => "`Handle` IS NULL",
-            "Name" => "`Name` NOT \"Frank\"",
-            "isAlive" => "`isAlive` = \"1\"",
+            "Name" => "`Name` NOT 'Frank'",
+            "isAlive" => "`isAlive` = '1'",
         ], Canary::mapConditions($conditions));
     }
 
@@ -889,8 +917,8 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(2, count($x));
         $this->assertContainsOnlyInstancesOf(Canary::class, $x);
 
-        $Expectation = number_format($RawRecord['Height']/2.54, 2);
-        $this->assertEquals($Expectation, $RawRecord['HeightInInches']);
+        $Expectation = (float) number_format($RawRecord['Height']/2.54, 2, '.', '');
+        $this->assertEqualsWithDelta($Expectation, (float) $RawRecord['HeightInInches'], 0.01);
 
         // extraColumns as string
         $x = Canary::getAllByWhere(['Class'=>Canary::class], [
@@ -902,41 +930,43 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals(3, count($x));
         $this->assertContainsOnlyInstancesOf(Canary::class, $x);
 
-        $Expectation = number_format($RawRecord['Height']/2.54, 2);
-        $this->assertEquals($Expectation, $RawRecord['HeightInInches']);
+        $Expectation = (float) number_format($RawRecord['Height']/2.54, 2, '.', '');
+        $this->assertEqualsWithDelta($Expectation, (float) $RawRecord['HeightInInches'], 0.01);
 
-        // having
-        $x = Canary::getAllByWhere(['Class'=>Canary::class], [
-            'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
-            'having' => [
-                '`HeightInInches`>5.0',
-            ],
-        ]);
+        if (!$this->isSQLite()) {
+            // having
+            $x = Canary::getAllByWhere(['Class'=>Canary::class], [
+                'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
+                'having' => [
+                    '`HeightInInches`>5.0',
+                ],
+            ]);
 
-        $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
+            $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
 
-        $this->assertEquals($expectedCount, count($x));
-        $this->assertContainsOnlyInstancesOf(Canary::class, $x);
+            $this->assertEquals($expectedCount, count($x));
+            $this->assertContainsOnlyInstancesOf(Canary::class, $x);
 
-        // having
-        $x = Canary::getAllByWhere(['Class'=>Canary::class], [
-            'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
-            'having' => '`HeightInInches`>5.0',
-            /* getAllByWhere fires _mapConditions on having when it's passed like this but because the field value below is an alias the _mapConditions function won't work.
-            // It checks if the fieldExists and ignores it if it's not part of the model
-            'having' => [
-                [
-                    'field'=>'HeightInInches',
-                    'operator' => '>',
-                    'value' => '5.0',
-                ]
-            ]*/
-        ]);
+            // having
+            $x = Canary::getAllByWhere(['Class'=>Canary::class], [
+                'extraColumns' => 'format(Height/2.54,2) as HeightInInches',
+                'having' => '`HeightInInches`>5.0',
+                /* getAllByWhere fires _mapConditions on having when it's passed like this but because the field value below is an alias the _mapConditions function won't work.
+                // It checks if the fieldExists and ignores it if it's not part of the model
+                'having' => [
+                    [
+                        'field'=>'HeightInInches',
+                        'operator' => '>',
+                        'value' => '5.0',
+                    ]
+                ]*/
+            ]);
 
-        $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
+            $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
 
-        $this->assertEquals($expectedCount, count($x));
-        $this->assertContainsOnlyInstancesOf(Canary::class, $x);
+            $this->assertEquals($expectedCount, count($x));
+            $this->assertContainsOnlyInstancesOf(Canary::class, $x);
+        }
 
         // order as string
         $x = Canary::getAllByWhere(['Class'=>Canary::class], ['order'=> 'Name DESC']);
@@ -1097,11 +1127,21 @@ class ActiveRecordTest extends TestCase
 
         $x = fakeCanary::create(fakeCanary::mock(), true);
 
-        $this->assertCount(2, DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
+        if ($this->isSQLite()) {
+            $this->assertCount(2, DB::allRecords("SELECT `name` FROM `sqlite_master` WHERE `type` = 'table' AND `name` IN ('fake','history_fake')"));
+        } else {
+            $this->assertCount(2, DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
+        }
         fakeCanary::$tableName = $a;
         fakeCanary::$historyTable = $b;
-        DB::nonQuery('DROP TABLE `fake`,`history_fake`');
-        $this->assertCount(0, DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
+        if ($this->isSQLite()) {
+            DB::nonQuery('DROP TABLE `fake`');
+            DB::nonQuery('DROP TABLE `history_fake`');
+            $this->assertCount(0, DB::allRecords("SELECT `name` FROM `sqlite_master` WHERE `type` = 'table' AND `name` IN ('fake','history_fake')"));
+        } else {
+            DB::nonQuery('DROP TABLE `fake`,`history_fake`');
+            $this->assertCount(0, DB::allRecords("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')"));
+        }
     }
 
     /**

@@ -15,7 +15,6 @@ namespace Divergence\Helpers;
  *
  * @package Divergence
  * @author Henry Paradiz <henry.paradiz@gmail.com>
- * @author  Chris Alfano <themightychris@gmail.com>
  */
 class JSON
 {

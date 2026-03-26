@@ -1,6 +1,6 @@
 language: php
 php:
-  - '8.1'
+  - '8.4'
 
 services:
   - mysql
@@ -33,7 +33,7 @@ before_script:
     - ls -al
 
 script:
-  - ./vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+  - composer test:mysql
 
 after_success:
 # Submit coverage report to Coveralls servers, see .coveralls.yml

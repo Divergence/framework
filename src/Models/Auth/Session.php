@@ -10,15 +10,17 @@
 
 namespace Divergence\Models\Auth;
 
+use Divergence\IO\Database\Connections;
+use Divergence\IO\Database\SQLite as SQLiteStorage;
 use Divergence\Models\Model;
 use Divergence\Models\Relations;
 use Divergence\Models\Mapping\Column;
+use Throwable;
 
 /**
  * Session object
  *
  * @author Henry Paradiz <henry.paradiz@gmail.com>
- * @author Chris Alfano <themightychris@gmail.com>
  * @inheritDoc
  * @property string $Handle Unique identifier for this session used by the cookie.
  * @property string $LastRequest Timestamp of the last time this session was updated.
@@ -36,30 +38,65 @@ class Session extends Model
     public static $cookieExpires = false;
     public static $timeout = 31536000; //3600;
 
-    // support subclassing
-    public static $rootClass = __CLASS__;
-    public static $defaultClass = __CLASS__;
-    public static $subClasses = [__CLASS__];
-
     // ActiveRecord configuration
     public static $tableName = 'sessions';
-    public static $singularNoun = 'session';
-    public static $pluralNoun = 'sessions';
+    public static $indexes = [
+        'SESSION_HANDLE' => [
+            'unique' => true,
+            'fields' => ['Handle'],
+        ],
+    ];
 
     #[Column(notnull: false, default:null)]
-    protected $ContextClass;
+    private $ContextClass;
 
     #[Column(type:'int', notnull: false, default:null)]
-    protected $ContextID;
+    private $ContextID;
 
-    #[Column(unique:true, length:32)]
-    protected $Handle;
+    #[Column(length:32)]
+    private $Handle;
 
     #[Column(type:'timestamp', notnull:false)]
-    protected $LastRequest;
+    private $LastRequest;
 
     #[Column(type:'binary', length:16)]
-    protected $LastIP;
+    private $LastIP;
+
+    public function getValue($name)
+    {
+        if ($name === 'LastIP') {
+            $value = parent::getValue($name);
+
+            if ($value !== null && static::isUsingSQLite()) {
+                return ctype_xdigit($value) && strlen($value) % 2 === 0 ? hex2bin($value) : $value;
+            }
+
+            return $value;
+        }
+
+        return parent::getValue($name);
+    }
+
+    public function setValue($name, $value)
+    {
+        $value = $this->normalizeValueForStorage($name, $value);
+
+        return parent::setValue($name, $value);
+    }
+
+    public function setField($field, $value)
+    {
+        parent::setField($field, $this->normalizeValueForStorage($field, $value));
+    }
+
+    public function setFields($values)
+    {
+        foreach ($values as $field => $value) {
+            $values[$field] = $this->normalizeValueForStorage($field, $value);
+        }
+
+        parent::setFields($values);
+    }
 
     /**
      * Gets or sets up a session based on current cookies.
@@ -205,5 +242,23 @@ class Session extends Model
         // chance of happening is 1 in 2^128 though so might want to remove the database call
 
         return $handle;
+    }
+
+    protected static function isUsingSQLite(): bool
+    {
+        try {
+            return Connections::getConnectionType() === SQLiteStorage::class;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    protected function normalizeValueForStorage(string $field, $value)
+    {
+        if ($field === 'LastIP' && $value !== null && static::isUsingSQLite()) {
+            return bin2hex($value);
+        }
+
+        return $value;
     }
 }

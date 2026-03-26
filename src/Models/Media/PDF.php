@@ -16,7 +16,6 @@ use Exception;
  * PDF Media Model
  *
  * @author Henry Paradiz <henry.paradiz@gmail.com>
- * @author Chris Alfano <themightychris@gmail.com>
  *
  * {@inheritDoc}
  */

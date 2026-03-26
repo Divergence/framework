@@ -12,14 +12,21 @@ namespace Divergence\Tests;
 
 use PHPUnit\Framework\TestCase;
 
-use Divergence\IO\Database\MySQL as DB;
+use Divergence\IO\Database\Connections;
 
 class TestUtils
 {
+    public static function getStorage()
+    {
+        $storageClass = Connections::getConnectionType();
+
+        return new $storageClass();
+    }
+
     public static function requireDB(TestCase $ctx)
     {
         try {
-            DB::getConnection();
+            static::getStorage()->getConnection();
         } catch (\Exception $e) {
             $ctx->markTestSkipped('Setup a MySQL database connection to a local MySQL server.');
         }

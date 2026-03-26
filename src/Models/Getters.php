@@ -10,11 +10,7 @@
 
 namespace Divergence\Models;
 
-use Exception;
-use Divergence\Helpers\Util;
 use Divergence\Models\ActiveRecord;
-use Divergence\IO\Database\MySQL as DB;
-use Divergence\IO\Database\Query\Select;
 
 /**
  * @property string $handleField Defined in the model
@@ -23,6 +19,11 @@ use Divergence\IO\Database\Query\Select;
  */
 trait Getters
 {
+    public static function Factory(?string $modelClass = null): Factory
+    {
+        return new Factory($modelClass ?: static::class);
+    }
+
     /**
      * Converts database record array to a model. Will attempt to use the record's Class field value to as the class to instantiate as or the name of this class if none is provided.
      *
@@ -31,8 +32,7 @@ trait Getters
      */
     public static function instantiateRecord($record)
     {
-        $className = static::_getRecordClass($record);
-        return $record ? new $className($record) : null;
+        return static::Factory()->instantiateRecord($record);
     }
 
     /**
@@ -43,12 +43,7 @@ trait Getters
      */
     public static function instantiateRecords($records)
     {
-        foreach ($records as &$record) {
-            $className = static::_getRecordClass($record);
-            $record = new $className($record);
-        }
-
-        return $records;
+        return static::Factory()->instantiateRecords($records);
     }
 
     /**
@@ -60,7 +55,7 @@ trait Getters
      */
     public static function getByContextObject(ActiveRecord $Record, $options = [])
     {
-        return static::getByContext($Record::$rootClass, $Record->getPrimaryKeyValue(), $options);
+        return static::Factory()->getByContextObject($Record, $options);
     }
 
     /**
@@ -71,23 +66,7 @@ trait Getters
     */
     public static function getByContext($contextClass, $contextID, $options = [])
     {
-        if (!static::fieldExists('ContextClass')) {
-            throw new Exception('getByContext requires the field ContextClass to be defined');
-        }
-
-        $options = Util::prepareOptions($options, [
-            'conditions' => [],
-            'order' => false,
-        ]);
-
-        $options['conditions']['ContextClass'] = $contextClass;
-        $options['conditions']['ContextID'] = $contextID;
-
-        $record = static::getRecordByWhere($options['conditions'], $options);
-
-        $className = static::_getRecordClass($record);
-
-        return $record ? new $className($record) : null;
+        return static::Factory()->getByContext($contextClass, $contextID, $options);
     }
 
     /**
@@ -98,12 +77,7 @@ trait Getters
      */
     public static function getByHandle($handle)
     {
-        if (static::fieldExists(static::$handleField)) {
-            if ($Record = static::getByField(static::$handleField, $handle)) {
-                return $Record;
-            }
-        }
-        return static::getByID($handle);
+        return static::Factory()->getByHandle($handle);
     }
 
     /**
@@ -114,9 +88,7 @@ trait Getters
      */
     public static function getByID($id)
     {
-        $record = static::getRecordByField(static::$primaryKey ? static::$primaryKey : 'ID', $id, true);
-
-        return static::instantiateRecord($record);
+        return static::Factory()->getByID($id);
     }
 
     /**
@@ -129,9 +101,7 @@ trait Getters
      */
     public static function getByField($field, $value, $cacheIndex = false)
     {
-        $record = static::getRecordByField($field, $value, $cacheIndex);
-
-        return static::instantiateRecord($record);
+        return static::Factory()->getByField($field, $value, $cacheIndex);
     }
 
     /**
@@ -144,7 +114,7 @@ trait Getters
      */
     public static function getRecordByField($field, $value, $cacheIndex = false)
     {
-        return static::getRecordByWhere([static::_cn($field) => DB::escape($value)], $cacheIndex);
+        return static::Factory()->getRecordByField($field, $value, $cacheIndex);
     }
 
     /**
@@ -156,9 +126,7 @@ trait Getters
      */
     public static function getByWhere($conditions, $options = [])
     {
-        $record = static::getRecordByWhere($conditions, $options);
-
-        return static::instantiateRecord($record);
+        return static::Factory()->getByWhere($conditions, $options);
     }
 
     /**
@@ -170,23 +138,7 @@ trait Getters
      */
     public static function getRecordByWhere($conditions, $options = [])
     {
-        if (!is_array($conditions)) {
-            $conditions = [$conditions];
-        }
-
-        $options = Util::prepareOptions($options, [
-            'order' => false,
-        ]);
-
-        // initialize conditions and order
-        $conditions = static::_mapConditions($conditions);
-        $order = $options['order'] ? static::_mapFieldOrder($options['order']) : [];
-
-        return DB::oneRecord(
-            (new Select())->setTable(static::$tableName)->where(join(') AND (', $conditions))->order($order ? join(',', $order) : '')->limit('1'),
-            null,
-            [static::class,'handleException']
-        );
+        return static::Factory()->getRecordByWhere($conditions, $options);
     }
 
     /**
@@ -198,7 +150,7 @@ trait Getters
      */
     public static function getByQuery($query, $params = [])
     {
-        return static::instantiateRecord(DB::oneRecord($query, $params, [static::class,'handleException']));
+        return static::Factory()->getByQuery($query, $params);
     }
 
     /**
@@ -210,7 +162,7 @@ trait Getters
      */
     public static function getAllByClass($className = false, $options = [])
     {
-        return static::getAllByField('Class', $className ? $className : get_called_class(), $options);
+        return static::Factory()->getAllByClass($className, $options);
     }
 
     /**
@@ -222,7 +174,7 @@ trait Getters
      */
     public static function getAllByContextObject(ActiveRecord $Record, $options = [])
     {
-        return static::getAllByContext($Record::$rootClass, $Record->getPrimaryKeyValue(), $options);
+        return static::Factory()->getAllByContextObject($Record, $options);
     }
 
     /**
@@ -233,18 +185,7 @@ trait Getters
      */
     public static function getAllByContext($contextClass, $contextID, $options = [])
     {
-        if (!static::fieldExists('ContextClass')) {
-            throw new Exception('getByContext requires the field ContextClass to be defined');
-        }
-
-        $options = Util::prepareOptions($options, [
-            'conditions' => [],
-        ]);
-
-        $options['conditions']['ContextClass'] = $contextClass;
-        $options['conditions']['ContextID'] = $contextID;
-
-        return static::instantiateRecords(static::getAllRecordsByWhere($options['conditions'], $options));
+        return static::Factory()->getAllByContext($contextClass, $contextID, $options);
     }
 
     /**
@@ -257,7 +198,7 @@ trait Getters
      */
     public static function getAllByField($field, $value, $options = [])
     {
-        return static::getAllByWhere([$field => $value], $options);
+        return static::Factory()->getAllByField($field, $value, $options);
     }
 
     /**
@@ -269,7 +210,7 @@ trait Getters
      */
     public static function getAllByWhere($conditions = [], $options = [])
     {
-        return static::instantiateRecords(static::getAllRecordsByWhere($conditions, $options));
+        return static::Factory()->getAllByWhere($conditions, $options);
     }
 
     /**
@@ -280,7 +221,7 @@ trait Getters
      */
     public static function getAll($options = [])
     {
-        return static::instantiateRecords(static::getAllRecords($options));
+        return static::Factory()->getAll($options);
     }
 
     /**
@@ -291,28 +232,7 @@ trait Getters
      */
     public static function getAllRecords($options = [])
     {
-        $options = Util::prepareOptions($options, [
-            'indexField' => false,
-            'order' => false,
-            'limit' => false,
-            'calcFoundRows' => false,
-            'offset' => 0,
-        ]);
-
-        $select = (new Select())->setTable(static::$tableName)->calcFoundRows();
-
-        if ($options['order']) {
-            $select->order(join(',', static::_mapFieldOrder($options['order'])));
-        }
-
-        if ($options['limit']) {
-            $select->limit(sprintf('%u,%u', $options['offset'], $options['limit']));
-        }
-        if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $select, null, null, [static::class,'handleException']);
-        } else {
-            return DB::allRecords($select, null, [static::class,'handleException']);
-        }
+        return static::Factory()->getAllRecords($options);
     }
 
     /**
@@ -324,7 +244,7 @@ trait Getters
      */
     public static function getAllByQuery($query, $params = [])
     {
-        return static::instantiateRecords(DB::allRecords($query, $params, [static::class,'handleException']));
+        return static::Factory()->getAllByQuery($query, $params);
     }
 
     /**
@@ -337,7 +257,7 @@ trait Getters
      */
     public static function getTableByQuery($keyField, $query, $params = [])
     {
-        return static::instantiateRecords(DB::table($keyField, $query, $params, [static::class,'handleException']));
+        return static::Factory()->getTableByQuery($keyField, $query, $params);
     }
 
     /**
@@ -349,56 +269,7 @@ trait Getters
      */
     public static function getAllRecordsByWhere($conditions = [], $options = [])
     {
-        $className = get_called_class();
-
-        $options = Util::prepareOptions($options, [
-            'indexField' => false,
-            'order' => false,
-            'limit' => false,
-            'offset' => 0,
-            'calcFoundRows' => !empty($options['limit']),
-            'extraColumns' => false,
-            'having' => false,
-        ]);
-
-        // initialize conditions
-        if ($conditions) {
-            if (is_string($conditions)) {
-                $conditions = [$conditions];
-            }
-
-            $conditions = static::_mapConditions($conditions);
-        }
-
-        $select = (new Select())->setTable(static::$tableName)->setTableAlias($className::$rootClass);
-        if ($options['calcFoundRows']) {
-            $select->calcFoundRows();
-        }
-
-        $expression = sprintf('`%s`.*', $className::$rootClass);
-        $select->expression($expression.static::buildExtraColumns($options['extraColumns']));
-
-        if ($conditions) {
-            $select->where(join(') AND (', $conditions));
-        }
-
-        if ($options['having']) {
-            $select->having(static::buildHaving($options['having']));
-        }
-
-        if ($options['order']) {
-            $select->order(join(',', static::_mapFieldOrder($options['order'])));
-        }
-
-        if ($options['limit']) {
-            $select->limit(sprintf('%u,%u', $options['offset'], $options['limit']));
-        }
-
-        if ($options['indexField']) {
-            return DB::table(static::_cn($options['indexField']), $select, null, null, [static::class,'handleException']);
-        } else {
-            return DB::allRecords($select, null, [static::class,'handleException']);
-        }
+        return static::Factory()->getAllRecordsByWhere($conditions, $options);
     }
 
     /**
@@ -410,47 +281,13 @@ trait Getters
      */
     public static function getUniqueHandle($text, $options = [])
     {
-        // apply default options
-        $options = Util::prepareOptions($options, [
-            'handleField' => static::$handleField,
-            'domainConstraints' => [],
-            'alwaysSuffix' => false,
-            'format' => '%s:%u',
-        ]);
-
-        // transliterate accented characters
-        $text = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
-
-        // strip bad characters
-        $handle = $strippedText = preg_replace(
-            ['/\s+/', '/_*[^a-zA-Z0-9\-_:]+_*/', '/:[-_]/', '/^[-_]+/', '/[-_]+$/'],
-            ['_', '-', ':', '', ''],
-            trim($text)
-        );
-
-        $handle = trim($handle, '-_');
-
-        $incarnation = 0;
-        do {
-            // TODO: check for repeat posting here?
-            $incarnation++;
-
-            if ($options['alwaysSuffix'] || $incarnation > 1) {
-                $handle = sprintf($options['format'], $strippedText, $incarnation);
-            }
-        } while (static::getByWhere(array_merge($options['domainConstraints'], [$options['handleField']=>$handle])));
-
-        return $handle;
+        return static::Factory()->getUniqueHandle($text, $options);
     }
 
     // TODO: make the handleField
     public static function generateRandomHandle($length = 32)
     {
-        do {
-            $handle = substr(md5(mt_rand(0, mt_getrandmax())), 0, $length);
-        } while (static::getByField(static::$handleField, $handle));
-
-        return $handle;
+        return static::Factory()->generateRandomHandle($length);
     }
 
     /**
@@ -461,15 +298,7 @@ trait Getters
      */
     public static function buildExtraColumns($columns)
     {
-        if (!empty($columns)) {
-            if (is_array($columns)) {
-                foreach ($columns as $key => $value) {
-                    return ', '.$value.' AS '.$key;
-                }
-            } else {
-                return ', ' . $columns;
-            }
-        }
+        return static::Factory()->buildExtraColumns($columns);
     }
 
     /**
@@ -480,8 +309,6 @@ trait Getters
      */
     public static function buildHaving($having)
     {
-        if (!empty($having)) {
-            return ' (' . (is_array($having) ? join(') AND (', static::_mapConditions($having)) : $having) . ')';
-        }
+        return static::Factory()->buildHaving($having);
     }
 }

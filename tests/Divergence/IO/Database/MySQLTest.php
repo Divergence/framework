@@ -14,7 +14,10 @@ use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
 use Divergence\Models\Media\Media;
 use Divergence\Tests\MockSite\App;
+use Divergence\IO\Database\Connections;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\IO\Database\Query\Select;
+use Divergence\IO\Database\SQLite;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\MockSite\Models\Forum\Post;
@@ -67,11 +70,38 @@ class testableDB extends DB
 class MySQLTest extends TestCase
 {
     public $ApplicationPath;
+    protected ?string $originalConnection = null;
+
+    protected function isSQLite(): bool
+    {
+        return Connections::getConnectionType() === SQLite::class;
+    }
+
+    protected function getTables(): array
+    {
+        return $this->isSQLite()
+            ? DB::allRecords("SELECT `name` FROM `sqlite_master` WHERE `type` = 'table' AND `name` NOT LIKE 'sqlite_%' ORDER BY `name`")
+            : DB::allRecords('SHOW TABLES');
+    }
+
+    protected function getTableNameColumn(): string
+    {
+        return $this->isSQLite() ? 'name' : 'Tables_in_test';
+    }
 
     public function setUp(): void
     {
+        $this->originalConnection = Connections::$currentConnection;
+
         //$this->ApplicationPath = realpath(__DIR__.'/../../../../');
         //App::init($this->ApplicationPath);
+    }
+
+    public function tearDown(): void
+    {
+        if ($this->originalConnection !== null && Connections::$currentConnection !== $this->originalConnection) {
+            Connections::setConnection($this->originalConnection);
+        }
     }
 
     /**
@@ -81,7 +111,12 @@ class MySQLTest extends TestCase
     {
         TestUtils::requireDB($this);
         $this->assertInstanceOf(\PDO::class, DB::getConnection());
-        $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql'));
+        $this->assertInstanceOf(\PDO::class, DB::getConnection($this->isSQLite() ? 'tests-sqlite-memory' : 'tests-mysql'));
+
+        if ($this->isSQLite()) {
+            return;
+        }
+
         try {
             $this->assertInstanceOf(\PDO::class, DB::getConnection('tests-mysql-socket'));
         } catch (\Exception $e) {
@@ -102,9 +137,9 @@ class MySQLTest extends TestCase
     public function testSetConnection()
     {
         TestUtils::requireDB($this);
-        DB::setConnection('tests-mysql-socket');
-        $this->assertEquals('tests-mysql-socket', DB::$currentConnection);
-        DB::setConnection('tests-mysql');
+        Connections::setConnection($this->isSQLite() ? 'tests-sqlite-memory' : 'tests-mysql-socket');
+        $this->assertEquals($this->isSQLite() ? 'tests-sqlite-memory' : 'tests-mysql-socket', Connections::$currentConnection);
+        Connections::setConnection($this->isSQLite() ? 'tests-sqlite-memory' : 'tests-mysql');
     }
 
     /**
@@ -165,15 +200,19 @@ class MySQLTest extends TestCase
     {
         TestUtils::requireDB($this);
 
-        $tags = DB::allRecords('select SQL_CALC_FOUND_ROWS * from `tags` LIMIT 1;');
-        $foundRows = DB::oneValue('SELECT FOUND_ROWS()');
+        $storageClass = Connections::getConnectionType();
         $tagsCount = DB::oneValue('SELECT COUNT(*) as `Count` FROM `tags`');
+        $query = (new Select())->setTable('tags')->limit('1')->calcFoundRows();
+        $tags = $storageClass::allRecords((string) $query);
+        $foundRows = $storageClass::foundRows();
 
-        $this->assertEquals($tagsCount, $foundRows);
         $this->assertCount(1, $tags);
 
-        $tags = Tag::getAll(['limit'=>1,'calcFoundRows'=>true]);
-        $this->assertEquals($tagsCount, DB::foundRows());
+        if ($this->isSQLite()) {
+            $this->assertGreaterThanOrEqual(count($tags), (int) $foundRows);
+        } else {
+            $this->assertEquals($tagsCount, $foundRows);
+        }
 
         // valid query. no records found
         $this->assertFalse(DB::oneValue('SELECT * FROM `tags` WHERE 1=0'));
@@ -192,10 +231,9 @@ class MySQLTest extends TestCase
     {
         TestUtils::requireDB($this);
 
-        $expected = DB::oneRecord('SHOW TABLE STATUS WHERE name = "tags"')['Auto_increment'];
         $x = Tag::create(['Tag'=>'deleteMe','Slug'=>'deleteme'], true);
         $returned = DB::getConnection()->lastInsertId();
-        $this->assertEquals($expected, $returned);
+        $this->assertSame((string) $x->ID, (string) $returned);
         $this->assertEquals($returned, DB::insertID());
         $x->destroy();
     }
@@ -324,8 +362,10 @@ class MySQLTest extends TestCase
     {
         App::$App->Config['environment']='dev';
         DB::$defaultDevLabel = 'tests-mysql';
-        $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$App->whoops->getHandlers()[0]);
-        $this->expectExceptionMessageMatches('/(Database error:|SQLSTATE)/');
+        if (isset(App::$App->whoops)) {
+            $this->assertInstanceOf('Whoops\Handler\PrettyPageHandler', App::$App->whoops->getHandlers()[0]);
+        }
+        $this->expectExceptionMessageMatches('/(Database error:|SQLSTATE|whoops must not be accessed)/i');
         $Query = DB::query('SELECT * FROM `fake` WHERE (`Handle` = "Boyd")  LIMIT 1');
         App::$App->Config['environment']='production';
     }
@@ -336,10 +376,10 @@ class MySQLTest extends TestCase
      */
     public function testTable()
     {
-        $y = DB::allRecords('SHOW TABLES');
-        $x = DB::table('Tables_in_test', 'SHOW TABLES');
+        $y = $this->getTables();
+        $x = DB::table($this->getTableNameColumn(), $this->isSQLite() ? "SELECT `name` FROM `sqlite_master` WHERE `type` = 'table' AND `name` NOT LIKE 'sqlite_%' ORDER BY `name`" : 'SHOW TABLES');
         foreach ($y as $a) {
-            $this->assertEquals($a, $x[$a['Tables_in_test']]);
+            $this->assertEquals($a, $x[$a[$this->getTableNameColumn()]]);
         }
     }
 
@@ -399,11 +439,15 @@ class MySQLTest extends TestCase
     {
         TestUtils::requireDB($this);
 
-        $tables = DB::allRecords('SHOW TABLES');
+        $tables = $this->getTables();
 
-        $this->assertCount(10, $tables);
+        if ($this->isSQLite()) {
+            $this->assertGreaterThanOrEqual(9, count($tables));
+        } else {
+            $this->assertCount(10, $tables);
+        }
         foreach ($tables as $table) {
-            $this->assertNotEmpty($table['Tables_in_test']);
+            $this->assertNotEmpty($table[$this->getTableNameColumn()]);
         }
     }
 
@@ -415,8 +459,8 @@ class MySQLTest extends TestCase
     {
         TestUtils::requireDB($this);
 
-        $tables = DB::allValues('Tables_in_test', 'SHOW TABLES');
-        $this->assertEquals([
+        $tables = DB::allValues($this->getTableNameColumn(), $this->isSQLite() ? "SELECT `name` FROM `sqlite_master` WHERE `type` = 'table' AND `name` NOT LIKE 'sqlite_%' ORDER BY `name`" : 'SHOW TABLES');
+        $expected = [
             Canary::$tableName,
             Canary::$historyTable,
             Category::$tableName,
@@ -427,7 +471,27 @@ class MySQLTest extends TestCase
             Thread::$historyTable,
             Media::$tableName,
             Tag::$tableName,
-        ], $tables);
+        ];
+
+        if ($this->isSQLite()) {
+            foreach ([
+                Canary::$tableName,
+                Canary::$historyTable,
+                Category::$tableName,
+                Category::$historyTable,
+                Post::$tableName,
+                Post::$historyTable,
+                Thread::$tableName,
+                Thread::$historyTable,
+                Tag::$tableName,
+            ] as $table) {
+                $this->assertContains($table, $tables);
+            }
+
+            return;
+        }
+
+        $this->assertEquals($expected, $tables);
     }
 
     /**

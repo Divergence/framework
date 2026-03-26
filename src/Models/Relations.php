@@ -122,7 +122,7 @@ trait Relations
         }
 
         $options['linkLocal'] = $options['linkLocal'] ?? $classShortName . 'ID';
-        $options['linkForeign'] = $options['linkForeign'] ?? basename(str_replace('\\', '/', $options['class']::$rootClass)).'ID';
+        $options['linkForeign'] = $options['linkForeign'] ?? basename(str_replace('\\', '/', $options['class']::getRootClassName())).'ID';
         $options['local'] = $options['local'] ?? 'ID';
         $options['foreign'] = $options['foreign'] ?? 'ID';
         $options['indexField'] = $options['indexField'] ?? false;
@@ -134,7 +134,7 @@ trait Relations
     // TODO: Make relations getPrimaryKeyValue() instead of using ID all the time.
     protected static function _initRelationship($relationship, $options)
     {
-        $classShortName = basename(str_replace('\\', '/', static::$rootClass));
+        $classShortName = basename(str_replace('\\', '/', static::getRootClassName()));
 
         // apply defaults
         if (empty($options['type'])) {
