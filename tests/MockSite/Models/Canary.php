@@ -25,16 +25,8 @@ class Canary extends \Divergence\Models\Model
 {
     use Versioning;
 
-    // support subclassing
-    public static $rootClass = __CLASS__;
-    public static $defaultClass = __CLASS__;
-    public static $subClasses = [__CLASS__];
-
-
     // ActiveRecord configuration
     public static $tableName = 'canaries';
-    public static $singularNoun = 'canary';
-    public static $pluralNoun = 'canaries';
 
     // versioning
     public static $historyTable = 'canaries_history';
@@ -42,31 +34,31 @@ class Canary extends \Divergence\Models\Model
     public static $createRevisionOnSave = true;
 
     #[Column(type: 'int', default:7)]
-    protected $ContextID;
+    private $ContextID;
 
     #[Column(type: 'enum', values: [Tag::class], default: Tag::class)]
-    protected $ContextClass;
+    private $ContextClass;
 
     #[Column(type: 'clob', notnull:true)]
-    protected $DNA;
+    private $DNA;
 
     #[Column(type: 'string', required: true, notnull:true)]
-    protected $Name;
+    private $Name;
 
     #[Column(type: 'string', blankisnull: true, notnull:false)]
-    protected $Handle;
+    private $Handle;
 
     #[Column(type: 'boolean', default: true)]
-    protected $isAlive;
+    private $isAlive;
 
     #[Column(type: 'password')]
-    protected $DNAHash;
+    private $DNAHash;
 
     #[Column(type: 'timestamp', notnull: false)]
-    protected $StatusCheckedLast;
+    private $StatusCheckedLast;
 
     #[Column(type: 'serialized')]
-    protected $SerializedData;
+    private $SerializedData;
 
     #[Column(type: 'set', values: [
         "red",
@@ -89,28 +81,28 @@ class Canary extends \Divergence\Models\Model
         "grey",
         "blue-grey",
     ])]
-    protected $Colors;
+    private $Colors;
 
     #[Column(type: 'list', delimiter: '|')]
-    protected $EyeColors;
+    private $EyeColors;
 
     #[Column(type: 'float')]
-    protected $Height;
+    private $Height;
 
     #[Column(type: 'int', notnull: false)]
-    protected $LongestFlightTime;
+    private $LongestFlightTime;
 
     #[Column(type: 'uint')]
-    protected $HighestRecordedAltitude;
+    private $HighestRecordedAltitude;
 
     #[Column(type: 'integer', notnull: true)]
-    protected $ObservationCount;
+    private $ObservationCount;
 
     #[Column(type: 'date')]
-    protected $DateOfBirth;
+    private $DateOfBirth;
 
     #[Column(type: 'decimal', notnull: false, precision: 5, scale: 2)]
-    protected $Weight;
+    private $Weight;
 
     public static $indexes = [
         'Handle' => [
@@ -147,24 +139,25 @@ class Canary extends \Divergence\Models\Model
      */
     public static function mock(): array
     {
-        $properties = (new ReflectionClass(static::class))->getProperties();
-        if (!empty($properties)) {
-            foreach ($properties as $property) {
-                if ($property->getName() === 'Colors') {
-                    $attributes = $property->getAttributes();
-                    foreach ($attributes as $attribute) {
-                        if ($attribute->getName()===Column::class) {
-                            $allowedColors = $attribute->getArguments()['values'];
-                        }
-                    }
-                }
+        $reflection = new ReflectionClass(static::class);
+        while (!$reflection->hasProperty('Colors') && ($reflection = $reflection->getParentClass())) {
+        }
+
+        $attributes = $reflection->getProperty('Colors')->getAttributes();
+
+        foreach ($attributes as $attribute) {
+            if ($attribute->getName() === Column::class) {
+                $allowedColors = $attribute->getArguments()['values'];
             }
         }
+
         $colors = array_rand($allowedColors, mt_rand(1, 5));
         if (is_array($colors)) {
             foreach ($colors as &$color) {
                 $color = $allowedColors[$color];
             }
+        } else {
+            $colors = [$allowedColors[$colors]];
         }
 
         $EyeColors = [$allowedColors[array_rand($allowedColors)],$allowedColors[array_rand($allowedColors)]];

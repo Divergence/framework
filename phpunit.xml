@@ -12,9 +12,12 @@
     </exclude>
   </coverage>
   <testsuites>
-    <testsuite name="all">
+    <testsuite name="tests-mysql">
       <directory>tests/Divergence</directory>
     </testsuite>
+    <!--<testsuite name="tests-sqlite-memory">
+      <file>tests/DivergenceSQLite/SQLiteSuiteLoader.php</file>
+    </testsuite>-->
   </testsuites>
   <listeners>
     <listener class="Divergence\Tests\TestListener" file="./tests/Divergence/TestListener.php"/>

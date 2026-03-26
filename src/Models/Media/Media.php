@@ -19,7 +19,6 @@ use Divergence\Models\Mapping\Column;
  * Media Model
  *
  * @author Henry Paradiz <henry.paradiz@gmail.com>
- * @author  Chris Alfano <themightychris@gmail.com>
  *
  * {@inheritDoc}
  * @property int        $CreatorID A standard user ID field for use by your login & authentication system. Part of Divergence\Models\Model but used in this file as a default.
@@ -51,24 +50,24 @@ class Media extends Model
     public static $tableName = 'media';
 
     #[Column(notnull: false, default:null)]
-    protected $ContextClass;
+    private $ContextClass;
 
     #[Column(type:'int', notnull: false, default:null)]
-    protected $ContextID;
+    private $ContextID;
 
-    protected $MIMEType;
-
-    #[Column(type:'int', unsigned: true, notnull:false)]
-    protected $Width;
+    private $MIMEType;
 
     #[Column(type:'int', unsigned: true, notnull:false)]
-    protected $Height;
+    private $Width;
+
+    #[Column(type:'int', unsigned: true, notnull:false)]
+    private $Height;
 
     #[Column(type: 'decimal', notnull: false, precision: 12, scale: 6, default: 0)]
-    protected $Duration;
+    private $Duration;
 
     #[Column(notnull:false)]
-    protected $Caption;
+    private $Caption;
 
 
     public static $relationships = [

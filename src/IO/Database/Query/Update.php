@@ -6,11 +6,13 @@ class Update extends AbstractQuery
 {
     public ?string $where;
     public ?array $set;
+
     public function set(array $set): Update
     {
         $this->set = $set;
         return $this;
     }
+
     public function where(string $where): Update
     {
         $this->where = $where;
@@ -18,6 +20,15 @@ class Update extends AbstractQuery
     }
 
     public function __toString(): string
+    {
+        if ($query = $this->materializeResolvedQuery()) {
+            return (string) $query;
+        }
+
+        return $this->render();
+    }
+
+    protected function render(): string
     {
         return sprintf('UPDATE `%s` SET %s WHERE %s', $this->table, join(',', $this->set), $this->where);
     }

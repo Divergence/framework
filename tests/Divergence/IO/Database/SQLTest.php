@@ -10,7 +10,7 @@
 
 namespace Divergence\Tests\IO\Database;
 
-use Divergence\IO\Database\SQL;
+use Divergence\IO\Database\Writer\MySQL as SQL;
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
 use Divergence\Tests\MockSite\App;
@@ -25,28 +25,19 @@ class SQLTest extends TestCase
     {
         TestUtils::requireDB($this);
 
-        $Connection = DB::getConnection();
-        $z = function ($x) use ($Connection) {
-            $x = $Connection->quote($x);
-            return substr($x, 1, strlen($x)-2);
-        };
-
         $littleBobbyTables = 'Robert\'); DROP TABLE Students;--';
-        $safeLittleBobbyTables = $z($littleBobbyTables);
-
         $arrayOfBobbies = [
             'lorum ipsum',
             $littleBobbyTables,
             '; DROP tests ',
         ];
-        $safeArrayOfBobbies = [];
 
-        foreach ($arrayOfBobbies as $oneBob) {
-            $safeArrayOfBobbies[] = $z($oneBob);
-        }
-
-        $this->assertEquals($safeLittleBobbyTables, SQL::escape($littleBobbyTables));
-        $this->assertEquals($safeArrayOfBobbies, SQL::escape($arrayOfBobbies));
+        $this->assertEquals("Robert\\'); DROP TABLE Students;--", SQL::escape($littleBobbyTables));
+        $this->assertEquals([
+            'lorum ipsum',
+            "Robert\\'); DROP TABLE Students;--",
+            '; DROP tests ',
+        ], SQL::escape($arrayOfBobbies));
     }
 
     public function testGetCreateTable()

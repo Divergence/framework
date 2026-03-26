@@ -24,14 +24,14 @@ class Model extends ActiveRecord
     use Getters;
 
     #[Column(type: "integer", primary:true, autoincrement:true, unsigned:true)]
-    protected $ID;
+    private $ID;
 
     #[Column(type: "enum", notnull:true, values:[])]
-    protected $Class;
+    private $Class;
 
     #[Column(type: "timestamp", default:'CURRENT_TIMESTAMP')]
-    protected $Created;
+    private $Created;
 
     #[Column(type: "integer", notnull:false)]
-    protected $CreatorID;
+    private $CreatorID;
 }

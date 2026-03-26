@@ -21,16 +21,8 @@ class Post extends \Divergence\Models\Model
     use Versioning;
     use Relations;
 
-    // support subclassing
-    public static $rootClass = __CLASS__;
-    public static $defaultClass = __CLASS__;
-    public static $subClasses = [__CLASS__];
-
-
     // ActiveRecord configuration
     public static $tableName = 'forum_posts';
-    public static $singularNoun = 'post';
-    public static $pluralNoun = 'posts';
 
     // versioning
     public static $historyTable = 'forum_posts_history';
@@ -47,10 +39,10 @@ class Post extends \Divergence\Models\Model
     ];
 
     #[Column(type: "clob", required:true, notnull: true)]
-    protected string $Content;
+    private string $Content;
 
     #[Column(type: "integer", required:true, notnull: true)]
-    protected int $ThreadID;
+    private int $ThreadID;
 
     /*
      *  The first one is testing the minimal configuration of a one-to-one relationship
@@ -60,7 +52,7 @@ class Post extends \Divergence\Models\Model
     #[Relation(
         class:Thread::class,
     )]
-    protected ?Thread $Thread;
+    private ?Thread $Thread;
 
     #[Relation(
         type:'one-one',
@@ -72,5 +64,5 @@ class Post extends \Divergence\Models\Model
         ],
         order: ['Title'=>'ASC']
     )]
-    protected ?Thread $ThreadExplicit;
+    private ?Thread $ThreadExplicit;
 }

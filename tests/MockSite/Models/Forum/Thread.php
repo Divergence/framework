@@ -21,16 +21,8 @@ class Thread extends \Divergence\Models\Model
     use Versioning;
     use Relations;
 
-    // support subclassing
-    public static $rootClass = __CLASS__;
-    public static $defaultClass = __CLASS__;
-    public static $subClasses = [__CLASS__];
-
-
     // ActiveRecord configuration
     public static $tableName = 'forum_threads';
-    public static $singularNoun = 'thread';
-    public static $pluralNoun = 'threads';
 
     // versioning
     public static $historyTable = 'forum_threads_history';
@@ -40,10 +32,10 @@ class Thread extends \Divergence\Models\Model
     public static $indexes = [];
 
     #[Column(type: "string", required:true, notnull: true)]
-    protected string $Title;
+    private string $Title;
 
     #[Column(type: "integer", required:true, notnull: true)]
-    protected int $CategoryID;
+    private int $CategoryID;
 
     #[Relation(
         type:'one-many',
@@ -51,5 +43,5 @@ class Thread extends \Divergence\Models\Model
         local: 'ID',
         foreign: 'ThreadID',
     )]
-    protected ?Category $Categories;
+    private ?Category $Categories;
 }

@@ -7,6 +7,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+$devConfig = __DIR__ . '/db.dev.php';
+
+if (file_exists($devConfig)) {
+    return require $devConfig;
+}
+
 return [
     /*
      *	MySQL database configuration
@@ -51,5 +57,28 @@ return [
         'database' =>  'test',
         'username' =>  'root',
         'password' =>  '',
+    ],
+    /*
+     *	SQLite database configuration
+     */
+    'sqlite' => [
+        'path' => __DIR__ . '/../var/sqlite/app.sqlite',
+        'foreign_keys' => true,
+        'busy_timeout' => 5000,
+    ],
+    'dev-sqlite' => [
+        'path' => __DIR__ . '/../var/sqlite/dev.sqlite',
+        'foreign_keys' => true,
+        'busy_timeout' => 5000,
+    ],
+    'tests-sqlite-memory' => [
+        'path' => ':memory:',
+        'foreign_keys' => true,
+        'busy_timeout' => 5000,
+    ],
+    'tests-sqlite-files' => [
+        'path' => __DIR__ . '/../var/sqlite/tests.sqlite',
+        'foreign_keys' => true,
+        'busy_timeout' => 5000,
     ],
 ];

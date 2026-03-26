@@ -23,16 +23,8 @@ class TagPost extends \Divergence\Models\Model
     use Versioning;
     use Relations;
 
-    // support subclassing
-    public static $rootClass = __CLASS__;
-    public static $defaultClass = __CLASS__;
-    public static $subClasses = [__CLASS__];
-
-
     // ActiveRecord configuration
     public static $tableName = 'forum_tag_post';
-    public static $singularNoun = 'tag_post';
-    public static $pluralNoun = 'tag_posts';
 
     // versioning
     public static $historyTable = 'forum_tag_post_history';
@@ -40,10 +32,10 @@ class TagPost extends \Divergence\Models\Model
     public static $createRevisionOnSave = true;
 
     #[Column(type: "integer", required:true, notnull: true)]
-    protected int $TagID;
+    private int $TagID;
 
     #[Column(type: "integer", required:true, notnull: true)]
-    protected int $PostID;
+    private int $PostID;
 
     public static $indexes = [
         'TagPost' => [
@@ -61,7 +53,7 @@ class TagPost extends \Divergence\Models\Model
         local: 'ThreadID',
         foreign: 'ID',
     )]
-    protected ?Tag $Tag;
+    private ?Tag $Tag;
 
     #[Relation(
         type:'one-one',
@@ -69,5 +61,5 @@ class TagPost extends \Divergence\Models\Model
         local: 'PostID',
         foreign: 'ID',
     )]
-    protected ?Post $Post;
+    private ?Post $Post;
 }

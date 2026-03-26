@@ -53,6 +53,15 @@ class Select extends AbstractQuery
 
     public function __toString(): string
     {
+        if ($query = $this->materializeResolvedQuery()) {
+            return (string) $query;
+        }
+
+        return $this->render();
+    }
+
+    protected function render(): string
+    {
         $expression = ($this->calcFoundRows ? 'SQL_CALC_FOUND_ROWS ' : '') . $this->expression;
 
         if (isset($this->tableAlias)) {

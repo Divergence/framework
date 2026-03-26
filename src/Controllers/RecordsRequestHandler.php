@@ -12,9 +12,9 @@ namespace Divergence\Controllers;
 
 use Exception;
 use Divergence\Helpers\JSON;
+use Divergence\IO\Database\Connections;
 use Divergence\Responders\JsonBuilder;
 use Divergence\Responders\TwigBuilder;
-use Divergence\IO\Database\MySQL as DB;
 use Divergence\Responders\JsonpBuilder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -25,7 +25,6 @@ use Divergence\Models\ActiveRecord as ActiveRecord;
  *
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
- * @author  Chris Alfano <themightychris@gmail.com>
  */
 abstract class RecordsRequestHandler extends RequestHandler
 {
@@ -198,14 +197,15 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
 
         $className = static::$recordClass;
+        $storageClass = Connections::getConnectionType();
 
         return $this->respond(
-            isset($responseID) ? $responseID : $this->getTemplateName($className::$pluralNoun),
+            isset($responseID) ? $responseID : $this->getTemplateName($className::getPluralNoun()),
             array_merge($responseData, [
                 'success' => true,
                 'data' => $className::getAllByWhere($conditions, $options),
                 'conditions' => $conditions,
-                'total' => DB::foundRows(),
+                'total' => $storageClass::foundRows(),
                 'limit' => $options['limit'],
                 'offset' => $options['offset'],
             ])
@@ -225,7 +225,7 @@ abstract class RecordsRequestHandler extends RequestHandler
                 {
                     $className = static::$recordClass;
 
-                    return $this->respond($this->getTemplateName($className::$singularNoun), [
+                    return $this->respond($this->getTemplateName($className::getSingularNoun()), [
                         'success' => true,
                         'data' => $Record,
                     ]);
@@ -264,7 +264,8 @@ abstract class RecordsRequestHandler extends RequestHandler
         $className = static::$recordClass;
         $PrimaryKey = $className::getPrimaryKey();
         if (empty($datum[$PrimaryKey])) {
-            $record = new $className::$defaultClass();
+            $defaultClass = $className::getDefaultClassName();
+            $record = new $defaultClass();
             $this->onRecordCreated($record, $datum);
         } else {
             if (!$record = $className::getByID($datum[$PrimaryKey])) {
@@ -344,7 +345,7 @@ abstract class RecordsRequestHandler extends RequestHandler
         }
 
 
-        return $this->respond($this->getTemplateName($className::$pluralNoun).'Saved', [
+        return $this->respond($this->getTemplateName($className::getPluralNoun()).'Saved', [
             'success' => count($results) || !count($failed),
             'data' => $results,
             'failed' => $failed,
@@ -417,7 +418,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             }
         }
 
-        return $this->respond($this->getTemplateName($className::$pluralNoun).'Destroyed', [
+        return $this->respond($this->getTemplateName($className::getPluralNoun()).'Destroyed', [
             'success' => count($results) || !count($failed),
             'data' => $results,
             'failed' => $failed,
@@ -432,7 +433,8 @@ abstract class RecordsRequestHandler extends RequestHandler
 
         if (!$Record) {
             $className = static::$recordClass;
-            $Record = new $className::$defaultClass();
+            $defaultClass = $className::getDefaultClassName();
+            $Record = new $defaultClass();
         }
 
         // call template function
@@ -485,7 +487,7 @@ abstract class RecordsRequestHandler extends RequestHandler
                 $this->onRecordSaved($Record, $_REQUEST);
 
                 // fire created response
-                $responseID = $this->getTemplateName($className::$singularNoun).'Saved';
+                $responseID = $this->getTemplateName($className::getSingularNoun()).'Saved';
                 $responseData = [
                     'success' => true,
                     'data' => $Record,
@@ -496,7 +498,7 @@ abstract class RecordsRequestHandler extends RequestHandler
             // fall through back to form if validation failed
         }
 
-        $responseID = $this->getTemplateName($className::$singularNoun).'Edit';
+        $responseID = $this->getTemplateName($className::getSingularNoun()).'Edit';
         $responseData = [
             'success' => false,
             'data' => $Record,
@@ -522,14 +524,14 @@ abstract class RecordsRequestHandler extends RequestHandler
             $this->onRecordDeleted($Record, $data);
 
             // fire created response
-            return $this->respond($this->getTemplateName($className::$singularNoun).'Deleted', [
+            return $this->respond($this->getTemplateName($className::getSingularNoun()).'Deleted', [
                 'success' => true,
                 'data' => $Record,
             ]);
         }
 
         return $this->respond('confirm', [
-            'question' => 'Are you sure you want to delete this '.$className::$singularNoun.'?',
+            'question' => 'Are you sure you want to delete this '.$className::getSingularNoun().'?',
             'data' => $Record,
         ]);
     }

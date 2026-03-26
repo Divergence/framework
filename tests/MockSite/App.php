@@ -11,9 +11,7 @@
 namespace Divergence\Tests\MockSite;
 
 use Faker\Factory;
-use Divergence\Routing\Path;
-use Divergence\IO\Database\SQL as SQL;
-use Divergence\IO\Database\MySQL as DB;
+use Divergence\IO\Database\Connections;
 use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\MockSite\Models\Forum\Post;
@@ -26,9 +24,6 @@ class App extends \Divergence\App
     public function setUp()
     {
         $faker = Factory::create();
-        ini_set('error_reporting', E_ALL); // or error_reporting(E_ALL);
-        ini_set('display_errors', '1');
-        ini_set('display_startup_errors', '1');
 
         if ($this->isDatabaseTestingEnabled()) {
             $this->clean();
@@ -119,7 +114,7 @@ class App extends \Divergence\App
     public function isDatabaseTestingEnabled()
     {
         try {
-            return is_a(DB::getConnection(), \PDO::class);
+            return is_a(Connections::getConnection(), \PDO::class);
         } catch (\Exception $e) {
             return false;
         }
@@ -127,11 +122,34 @@ class App extends \Divergence\App
 
     public function clean()
     {
-        $tables = DB::allRecords('Show tables;');
+        $pdo = Connections::getConnection();
+        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) == 'sqlite') {
+            $tables = \Divergence\IO\Database\StorageType::allValues('name', "SELECT `name` FROM `sqlite_master` WHERE `type` = 'table' AND `name` NOT LIKE 'sqlite_%'") ?? [];
+
+            foreach ($tables as $table) {
+                \Divergence\IO\Database\StorageType::nonQuery(sprintf('DROP TABLE `%s`', $table));
+            }
+
+            return;
+        }
+
+        $tables = \Divergence\IO\Database\StorageType::allRecords('Show tables;') ?? [];
         foreach ($tables as $data) {
             foreach ($data as $table) {
-                DB::nonQuery("DROP TABLE `{$table}`");
+                \Divergence\IO\Database\StorageType::nonQuery("DROP TABLE `{$table}`");
             }
+        }
+    }
+
+    public function tearDown(): void
+    {
+        if ($this->isDatabaseTestingEnabled()) {
+            $this->clean();
+        }
+
+        $mediaPath = $this->ApplicationPath . '/media';
+        if (is_dir($mediaPath)) {
+            exec(sprintf('rm -rf %s', escapeshellarg($mediaPath)));
         }
     }
 }

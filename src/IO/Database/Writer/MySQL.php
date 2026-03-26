@@ -8,18 +8,18 @@
  * file that was distributed with this source code.
  */
 
-namespace Divergence\IO\Database;
+namespace Divergence\IO\Database\Writer;
 
 use Exception;
 
 /**
- * SQL.
+ * MySQL schema writer.
+ *
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
- * @author  Chris Alfano <themightychris@gmail.com>
  *
  */
-class SQL
+class MySQL
 {
     protected static $aggregateFieldConfigs;
 
@@ -226,7 +226,7 @@ class SQL
     public static function getFieldDefinition($recordClass, $fieldName, $historyVariant = false)
     {
         $field = static::getAggregateFieldOptions($recordClass, $fieldName);
-        $rootClass = $recordClass::$rootClass;
+        $rootClass = $recordClass::getRootClassName();
 
         // force notnull=false on non-rootclass fields
         if ($rootClass && !$rootClass::fieldExists($fieldName)) {

@@ -50,7 +50,14 @@ class VersioningTest extends TestCase
     {
         TestUtils::requireDB($this);
 
-        $Canary = Canary::getByField('Name', 'Version2');
+        $data = Canary::mock();
+        $data['Name'] = uniqid('Versioned-', true);
+        $data['Handle'] = uniqid('versioned-', true);
+        $Canary = Canary::create($data, true);
+        $Canary->Name = uniqid('Version2-', true);
+        $Canary->Handle = uniqid('version2-', true);
+        $Canary->save();
+
         $versions = Canary::getRevisionsByID($Canary->ID);
 
         $this->assertCount(2, $versions);
@@ -84,9 +91,10 @@ class VersioningTest extends TestCase
 
         // order as string
         $x = Canary::getRevisions(['order'=> ['Name'=>'DESC']]);
-        $firstNameZeroPosChar = ord($x[0]->Name[0]);
-        $lastNameZeroPosChar = ord($x[count($x)-1]->Name[0]);
-        $this->assertGreaterThan($lastNameZeroPosChar, $firstNameZeroPosChar);
+        $orderedNames = array_map(fn ($record) => $record->Name, $x);
+        $expectedNames = $orderedNames;
+        rsort($expectedNames);
+        $this->assertSame($expectedNames, $orderedNames);
         $this->assertCount($count, $versions);
 
         // limit
