@@ -4,9 +4,9 @@ checks:
     duplication: true
 
 build:
-  image: default-bionic
+  image: default-noble
   environment:
-    php: 8.1.12
+    php: 8.4.0
     variables:
       XDEBUG_MODE: 'coverage'
   nodes:
@@ -26,10 +26,10 @@ build:
           - sudo apt install -y ffmpeg exiftool
       tests:
         override:
-          - command: ./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml  # Or "./vendor/bin/phpunit --coverage-clover=build/coverage/clover.xml"
+          - command: composer test:mysql
             idle_timeout: 300
             coverage:
-              file: 'build/coverage/clover.xml'
+              file: 'build/logs/clover.xml'
               format: 'php-clover'
     analysis:
       tests:

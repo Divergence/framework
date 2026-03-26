@@ -10,3 +10,4 @@ docs
 composer.lock
 .phpunit.result.cache
 clover.xml
+config/db.dev.php
