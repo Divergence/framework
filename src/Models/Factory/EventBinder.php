@@ -35,6 +35,13 @@ class EventBinder
         $this->getProperty($model, $property)->setValue($model, $value);
     }
 
+    protected function synchronizeMappedProperties($model): void
+    {
+        if (method_exists($model, 'initializeAttributeFields')) {
+            $model->initializeAttributeFields();
+        }
+    }
+
     public function bindPrototype($model)
     {
         $className = get_class($model);
@@ -56,6 +63,8 @@ class EventBinder
         if (property_exists($model, '_relatedObjects')) {
             $this->setProperty($model, '_relatedObjects', []);
         }
+
+        $this->synchronizeMappedProperties($model);
 
         return $model;
     }
@@ -96,6 +105,8 @@ class EventBinder
         if (property_exists($model, '_relatedObjects')) {
             $this->setProperty($model, '_relatedObjects', []);
         }
+
+        $this->synchronizeMappedProperties($model);
 
         return $model;
     }

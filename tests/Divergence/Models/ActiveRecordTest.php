@@ -13,6 +13,8 @@ namespace Divergence\Tests\Models;
 use Closure;
 
 use Divergence\Models\Model;
+use Divergence\Models\Factory\Instantiator;
+use Divergence\Models\Factory\ModelMetadata;
 
 use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
@@ -246,6 +248,23 @@ class ActiveRecordTest extends TestCase
         ]);
 
         $this->assertSame('/my-tag/', $tag->getSlugPath());
+    }
+
+    public function testTypedMappedPropertiesCanBeReadDirectlyInsideModelMethodsAfterFactoryHydration()
+    {
+        $instantiator = new Instantiator(new ModelMetadata(Tag::class));
+
+        $hydratedTag = $instantiator->instantiateRecord([
+            'ID' => 1,
+            'Class' => Tag::class,
+            'Created' => time(),
+            'CreatorID' => null,
+            'Tag' => 'Linux',
+            'Slug' => 'linux',
+        ]);
+
+        $this->assertNotNull($hydratedTag);
+        $this->assertSame('/linux/', $hydratedTag->getSlugPath());
     }
 
     /**
