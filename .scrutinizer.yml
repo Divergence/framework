@@ -29,14 +29,63 @@ build:
             cat > config/db.dev.php <<'PHP'
             <?php
             return [
+                'mysql' => [
+                    'host' => '127.0.0.1',
+                    'database' => 'divergence',
+                    'username' => 'divergence',
+                    'password' => 'not-a-secret',
+                ],
+                'dev-mysql' => [
+                    'host' => '127.0.0.1',
+                    'database' => 'divergence',
+                    'username' => 'divergence',
+                    'password' => 'not-a-secret',
+                ],
                 'tests-mysql' => [
                     'host' => '127.0.0.1',
                     'database' => 'test',
                     'username' => 'root',
                     'password' => '',
                 ],
+                'tests-mysql-socket' => [
+                    'socket' => '/var/run/mysqld/mysqld.sock',
+                    'database' => 'test',
+                    'username' => 'root',
+                    'password' => '',
+                ],
+                'pgsql' => [
+                    'driver' => 'pgsql',
+                    'host' => '127.0.0.1',
+                    'port' => 5432,
+                    'database' => 'divergence',
+                    'username' => 'scrutinizer',
+                    'password' => 'scrutinizer',
+                ],
+                'dev-pgsql' => [
+                    'driver' => 'pgsql',
+                    'host' => '127.0.0.1',
+                    'port' => 5432,
+                    'database' => 'divergence',
+                    'username' => 'scrutinizer',
+                    'password' => 'scrutinizer',
+                ],
                 'tests-sqlite-memory' => [
                     'path' => ':memory:',
+                    'foreign_keys' => true,
+                    'busy_timeout' => 5000,
+                ],
+                'sqlite' => [
+                    'path' => __DIR__ . '/../var/sqlite/app.sqlite',
+                    'foreign_keys' => true,
+                    'busy_timeout' => 5000,
+                ],
+                'dev-sqlite' => [
+                    'path' => __DIR__ . '/../var/sqlite/dev.sqlite',
+                    'foreign_keys' => true,
+                    'busy_timeout' => 5000,
+                ],
+                'tests-sqlite-files' => [
+                    'path' => __DIR__ . '/../var/sqlite/tests.sqlite',
                     'foreign_keys' => true,
                     'busy_timeout' => 5000,
                 ],
