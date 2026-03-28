@@ -14,10 +14,9 @@ use Divergence\Tests\TestUtils;
 use PHPUnit\Framework\TestCase;
 use Divergence\Models\Auth\Session;
 use Divergence\IO\Database\MySQL as DB;
+use PHPUnit\Framework\Attributes\CoversClass;
 
-/**
- * @covers \Divergence\Models\Auth\Session
- */
+#[CoversClass(Session::class)]
 class SessionTest extends TestCase
 {
     public static ?string $sessionHandle;
