@@ -6,7 +6,7 @@ checks:
 build:
   image: default-jammy
   environment:
-    php: 8.5.0
+    php: 8.4.11
   nodes:
     coverage:
       services:
