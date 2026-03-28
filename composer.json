@@ -64,9 +64,9 @@
         "test:mysql": "DIVERGENCE_TEST_DB=tests-mysql vendor/bin/phpunit",
         "test:sqlite": "DIVERGENCE_TEST_DB=tests-sqlite-memory vendor/bin/phpunit",
         "test:pgsql": "DIVERGENCE_TEST_DB=tests-pgsql vendor/bin/phpunit",
-        "test:mysql:coverage": "mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-mysql vendor/bin/phpunit --coverage-php build/coverage/mysql.cov",
-        "test:sqlite:coverage": "mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-sqlite-memory vendor/bin/phpunit --coverage-php build/coverage/sqlite.cov",
-        "test:pgsql:coverage": "mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-pgsql vendor/bin/phpunit --coverage-php build/coverage/pgsql.cov",
+        "test:mysql:coverage": "mkdir -p build/coverage build/logs && XDEBUG_MODE=coverage DIVERGENCE_TEST_DB=tests-mysql vendor/bin/phpunit --coverage-php build/coverage/mysql.cov",
+        "test:sqlite:coverage": "mkdir -p build/coverage build/logs && XDEBUG_MODE=coverage DIVERGENCE_TEST_DB=tests-sqlite-memory vendor/bin/phpunit --coverage-php build/coverage/sqlite.cov",
+        "test:pgsql:coverage": "mkdir -p build/coverage build/logs && XDEBUG_MODE=coverage DIVERGENCE_TEST_DB=tests-pgsql vendor/bin/phpunit --coverage-php build/coverage/pgsql.cov",
         "coverage:merge": "vendor/bin/phpcov merge --clover build/logs/clover.xml build/coverage"
     },
     "support": {

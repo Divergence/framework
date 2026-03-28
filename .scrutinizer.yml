@@ -18,18 +18,37 @@ build:
                 - 3306
             ramdisks:
                 - /var/run/mysqld
-        postgresql:
-            image: docker.io/library/postgres:16
-            env:
-              POSTGRES_HOST_AUTH_METHOD: trust
-            ports:
-                - 5432
+        postgres: 10
       dependencies:
         before:
           - mysql -u root -e "CREATE DATABASE IF NOT EXISTS test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-          - psql -U postgres -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'divergence') THEN CREATE ROLE divergence LOGIN PASSWORD 'abc123'; ELSE ALTER ROLE divergence WITH LOGIN PASSWORD 'abc123'; END IF; END \$\$;"
-          - psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'divergence'" | grep -q 1 || createdb -U postgres -O divergence divergence
-          - psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'test'" | grep -q 1 || createdb -U postgres -O divergence test
+          - PGPASSWORD=scrutinizer psql -h 127.0.0.1 -U scrutinizer -d scrutinizer -tc "SELECT 1 FROM pg_database WHERE datname = 'divergence'" | grep -q 1 || PGPASSWORD=scrutinizer createdb -h 127.0.0.1 -U scrutinizer divergence
+          - PGPASSWORD=scrutinizer psql -h 127.0.0.1 -U scrutinizer -d scrutinizer -tc "SELECT 1 FROM pg_database WHERE datname = 'test'" | grep -q 1 || PGPASSWORD=scrutinizer createdb -h 127.0.0.1 -U scrutinizer test
+          - |
+            cat > config/db.dev.php <<'PHP'
+            <?php
+            return [
+                'tests-mysql' => [
+                    'host' => '127.0.0.1',
+                    'database' => 'test',
+                    'username' => 'root',
+                    'password' => '',
+                ],
+                'tests-sqlite-memory' => [
+                    'path' => ':memory:',
+                    'foreign_keys' => true,
+                    'busy_timeout' => 5000,
+                ],
+                'tests-pgsql' => [
+                    'driver' => 'pgsql',
+                    'host' => '127.0.0.1',
+                    'port' => 5432,
+                    'database' => 'test',
+                    'username' => 'scrutinizer',
+                    'password' => 'scrutinizer',
+                ],
+            ];
+            PHP
           - sudo apt install -y ffmpeg exiftool
       tests:
         override:
