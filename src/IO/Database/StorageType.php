@@ -85,7 +85,9 @@ class StorageType extends Connections
     public static function prepareQuery($query, $parameters = [])
     {
         try {
-            return static::preprocessQuery($query, $parameters);
+            $resolvedStorageClass = static::getConnectionType();
+
+            return $resolvedStorageClass::preprocessQuery($query, $parameters);
         } catch (Throwable $e) {
             static::reportThrowable($e, $query);
         }
@@ -102,8 +104,8 @@ class StorageType extends Connections
     public static function nonQuery($query, $parameters = [], $errorHandler = null)
     {
         try {
-            $query = static::preprocessQuery($query, $parameters);
             $resolvedStorageClass = static::getConnectionType();
+            $query = $resolvedStorageClass::preprocessQuery($query, $parameters);
 
             if (method_exists($resolvedStorageClass, 'interceptNonQuery')) {
                 $handled = $resolvedStorageClass::interceptNonQuery($query);
@@ -140,7 +142,8 @@ class StorageType extends Connections
     public static function query($query, $parameters = [], $errorHandler = null)
     {
         try {
-            $query = static::preprocessQuery($query, $parameters);
+            $resolvedStorageClass = static::getConnectionType();
+            $query = $resolvedStorageClass::preprocessQuery($query, $parameters);
             $queryLog = static::startQueryLog($query);
             static::$LastAffectedRows = null;
             static::$LastStatement = $Statement = static::getConnection()->query($query);

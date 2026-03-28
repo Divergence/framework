@@ -38,6 +38,7 @@ abstract class AbstractHandler
 
         return match ($storageClass) {
             \Divergence\IO\Database\SQLite::class => \Divergence\IO\Database\Writer\SQLite::class,
+            \Divergence\IO\Database\PostgreSQL::class => \Divergence\IO\Database\Writer\PostgreSQL::class,
             default => \Divergence\IO\Database\Writer\MySQL::class,
         };
     }

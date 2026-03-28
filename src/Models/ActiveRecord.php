@@ -1764,8 +1764,12 @@ class ActiveRecord implements JsonSerializable
                 $value = join(',', $value);
             }
 
-            if ($options['type'] == 'boolean') {
-                $set[] = sprintf('`%s` = %u', $columnName, $value ? 1 : 0);
+            if (in_array($options['type'], ['binary', 'blob'], true) && $storageClass === \Divergence\IO\Database\PostgreSQL::class) {
+                $set[] = sprintf('`%s` = %s', $columnName, $storageClass::quote('\\x' . bin2hex($value)));
+            } elseif ($options['type'] == 'boolean') {
+                $set[] = $storageClass === \Divergence\IO\Database\PostgreSQL::class
+                    ? sprintf('`%s` = %s', $columnName, $value ? 'TRUE' : 'FALSE')
+                    : sprintf('`%s` = %u', $columnName, $value ? 1 : 0);
             } else {
                 $set[] = sprintf('`%s` = %s', $columnName, $storageClass::quote((string) $value));
             }
@@ -1786,11 +1790,15 @@ class ActiveRecord implements JsonSerializable
                 $set[] = sprintf('`%s` = NULL', $fieldConfig['columnName']);
             } elseif ($fieldConfig['type'] == 'timestamp' && $value == 'CURRENT_TIMESTAMP') {
                 $set[] = sprintf('`%s` = CURRENT_TIMESTAMP', $fieldConfig['columnName']);
+            } elseif (in_array($fieldConfig['type'], ['binary', 'blob'], true) && $storageClass === \Divergence\IO\Database\PostgreSQL::class) {
+                $set[] = sprintf('`%s` = %s', $fieldConfig['columnName'], $storageClass::quote('\\x' . bin2hex($value)));
             } elseif ($fieldConfig['type'] == 'set' && is_array($value)) {
                 $value = join(',', $value);
                 $set[] = sprintf('`%s` = %s', $fieldConfig['columnName'], $storageClass::quote($value));
             } elseif ($fieldConfig['type'] == 'boolean') {
-                $set[] = sprintf('`%s` = %u', $fieldConfig['columnName'], $value ? 1 : 0);
+                $set[] = $storageClass === \Divergence\IO\Database\PostgreSQL::class
+                    ? sprintf('`%s` = %s', $fieldConfig['columnName'], $value ? 'TRUE' : 'FALSE')
+                    : sprintf('`%s` = %u', $fieldConfig['columnName'], $value ? 1 : 0);
             } else {
                 $set[] = sprintf('`%s` = %s', $fieldConfig['columnName'], $storageClass::quote((string) $value));
             }

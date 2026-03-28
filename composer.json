@@ -40,6 +40,7 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5",
+        "phpunit/phpcov": "^10.0",
         "friendsofphp/php-cs-fixer": "*",
         "mikey179/vfsstream": "^1.6",
         "fakerphp/faker": "^1.20",
@@ -52,10 +53,22 @@
         "fix-code": "php-cs-fixer fix",
         "test": [
             "@test:mysql",
-            "@test:sqlite"
+            "@test:sqlite",
+            "@test:pgsql"
         ],
-        "test:mysql": "DIVERGENCE_TEST_DB=tests-mysql vendor/bin/phpunit --coverage-clover build/logs/clover.xml",
-        "test:sqlite": "DIVERGENCE_TEST_DB=tests-sqlite-memory vendor/bin/phpunit"
+        "test:coverage": [
+            "@test:mysql:coverage",
+            "@test:sqlite:coverage",
+            "@test:pgsql:coverage",
+            "@coverage:merge"
+        ],
+        "test:mysql": "DIVERGENCE_TEST_DB=tests-mysql vendor/bin/phpunit",
+        "test:sqlite": "DIVERGENCE_TEST_DB=tests-sqlite-memory vendor/bin/phpunit",
+        "test:pgsql": "DIVERGENCE_TEST_DB=tests-pgsql vendor/bin/phpunit",
+        "test:mysql:coverage": "mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-mysql vendor/bin/phpunit --coverage-php build/coverage/mysql.cov",
+        "test:sqlite:coverage": "mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-sqlite-memory vendor/bin/phpunit --coverage-php build/coverage/sqlite.cov",
+        "test:pgsql:coverage": "mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-pgsql vendor/bin/phpunit --coverage-php build/coverage/pgsql.cov",
+        "coverage:merge": "vendor/bin/phpcov merge --clover build/logs/clover.xml build/coverage"
     },
     "support": {
         "issues": "https://github.com/Divergence/framework/issues"

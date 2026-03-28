@@ -7,10 +7,8 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-$devConfig = __DIR__ . '/db.dev.php';
-
-if (file_exists($devConfig)) {
-    return require $devConfig;
+if (file_exists(__DIR__ . '/db.dev.php')) {
+    return require __DIR__ . '/db.dev.php';
 }
 
 return [
@@ -57,6 +55,33 @@ return [
         'database' =>  'test',
         'username' =>  'root',
         'password' =>  '',
+    ],
+    /*
+     *  PostgreSQL database configuration
+     */
+    'pgsql' => [
+        'driver' => 'pgsql',
+        'host' => '127.0.0.1',
+        'port' => 5432,
+        'database' => 'divergence',
+        'username' => 'divergence',
+        'password' => 'abc123',
+    ],
+    'dev-pgsql' => [
+        'driver' => 'pgsql',
+        'host' => '127.0.0.1',
+        'port' => 5432,
+        'database' => 'divergence',
+        'username' => 'divergence',
+        'password' => 'abc123',
+    ],
+    'tests-pgsql' => [
+        'driver' => 'pgsql',
+        'host' => '127.0.0.1',
+        'port' => 5432,
+        'database' => 'test',
+        'username' => 'divergence',
+        'password' => 'abc123',
     ],
     /*
      *	SQLite database configuration
