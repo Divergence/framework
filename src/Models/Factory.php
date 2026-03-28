@@ -217,6 +217,12 @@ class Factory
             'order' => false,
         ]);
 
+        if (!$options['order']) {
+            $options['order'] = [
+                $this->getPrimaryKeyName() => 'ASC',
+            ];
+        }
+
         $options['conditions']['ContextClass'] = $contextClass;
         $options['conditions']['ContextID'] = $contextID;
 
