@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" verbose="true" colors="true" bootstrap="vendor/autoload.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
-  <coverage>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" cacheDirectory=".phpunit.cache" colors="true" bootstrap="tests/bootstrap.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd">
+  <testsuites>
+    <testsuite name="tests-mysql">
+      <directory>tests/Divergence</directory>
+    </testsuite>
+    <!--<testsuite name="tests-sqlite-memory">
+      <file>tests/DivergenceSQLite/SQLiteSuiteLoader.php</file>
+    </testsuite>-->
+  </testsuites>
+  <source>
     <include>
       <directory>./src</directory>
     </include>
@@ -10,19 +18,5 @@
       <directory>./vendor</directory>
       <directory>./tests</directory>
     </exclude>
-  </coverage>
-  <testsuites>
-    <testsuite name="tests-mysql">
-      <directory>tests/Divergence</directory>
-    </testsuite>
-    <!--<testsuite name="tests-sqlite-memory">
-      <file>tests/DivergenceSQLite/SQLiteSuiteLoader.php</file>
-    </testsuite>-->
-  </testsuites>
-  <listeners>
-    <listener class="Divergence\Tests\TestListener" file="./tests/Divergence/TestListener.php"/>
-  </listeners>
-  <php>
-    <const name="PHPUNIT_TESTSUITE" value="true"/>
-  </php>
+  </source>
 </phpunit>

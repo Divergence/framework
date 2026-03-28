@@ -31,7 +31,7 @@ use Divergence\Tests\MockSite\Controllers\TagRequestHandler;
 use Divergence\Tests\MockSite\Controllers\CanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\SecureCanaryRequestHandler;
 use Divergence\Tests\MockSite\Controllers\ParanoidCanaryRequestHandler;
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
+use Divergence\Tests\Support\ArraySubsetAsserts;
 
 /*
  * About Unit Testing Divergence Controllers
@@ -64,7 +64,7 @@ class RecordsRequestHandlerTest extends TestCase
 
     public function tearDown(): void
     {
-        if (in_array($this->getName(), ['testProcessDatumDestroyFailed','testEditWithError'])) {
+        if (in_array($this->name(), ['testProcessDatumDestroyFailed', 'testEditWithError'], true)) {
             DB::nonQuery('UNLOCK TABLES');
         }
     }

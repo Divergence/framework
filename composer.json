@@ -39,12 +39,11 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "phpunit/phpcov": "^10.0",
+        "phpunit/phpunit": "^10.5",
+        "phpunit/phpcov": "^9.0",
         "friendsofphp/php-cs-fixer": "*",
         "mikey179/vfsstream": "^1.6",
-        "fakerphp/faker": "^1.20",
-        "dms/phpunit-arraysubset-asserts": "^0.4.0"
+        "fakerphp/faker": "^1.20"
     },
     "suggest": {
         "divergence/cli": "Lets you initialize a new project as well as create, edit, and test database configurations via CLI."

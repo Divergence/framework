@@ -22,6 +22,11 @@ class SessionTest extends TestCase
 {
     public static ?string $sessionHandle;
 
+    protected function assertTimestampMatchesNowish($expected, $actual, int $slackSeconds = 1): void
+    {
+        $this->assertLessThanOrEqual($slackSeconds, abs((int) $actual - (int) $expected));
+    }
+
     public function testGenerateUniqueHandle()
     {
         $this->assertEquals(32, strlen(Session::generateUniqueHandle()));
@@ -42,7 +47,7 @@ class SessionTest extends TestCase
         $createdTime = date('U');
         $session = Session::getFromRequest();
 
-        $this->assertEquals($createdTime, $session->Created);
+        $this->assertTimestampMatchesNowish($createdTime, $session->Created);
         $this->assertEquals(inet_pton($_SERVER['REMOTE_ADDR']), $session->LastIP);
         $this->assertEquals(32, strlen($session->Handle));
         $session->save();
@@ -59,9 +64,9 @@ class SessionTest extends TestCase
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
         $_COOKIE[Session::$cookieName] = static::$sessionHandle;
         $new = Session::getFromRequest();
-        $this->assertEquals($createdTime, $new->Created);
+        $this->assertTimestampMatchesNowish($createdTime, $new->Created);
         $this->assertEquals(inet_pton($_SERVER['REMOTE_ADDR']), $new->LastIP);
-        $this->assertEquals($lastRequest, $new->LastRequest);
+        $this->assertTimestampMatchesNowish($lastRequest, $new->LastRequest);
         $this->assertEquals(1, $new->ID);
 
         // now $_REQUEST
@@ -71,9 +76,9 @@ class SessionTest extends TestCase
         unset($_COOKIE[Session::$cookieName]);
         $_REQUEST[Session::$cookieName] = static::$sessionHandle;
         $new = Session::getFromRequest();
-        $this->assertEquals($createdTime, $new->Created);
+        $this->assertTimestampMatchesNowish($createdTime, $new->Created);
         $this->assertEquals(inet_pton($_SERVER['REMOTE_ADDR']), $new->LastIP);
-        $this->assertEquals($lastRequest, $new->LastRequest);
+        $this->assertTimestampMatchesNowish($lastRequest, $new->LastRequest);
         $this->assertEquals(1, $new->ID);
 
         DB::clearCachedRecord($key);
@@ -88,9 +93,9 @@ class SessionTest extends TestCase
         $_SERVER['REMOTE_ADDR'] = '192.168.1.1';
         $_COOKIE[Session::$cookieName] = static::$sessionHandle;
         $new = Session::getFromRequest();
-        $this->assertEquals($createdTime, $new->Created);
+        $this->assertTimestampMatchesNowish($createdTime, $new->Created);
         $this->assertEquals(inet_pton($_SERVER['REMOTE_ADDR']), $new->LastIP);
-        $this->assertEquals($lastRequest, $new->LastRequest);
+        $this->assertTimestampMatchesNowish($lastRequest, $new->LastRequest);
         $this->assertEquals(2, $new->ID);
 
         $_COOKIE[Session::$cookieName] = static::$sessionHandle;

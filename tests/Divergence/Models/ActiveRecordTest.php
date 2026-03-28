@@ -28,7 +28,7 @@ use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\Models\Testables\fakeCanary;
 use Divergence\Tests\Models\Testables\relationalCanary;
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
+use Divergence\Tests\Support\ArraySubsetAsserts;
 
 class ActiveRecordTest extends TestCase
 {
