@@ -39,8 +39,8 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^11.5",
-        "phpunit/phpcov": "^10.0",
+        "phpunit/phpunit": "^13.0",
+        "phpunit/phpcov": "^12.0",
         "friendsofphp/php-cs-fixer": "*",
         "mikey179/vfsstream": "^1.6",
         "fakerphp/faker": "^1.20"
