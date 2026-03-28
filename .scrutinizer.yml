@@ -6,7 +6,7 @@ checks:
 build:
   image: default-jammy
   environment:
-    php: 8.4.0
+    php: 8.5.0
   nodes:
     coverage:
       services:
@@ -18,13 +18,28 @@ build:
                 - 3306
             ramdisks:
                 - /var/run/mysqld
+        postgresql:
+            image: docker.io/library/postgres:16
+            env:
+              POSTGRES_HOST_AUTH_METHOD: trust
+            ports:
+                - 5432
       dependencies:
         before:
           - mysql -u root -e "CREATE DATABASE IF NOT EXISTS test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+          - psql -U postgres -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'divergence') THEN CREATE ROLE divergence LOGIN PASSWORD 'abc123'; ELSE ALTER ROLE divergence WITH LOGIN PASSWORD 'abc123'; END IF; END \$\$;"
+          - psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'divergence'" | grep -q 1 || createdb -U postgres -O divergence divergence
+          - psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'test'" | grep -q 1 || createdb -U postgres -O divergence test
           - sudo apt install -y ffmpeg exiftool
       tests:
         override:
-          - command: mkdir -p build/logs && DIVERGENCE_TEST_DB=tests-mysql phpdbg -qrr ./vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+          - command: mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-mysql phpdbg -qrr ./vendor/bin/phpunit --coverage-php build/coverage/mysql.cov
+            idle_timeout: 300
+          - command: mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-sqlite-memory phpdbg -qrr ./vendor/bin/phpunit --coverage-php build/coverage/sqlite.cov
+            idle_timeout: 300
+          - command: mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-pgsql phpdbg -qrr ./vendor/bin/phpunit --coverage-php build/coverage/pgsql.cov
+            idle_timeout: 300
+          - command: vendor/bin/phpcov merge --clover build/logs/clover.xml build/coverage
             idle_timeout: 300
             coverage:
               file: 'build/logs/clover.xml'
