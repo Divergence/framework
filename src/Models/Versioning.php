@@ -33,8 +33,8 @@ trait Versioning
 {
     public $wasDirty = false;
 
-    #[Column(type: "integer", unsigned:true, notnull:false)]
-    private $RevisionID;
+    #[Column(type: "integer", unsigned:true)]
+    private ?int $RevisionID;
 
     public static $versioningRelationships = [
         'History' => [

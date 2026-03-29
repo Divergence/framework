@@ -1304,7 +1304,10 @@ class ActiveRecord implements JsonSerializable
                     foreach ($attributes as $attribute) {
                         $attributeName = $attribute->getName();
                         if ($attributeName === Column::class) {
-                            $fields[$property->getName()] = array_merge($attribute->getArguments(), ['attributeField'=>true]);
+                            $fields[$property->getName()] = static::applyAttributeFieldNullability(
+                                $property,
+                                array_merge($attribute->getArguments(), ['attributeField' => true])
+                            );
                         }
 
                         if ($attributeName === Relation::class) {
@@ -1315,7 +1318,10 @@ class ActiveRecord implements JsonSerializable
                 } else {
                     // default
                     if (!$isRelationship) {
-                        $fields[$property->getName()] = ['attributeField' => true];
+                        $fields[$property->getName()] = static::applyAttributeFieldNullability(
+                            $property,
+                            ['attributeField' => true]
+                        );
                     }
                 }
             }
@@ -1324,6 +1330,15 @@ class ActiveRecord implements JsonSerializable
             'fields' => $fields,
             'relations' => $relations
         ];
+    }
+
+    protected static function applyAttributeFieldNullability(ReflectionProperty $property, array $field): array
+    {
+        if ($type = $property->getType()) {
+            $field['notnull'] = !$type->allowsNull();
+        }
+
+        return $field;
     }
 
 

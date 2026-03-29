@@ -48,17 +48,17 @@ class Session extends Model
         ],
     ];
 
-    #[Column(notnull: false, default:null)]
-    private $ContextClass;
+    #[Column(default:null)]
+    private ?string $ContextClass;
 
-    #[Column(type:'int', notnull: false, default:null)]
-    private $ContextID;
+    #[Column(type:'int', default:null)]
+    private ?int $ContextID;
 
     #[Column(length:32)]
-    private $Handle;
+    private string $Handle;
 
-    #[Column(type:'timestamp', notnull:false)]
-    private $LastRequest;
+    #[Column(type:'timestamp')]
+    private ?string $LastRequest;
 
     #[Column(type:'binary', length:16)]
     private $LastIP;
