@@ -715,6 +715,17 @@ class ActiveRecordTest extends TestCase
         $this->assertNull($x->DateOfBirth);
     }
 
+    public function testNewCanaryAllowsNullableFieldsToBeSetWithoutWarnings()
+    {
+        $Canary = new Canary();
+
+        $Canary->Handle = null;
+        $Canary->LongestFlightTime = null;
+
+        $this->assertNull($Canary->Handle);
+        $this->assertNull($Canary->LongestFlightTime);
+    }
+
     /**
      *
      *
