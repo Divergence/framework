@@ -12,12 +12,24 @@ namespace Divergence\Controllers;
 
 use Divergence\App;
 use Divergence\Responders\Response;
+use BadMethodCallException;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 abstract class RequestHandler implements RequestHandlerInterface
 {
+    /**
+     * @var array<string, class-string>
+     */
+    protected $endpointClasses = [];
+
+    /**
+     * @var array<string, object>
+     */
+    protected $endpoints = [];
+
     public string $responseBuilder;
 
     public function peekPath()
@@ -39,6 +51,38 @@ abstract class RequestHandler implements RequestHandlerInterface
     {
         $className = $this->responseBuilder;
         return new Response(new $className($responseID, $responseData));
+    }
+
+    protected function registerEndpointClass(string $className, ?string $endpointName = null): void
+    {
+        if ($endpointName === null) {
+            $parts = explode('\\', $className);
+            $endpointName = 'handle'.end($parts).'Request';
+        }
+
+        $endpointName = strtolower($endpointName);
+
+        if (isset($this->endpointClasses[$endpointName])) {
+            throw new Exception(sprintf('Endpoint method collision for %s', $endpointName));
+        }
+
+        $this->endpointClasses[$endpointName] = $className;
+    }
+
+    public function __call(string $name, array $arguments)
+    {
+        $endpointName = strtolower($name);
+
+        if (!isset($this->endpointClasses[$endpointName])) {
+            throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
+        }
+
+        if (!isset($this->endpoints[$endpointName])) {
+            $endpointClass = $this->endpointClasses[$endpointName];
+            $this->endpoints[$endpointName] = new $endpointClass($this);
+        }
+
+        return $this->endpoints[$endpointName]->handle(...$arguments);
     }
 
     abstract public function handle(ServerRequestInterface $request): ResponseInterface;
