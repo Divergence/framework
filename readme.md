@@ -7,7 +7,6 @@ Divergence is a PHP framework designed for rapid development and modern practice
 
 ## [Documentation](https://github.com/Divergence/docs#divergence-framework-documentation)
 ## [Getting Started](https://github.com/Divergence/docs/blob/release/gettingstarted.md#getting-started)
-## [V3 Architecture](docs/v3-architecture.md)
 
 ## Minimal Model
 
@@ -33,7 +32,7 @@ class Article extends Model
 
 
 ## Purpose
-This collection of classes contains my favorite building blocks for developing websites with PHP and they have an impressive track record with hundreds of currently active websites using one version or another of the classes in this framework. While they were originally written years ago they are all PSR compatible and support modern practices out of the box.
+Divergence is a full-featured ActiveRecord framework built on a reflection-driven DTO-style backend. It is designed for performance, and it backs that up with benchmarks. It gives developers a fast procedural-global path for getting real work done, while its internal abstractions stay disciplined and modern. Divergence follows PSR-4, PSR-7, and PSR-15 wherever doing so strengthens the framework instead of turning it into ceremony.
 
 Unit testing the code base and providing code coverage is a primary goal of this project.
 
@@ -44,7 +43,7 @@ Unit testing the code base and providing code coverage is a primary goal of this
     * Declare relationships with static arrays or PHP 8 attributes (`#[Relation(...)]`).
     * Built in support for relationships and object versioning.
     * Speed up prototyping and automate new deployments by automatically creating tables based on your models when none are found.
-    * Built in support for MySQL and SQLite.
+    * Built in support for MySQL, PostgreSQL, and SQLite.
 
  * Routing
     * Simpler, faster, tree based routing system.
@@ -55,6 +54,7 @@ Unit testing the code base and providing code coverage is a primary goal of this
     * Pre-made REST API controllers allow you to build APIs rapidly.
     * 100% Unit test coverage for filters, sorters, and conditions.
     * Build HTTP APIs in minutes by extending `RecordsRequestHandler` and setting the one config variable: the name of your model class.
+    * `RecordsRequestHandler` and `MediaRequestHandler` route response-producing actions through focused endpoint classes instead of one large handler method pile.
     * Use a pre-made security trait with RecordsRequestHandler or extend it and write in your own permissions.
     * Standard permissions interface allows reuse of permission traits from one model to another.
  
@@ -85,8 +85,14 @@ composer test
 # MySQL suite only
 composer test:mysql
 
+# PostgreSQL suite only
+composer test:pgsql
+
 # SQLite in-memory suite only
 composer test:sqlite
+
+# Run merged coverage across MySQL, PostgreSQL, and SQLite
+composer test:coverage
 ```
 
 ### Contributing To Divergence

@@ -9,7 +9,16 @@ class GetAllRecordsByWhere extends ModelGetter
 {
     public function getAllRecordsByWhere($conditions = [], $options = [])
     {
-        $options = $this->prepareOptions($options, [
+        $options = $this->prepareOptions($options);
+        $conditions = $this->prepareConditions($conditions);
+        $select = $this->buildSelect($conditions, $options);
+
+        return $this->fetchResults($select, $options);
+    }
+
+    protected function prepareOptions($options, array $defaults = []): array
+    {
+        return parent::prepareOptions($options, array_merge([
             'indexField' => false,
             'order' => false,
             'limit' => false,
@@ -17,8 +26,11 @@ class GetAllRecordsByWhere extends ModelGetter
             'calcFoundRows' => !empty($options['limit']),
             'extraColumns' => false,
             'having' => false,
-        ]);
+        ], $defaults));
+    }
 
+    protected function prepareConditions($conditions)
+    {
         if ($conditions) {
             if (is_string($conditions)) {
                 $conditions = [$conditions];
@@ -27,6 +39,11 @@ class GetAllRecordsByWhere extends ModelGetter
             $conditions = $this->mapConditions($conditions);
         }
 
+        return $conditions;
+    }
+
+    protected function buildSelect($conditions, array $options)
+    {
         $tableAlias = $this->getSelectTableAlias();
         $select = $this->newSelect()->setTable($this->getTableName())->setTableAlias($tableAlias);
 
@@ -43,15 +60,7 @@ class GetAllRecordsByWhere extends ModelGetter
             $select->where($whereClause);
         }
 
-        if ($options['having']) {
-            $havingClause = $this->buildHaving($options['having'], $options['extraColumns']);
-
-            if (Connections::getConnectionType() === PostgreSQL::class) {
-                $select->where($whereClause ? $whereClause . ' AND ' . trim($havingClause) : trim($havingClause));
-            } else {
-                $select->having($havingClause);
-            }
-        }
+        $this->applyHaving($select, $whereClause, $options);
 
         if ($options['order']) {
             $select->order(join(',', $this->mapFieldOrder($options['order'])));
@@ -61,6 +70,27 @@ class GetAllRecordsByWhere extends ModelGetter
             $select->limit(sprintf('%u,%u', $options['offset'], $options['limit']));
         }
 
+        return $select;
+    }
+
+    protected function applyHaving($select, ?string $whereClause, array $options): void
+    {
+        if (!$options['having']) {
+            return;
+        }
+
+        $havingClause = $this->buildHaving($options['having'], $options['extraColumns']);
+
+        if (Connections::getConnectionType() === PostgreSQL::class) {
+            $select->where($whereClause ? $whereClause . ' AND ' . trim($havingClause) : trim($havingClause));
+            return;
+        }
+
+        $select->having($havingClause);
+    }
+
+    protected function fetchResults($select, array $options)
+    {
         if ($options['indexField']) {
             return $this->getStorage()->table($this->getColumnName($options['indexField']), $select, null, null, $this->getHandleExceptionCallback());
         }

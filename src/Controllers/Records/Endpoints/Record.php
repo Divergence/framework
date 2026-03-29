@@ -5,6 +5,7 @@ namespace Divergence\Controllers\Records\Endpoints;
 use Divergence\Controllers\Records\AbstractRecordsEndpoint;
 use Divergence\Controllers\RecordsRequestHandler;
 use Divergence\Models\ActiveRecord;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 
 class Record extends AbstractRecordsEndpoint
@@ -29,10 +30,20 @@ class Record extends AbstractRecordsEndpoint
             case false:
                 $className = $this->handler::$recordClass;
 
-                return $this->handler->respond($this->handler->getTemplateName($className::getSingularNoun()), [
-                    'success' => true,
-                    'data' => $Record,
-                ]);
+                try {
+                    return $this->handler->respond($this->handler->getTemplateName($className::getSingularNoun()), [
+                        'success' => true,
+                        'data' => $Record,
+                    ]);
+                } catch (Exception $e) {
+                    return $this->handler->respond('error', [
+                        'success' => false,
+                        'failed' => [
+                            'errors' => $e->getMessage(),
+                        ],
+                        'data' => $Record,
+                    ]);
+                }
 
             case 'edit':
                 return $this->handler->handleEditRequest($Record);
