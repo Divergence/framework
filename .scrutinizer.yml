@@ -6,7 +6,7 @@ checks:
 build:
   image: default-jammy
   environment:
-    php: 8.4.0
+    php: 8.4.11
   nodes:
     coverage:
       services:
@@ -18,13 +18,97 @@ build:
                 - 3306
             ramdisks:
                 - /var/run/mysqld
+        postgres: 10
       dependencies:
         before:
+          - printf "\n" | pecl install xdebug-3.4.7
           - mysql -u root -e "CREATE DATABASE IF NOT EXISTS test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+          - PGPASSWORD=scrutinizer psql -h 127.0.0.1 -U scrutinizer -d scrutinizer -tc "SELECT 1 FROM pg_database WHERE datname = 'divergence'" | grep -q 1 || PGPASSWORD=scrutinizer createdb -h 127.0.0.1 -U scrutinizer divergence
+          - PGPASSWORD=scrutinizer psql -h 127.0.0.1 -U scrutinizer -d scrutinizer -tc "SELECT 1 FROM pg_database WHERE datname = 'test'" | grep -q 1 || PGPASSWORD=scrutinizer createdb -h 127.0.0.1 -U scrutinizer test
+          - |
+            cat > config/db.dev.php <<'PHP'
+            <?php
+            return [
+                'mysql' => [
+                    'host' => '127.0.0.1',
+                    'database' => 'divergence',
+                    'username' => 'divergence',
+                    'password' => 'not-a-secret',
+                ],
+                'dev-mysql' => [
+                    'host' => '127.0.0.1',
+                    'database' => 'divergence',
+                    'username' => 'divergence',
+                    'password' => 'not-a-secret',
+                ],
+                'tests-mysql' => [
+                    'host' => '127.0.0.1',
+                    'database' => 'test',
+                    'username' => 'root',
+                    'password' => '',
+                ],
+                'tests-mysql-socket' => [
+                    'socket' => '/var/run/mysqld/mysqld.sock',
+                    'database' => 'test',
+                    'username' => 'root',
+                    'password' => '',
+                ],
+                'pgsql' => [
+                    'driver' => 'pgsql',
+                    'host' => '127.0.0.1',
+                    'port' => 5432,
+                    'database' => 'divergence',
+                    'username' => 'scrutinizer',
+                    'password' => 'scrutinizer',
+                ],
+                'dev-pgsql' => [
+                    'driver' => 'pgsql',
+                    'host' => '127.0.0.1',
+                    'port' => 5432,
+                    'database' => 'divergence',
+                    'username' => 'scrutinizer',
+                    'password' => 'scrutinizer',
+                ],
+                'tests-sqlite-memory' => [
+                    'path' => ':memory:',
+                    'foreign_keys' => true,
+                    'busy_timeout' => 5000,
+                ],
+                'sqlite' => [
+                    'path' => __DIR__ . '/../var/sqlite/app.sqlite',
+                    'foreign_keys' => true,
+                    'busy_timeout' => 5000,
+                ],
+                'dev-sqlite' => [
+                    'path' => __DIR__ . '/../var/sqlite/dev.sqlite',
+                    'foreign_keys' => true,
+                    'busy_timeout' => 5000,
+                ],
+                'tests-sqlite-files' => [
+                    'path' => __DIR__ . '/../var/sqlite/tests.sqlite',
+                    'foreign_keys' => true,
+                    'busy_timeout' => 5000,
+                ],
+                'tests-pgsql' => [
+                    'driver' => 'pgsql',
+                    'host' => '127.0.0.1',
+                    'port' => 5432,
+                    'database' => 'test',
+                    'username' => 'scrutinizer',
+                    'password' => 'scrutinizer',
+                ],
+            ];
+            PHP
           - sudo apt install -y ffmpeg exiftool
       tests:
         override:
-          - command: mkdir -p build/logs && DIVERGENCE_TEST_DB=tests-mysql phpdbg -qrr ./vendor/bin/phpunit --coverage-clover build/logs/clover.xml
+          - command: mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-mysql XDEBUG_MODE=coverage php -d zend_extension=$(php-config --extension-dir)/xdebug.so -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-php build/coverage/mysql.cov
+            idle_timeout: 300
+          - command: mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-sqlite-memory XDEBUG_MODE=coverage php -d zend_extension=$(php-config --extension-dir)/xdebug.so -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-php build/coverage/sqlite.cov
+            idle_timeout: 300
+          - command: mkdir -p build/coverage build/logs && DIVERGENCE_TEST_DB=tests-pgsql XDEBUG_MODE=coverage php -d zend_extension=$(php-config --extension-dir)/xdebug.so -d xdebug.mode=coverage ./vendor/bin/phpunit --coverage-php build/coverage/pgsql.cov
+            idle_timeout: 300
+          - command: vendor/bin/phpcov merge --clover build/logs/clover.xml build/coverage
             idle_timeout: 300
             coverage:
               file: 'build/logs/clover.xml'

@@ -28,7 +28,7 @@ use Divergence\Tests\MockSite\Models\Tag;
 use Divergence\Tests\MockSite\Models\Canary;
 use Divergence\Tests\Models\Testables\fakeCanary;
 use Divergence\Tests\Models\Testables\relationalCanary;
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
+use Divergence\Tests\Support\ArraySubsetAsserts;
 
 class ActiveRecordTest extends TestCase
 {
@@ -961,7 +961,13 @@ class ActiveRecordTest extends TestCase
                 ],
             ]);
 
-            $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
+            $expectedCount = $this->isSQLite()
+                ? null
+                : (
+                    Connections::getConnectionType() === \Divergence\IO\Database\PostgreSQL::class
+                        ? DB::oneValue("SELECT COUNT(*) FROM ( SELECT ROUND((`Height`/2.54)::numeric,2) as `HeightInInches` FROM `canaries` WHERE ROUND((`Height`/2.54)::numeric,2)>5 ) x")
+                        : DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x")
+                );
 
             $this->assertEquals($expectedCount, count($x));
             $this->assertContainsOnlyInstancesOf(Canary::class, $x);
@@ -981,7 +987,9 @@ class ActiveRecordTest extends TestCase
                 ]*/
             ]);
 
-            $expectedCount = DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
+            $expectedCount = Connections::getConnectionType() === \Divergence\IO\Database\PostgreSQL::class
+                ? DB::oneValue("SELECT COUNT(*) FROM ( SELECT ROUND((`Height`/2.54)::numeric,2) as `HeightInInches` FROM `canaries` WHERE ROUND((`Height`/2.54)::numeric,2)>5 ) x")
+                : DB::oneValue("SELECT COUNT(*) FROM ( SELECT format(`Height`/2.54,2) as `HeightInInches` FROM `canaries` HAVING `HeightInInches`>5 ) x");
 
             $this->assertEquals($expectedCount, count($x));
             $this->assertContainsOnlyInstancesOf(Canary::class, $x);

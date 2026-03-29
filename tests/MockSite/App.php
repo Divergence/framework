@@ -123,11 +123,23 @@ class App extends \Divergence\App
     public function clean()
     {
         $pdo = Connections::getConnection();
-        if ($pdo->getAttribute(\PDO::ATTR_DRIVER_NAME) == 'sqlite') {
+        $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+
+        if ($driver == 'sqlite') {
             $tables = \Divergence\IO\Database\StorageType::allValues('name', "SELECT `name` FROM `sqlite_master` WHERE `type` = 'table' AND `name` NOT LIKE 'sqlite_%'") ?? [];
 
             foreach ($tables as $table) {
                 \Divergence\IO\Database\StorageType::nonQuery(sprintf('DROP TABLE `%s`', $table));
+            }
+
+            return;
+        }
+
+        if ($driver == 'pgsql') {
+            $tables = \Divergence\IO\Database\StorageType::allValues('tablename', "SELECT tablename FROM pg_tables WHERE schemaname = current_schema()") ?? [];
+
+            foreach ($tables as $table) {
+                \Divergence\IO\Database\Connections::getConnection()->exec(sprintf('DROP TABLE IF EXISTS "%s" CASCADE', str_replace('"', '""', $table)));
             }
 
             return;

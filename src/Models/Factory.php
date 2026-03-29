@@ -217,6 +217,12 @@ class Factory
             'order' => false,
         ]);
 
+        if (!$options['order']) {
+            $options['order'] = [
+                $this->getPrimaryKeyName() => 'ASC',
+            ];
+        }
+
         $options['conditions']['ContextClass'] = $contextClass;
         $options['conditions']['ContextID'] = $contextID;
 
@@ -240,6 +246,11 @@ class Factory
                 return $Record;
             }
         }
+
+        if (!is_int($handle) && !(is_string($handle) && ctype_digit($handle))) {
+            return null;
+        }
+
         return $this->getByID($handle);
     }
 
@@ -513,12 +524,20 @@ class Factory
         $expression = sprintf('`%s`.*', $tableAlias);
         $select->expression($expression.$this->buildExtraColumns($options['extraColumns']));
 
+        $whereClause = $conditions ? join(') AND (', $conditions) : null;
+
         if ($conditions) {
-            $select->where(join(') AND (', $conditions));
+            $select->where($whereClause);
         }
 
         if ($options['having']) {
-            $select->having($this->buildHaving($options['having']));
+            $havingClause = $this->buildHaving($options['having'], $options['extraColumns']);
+
+            if (Connections::getConnectionType() === \Divergence\IO\Database\PostgreSQL::class) {
+                $select->where($whereClause ? $whereClause . ' AND ' . trim($havingClause) : trim($havingClause));
+            } else {
+                $select->having($havingClause);
+            }
         }
 
         if ($options['order']) {
@@ -613,11 +632,70 @@ class Factory
      * @param array|string $having Same as conditions. Can provide a string to use or an array of field/value pairs which will be joined by the AND operator.
      * @return string|null
      */
-    public function buildHaving($having)
+    public function buildHaving($having, $extraColumns = null)
     {
         if (!empty($having)) {
+            $having = $this->replaceExtraColumnAliasesInHaving($having, $extraColumns);
+
             return ' (' . (is_array($having) ? join(') AND (', $this->mapConditions($having)) : $having) . ')';
         }
+    }
+
+    protected function replaceExtraColumnAliasesInHaving($having, $extraColumns)
+    {
+        if (Connections::getConnectionType() !== \Divergence\IO\Database\PostgreSQL::class || empty($extraColumns)) {
+            return $having;
+        }
+
+        $aliases = $this->extractExtraColumnAliases($extraColumns);
+
+        if (empty($aliases)) {
+            return $having;
+        }
+
+        $replaceAliases = function ($clause) use ($aliases) {
+            foreach ($aliases as $alias => $expression) {
+                $clause = str_replace(
+                    ['`' . $alias . '`', '"' . $alias . '"', $alias],
+                    ['(' . $expression . ')', '(' . $expression . ')', '(' . $expression . ')'],
+                    $clause
+                );
+            }
+
+            return $clause;
+        };
+
+        if (is_array($having)) {
+            foreach ($having as $key => $clause) {
+                if (is_string($clause)) {
+                    $having[$key] = $replaceAliases($clause);
+                }
+            }
+
+            return $having;
+        }
+
+        return is_string($having) ? $replaceAliases($having) : $having;
+    }
+
+    protected function extractExtraColumnAliases($columns): array
+    {
+        $aliases = [];
+        $columns = is_array($columns) ? $columns : [$columns];
+
+        foreach ($columns as $key => $value) {
+            $column = is_string($key) ? $value . ' AS ' . $key : $value;
+
+            if (!is_string($column)) {
+                continue;
+            }
+
+            if (preg_match('/^(.*?)\s+as\s+([A-Za-z_][A-Za-z0-9_]*)$/i', trim($column), $matches)) {
+                $aliases[$matches[2]] = $matches[1];
+            }
+        }
+
+        return $aliases;
     }
 
     protected function getSelectTableAlias(): string

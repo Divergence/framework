@@ -53,6 +53,8 @@ class HandleException extends AbstractHandler
         }
 
         return str_contains($errorMessage, 'no such table')
-            || str_contains($errorMessage, 'base table or view not found');
+            || str_contains($errorMessage, 'base table or view not found')
+            || str_contains($errorMessage, 'relation')
+            && str_contains($errorMessage, 'does not exist');
     }
 }

@@ -209,6 +209,10 @@ class Connections
             return SQLite::class;
         }
 
+        if (($connectionConfig['driver'] ?? null) === 'pgsql') {
+            return PostgreSQL::class;
+        }
+
         return MySQL::class;
     }
 
@@ -262,37 +266,7 @@ class Connections
      */
     protected static function createResolvedConnection(string $driverClass, array $config, string $label): PDO
     {
-        if ($driverClass === SQLite::class) {
-            if (empty($config['path'])) {
-                throw new Exception('SQLite configuration requires a "path" value.');
-            }
-
-            $connection = new PDO('sqlite:' . $config['path']);
-            $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-            if (!empty($config['foreign_keys'])) {
-                $connection->exec('PRAGMA foreign_keys = ON');
-            }
-
-            if (!empty($config['busy_timeout'])) {
-                $connection->exec(sprintf('PRAGMA busy_timeout = %d', (int) $config['busy_timeout']));
-            }
-
-            return $connection;
-        }
-
-        $config = array_merge([
-            'host' => 'localhost',
-            'port' => 3306,
-        ], $config);
-
-        if (isset($config['socket'])) {
-            $DSN = 'mysql:unix_socket=' . $config['socket'] . ';dbname=' . $config['database'];
-        } else {
-            $DSN = 'mysql:host=' . $config['host'] . ';port=' . $config['port'] . ';dbname=' . $config['database'];
-        }
-
-        return new PDO($DSN, $config['username'], $config['password']);
+        return $driverClass::createConnection($config, $label);
     }
 
     /**
@@ -318,10 +292,6 @@ class Connections
      */
     protected static function configureResolvedConnection(string $driverClass, PDO $connection): void
     {
-        if ($driverClass === SQLite::class) {
-            return;
-        }
-
-        self::configureConnection($connection);
+        $driverClass::configureConnection($connection);
     }
 }

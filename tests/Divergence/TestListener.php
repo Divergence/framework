@@ -154,7 +154,7 @@ class TestListener implements PHPUnit_TestListener
     protected function getConnectionLabel(TestSuite $suite): ?string
     {
         return match ($suite->getName()) {
-            'tests-mysql', 'tests-sqlite-memory' => getenv('DIVERGENCE_TEST_DB') ?: $suite->getName(),
+            'tests-mysql', 'tests-sqlite-memory', 'tests-pgsql' => getenv('DIVERGENCE_TEST_DB') ?: $suite->getName(),
             default => null,
         };
     }

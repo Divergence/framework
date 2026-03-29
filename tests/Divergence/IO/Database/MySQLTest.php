@@ -16,6 +16,7 @@ use Divergence\Models\Media\Media;
 use Divergence\Tests\MockSite\App;
 use Divergence\IO\Database\Connections;
 use Divergence\IO\Database\MySQL as DB;
+use Divergence\IO\Database\PostgreSQL;
 use Divergence\IO\Database\Query\Select;
 use Divergence\IO\Database\SQLite;
 use Divergence\Tests\MockSite\Models\Tag;
@@ -75,6 +76,11 @@ class MySQLTest extends TestCase
     protected function isSQLite(): bool
     {
         return Connections::getConnectionType() === SQLite::class;
+    }
+
+    protected function isPostgreSQL(): bool
+    {
+        return Connections::getConnectionType() === PostgreSQL::class;
     }
 
     protected function getTables(): array
@@ -255,18 +261,26 @@ class MySQLTest extends TestCase
             1,
             3,
         ]);
-        $this->assertEquals(vsprintf('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d', [
+        $expected = vsprintf('UPDATE `%s` SET `CreatorID`=%d WHERE `ID`=%d', [
             Tag::$tableName,
             1,
             3,
-        ]), $data);
+        ]);
+        if ($this->isPostgreSQL()) {
+            $expected = 'UPDATE "tags" SET "CreatorID"=1 WHERE "ID"=3';
+        }
+        $this->assertEquals($expected, $data);
 
         $data = DB::prepareQuery('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d', 3);
-        $this->assertEquals(sprintf('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d', 3), $data);
+        $expected = sprintf('UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=%d', 3);
+        if ($this->isPostgreSQL()) {
+            $expected = 'UPDATE "tags" SET "CreatorID"=1 WHERE "ID"=3';
+        }
+        $this->assertEquals($expected, $data);
 
         $query = 'UPDATE `tags` SET `CreatorID`=1 WHERE `ID`=3';
         $data = DB::prepareQuery($query);
-        $this->assertEquals($query, $data);
+        $this->assertEquals($this->isPostgreSQL() ? 'UPDATE "tags" SET "CreatorID"=1 WHERE "ID"=3' : $query, $data);
 
         $this->assertEquals('test', DB::prepareQuery('%s', 'test'));
     }
@@ -424,6 +438,10 @@ class MySQLTest extends TestCase
                 1,
                 3,
             ]);
+
+            if ($Context->isPostgreSQL()) {
+                $a = 'UPDATE "tags" SET fake"=1 WHERE ""ID"`=3';
+            }
 
             $Context->assertEquals($a, $args[1]);
             $Context->assertEquals(0, $args[2]);

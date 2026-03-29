@@ -113,6 +113,8 @@ class AppTest extends TestCase
         $this->createFakeDevEnv();
         $this->doInit();
         $this->assertInstanceOf(\Whoops\Run::class, $this->App->whoops, "Whoops isn't being properly registered when \$config['environment'] is set to 'dev'.");
+        restore_exception_handler();
+        restore_error_handler();
         $this->cleanFakeDevEnv();
     }
 }

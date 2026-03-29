@@ -11,6 +11,7 @@
 namespace Divergence\Models\Auth;
 
 use Divergence\IO\Database\Connections;
+use Divergence\IO\Database\PostgreSQL as PostgreSQLStorage;
 use Divergence\IO\Database\SQLite as SQLiteStorage;
 use Divergence\Models\Model;
 use Divergence\Models\Relations;
@@ -69,6 +70,10 @@ class Session extends Model
 
             if ($value !== null && static::isUsingSQLite()) {
                 return ctype_xdigit($value) && strlen($value) % 2 === 0 ? hex2bin($value) : $value;
+            }
+
+            if ($value !== null && static::isUsingPostgreSQL()) {
+                return str_starts_with($value, '\\x') ? hex2bin(substr($value, 2)) : $value;
             }
 
             return $value;
@@ -248,6 +253,15 @@ class Session extends Model
     {
         try {
             return Connections::getConnectionType() === SQLiteStorage::class;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    protected static function isUsingPostgreSQL(): bool
+    {
+        try {
+            return Connections::getConnectionType() === PostgreSQLStorage::class;
         } catch (Throwable $e) {
             return false;
         }

@@ -28,7 +28,7 @@ class TestUtils
         try {
             static::getStorage()->getConnection();
         } catch (\Exception $e) {
-            $ctx->markTestSkipped('Setup a MySQL database connection to a local MySQL server.');
+            $ctx->markTestSkipped('Setup a supported database connection for the active test backend.');
         }
     }
 }

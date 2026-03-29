@@ -3,12 +3,21 @@
 namespace Divergence\Tests\IO\Database;
 
 use Divergence\IO\Database\MySQL;
+use Divergence\IO\Database\PostgreSQL;
 use Divergence\IO\Database\Connections;
 use Divergence\IO\Database\Query\Insert;
 use Divergence\Tests\MockSite\App;
 use PHPUnit\Framework\TestCase;
 
 class testableMySQLQueryDB extends MySQL
+{
+    public static function preprocessPublic($query, $parameters = [])
+    {
+        return static::preprocessQuery($query, $parameters);
+    }
+}
+
+class testablePostgreSQLQueryDB extends PostgreSQL
 {
     public static function preprocessPublic($query, $parameters = [])
     {
@@ -77,6 +86,35 @@ class QueryTest extends TestCase
         $this->assertEquals(
             'INSERT INTO `tags` (`Tag`,`Slug`) VALUES ("Linux","linux")',
             (string) $query
+        );
+    }
+
+    public function testInsertSwitchesToPostgreSQLSyntaxForPostgreSQLConnection()
+    {
+        Connections::setConnection('tests-pgsql');
+
+        $query = (new Insert())
+            ->setTable('tags')
+            ->set(['`Tag` = "Linux"', '`Slug` = "linux"']);
+
+        $this->assertEquals(
+            'INSERT INTO `tags` (`Tag`,`Slug`) VALUES ("Linux","linux")',
+            (string) $query
+        );
+    }
+
+    public function testStorageTypePreprocessNormalizesPostgreSQLSyntax()
+    {
+        Connections::setConnection('tests-pgsql');
+
+        $this->assertEquals(
+            "INSERT INTO \"tags\" (\"Tag\",\"Slug\") VALUES ('Linux','linux')",
+            testablePostgreSQLQueryDB::preprocessPublic('INSERT INTO `tags` (`Tag`,`Slug`) VALUES ("Linux","linux")')
+        );
+
+        $this->assertEquals(
+            'SELECT tablename AS "Tables_in_test" FROM pg_tables WHERE schemaname = current_schema() AND (tablename IN (\'fake\',\'history_fake\')) ORDER BY tablename',
+            testablePostgreSQLQueryDB::preprocessPublic("SHOW TABLES WHERE `Tables_in_test` IN ('fake','history_fake')")
         );
     }
 }

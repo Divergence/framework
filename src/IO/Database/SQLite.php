@@ -117,11 +117,13 @@ class SQLite extends StorageType
      */
     protected static function preprocessQuery($query, $parameters = [])
     {
-        if ($parameters === null || $parameters === []) {
-            return $query;
-        }
+        $query = ($parameters === null || $parameters === [])
+            ? (string) $query
+            : parent::preprocessQuery($query, $parameters);
 
-        return parent::preprocessQuery($query, $parameters);
+        $query = preg_replace("/\bformat\s*\((.+?),\s*2\s*\)/i", "printf('%.2f', \\1)", $query);
+
+            return $query;
     }
 
     public static function interceptNonQuery(string $query): ?bool
