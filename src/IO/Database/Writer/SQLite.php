@@ -21,22 +21,43 @@ use Exception;
  */
 class SQLite extends MySQL
 {
+    protected const DIRECT_SQL_TYPES = [
+        'boolean' => 'INTEGER',
+        'tinyint' => 'INTEGER',
+        'smallint' => 'INTEGER',
+        'mediumint' => 'INTEGER',
+        'bigint' => 'INTEGER',
+        'uint' => 'INTEGER',
+        'int' => 'INTEGER',
+        'integer' => 'INTEGER',
+        'year' => 'INTEGER',
+        'decimal' => 'REAL',
+        'float' => 'REAL',
+        'double' => 'REAL',
+        'clob' => 'TEXT',
+        'serialized' => 'TEXT',
+        'json' => 'TEXT',
+        'enum' => 'TEXT',
+        'set' => 'TEXT',
+        'timestamp' => 'TEXT',
+        'datetime' => 'TEXT',
+        'time' => 'TEXT',
+        'date' => 'TEXT',
+        'blob' => 'BLOB',
+        'binary' => 'BLOB',
+    ];
+
     public static function compileFields($recordClass, $historyVariant = false)
     {
         $queryString = [];
-        $fields = static::getAggregateFieldOptions($recordClass);
 
-        foreach ($fields as $fieldId => $field) {
-            if ($field['columnName'] == 'RevisionID') {
-                continue;
-            }
-
+        static::eachNonRevisionField($recordClass, function ($fieldId, $field) use (&$queryString, $recordClass, $historyVariant) {
             $queryString[] = static::getFieldDefinition($recordClass, $fieldId, $historyVariant);
 
             if (!empty($field['unique']) && !$historyVariant) {
                 $queryString[] = 'UNIQUE (`'.$field['columnName'].'`)';
             }
-        }
+        });
 
         return $queryString;
     }
@@ -48,25 +69,47 @@ class SQLite extends MySQL
 
     public static function getCreateTable($recordClass, $historyVariant = false)
     {
-        $indexes = $historyVariant ? [] : $recordClass::$indexes;
-        $queryString = [];
+        $indexes = static::getStandardIndexes($recordClass, $historyVariant);
+        $queryString = static::getSqliteBaseStatements($recordClass, $historyVariant);
         $postCreateStatements = [];
+
+        if (!$historyVariant) {
+            static::appendContextIndex($postCreateStatements, $recordClass);
+        }
+
+        static::appendSqliteIndexes($postCreateStatements, $recordClass, $indexes);
+
+        $createSQL = sprintf(
+            "CREATE TABLE IF NOT EXISTS `%s` (\n\t%s\n);",
+            static::getTargetTableName($recordClass, $historyVariant),
+            join("\n\t,", $queryString)
+        );
+
+        if (!$historyVariant && static::isVersionedRecord($recordClass)) {
+            $postCreateStatements[] = static::getCreateTable($recordClass, true);
+        }
+
+        if (!empty($postCreateStatements)) {
+            $createSQL .= PHP_EOL . PHP_EOL . join(";" . PHP_EOL, $postCreateStatements) . ';';
+        }
+
+        return $createSQL;
+    }
+
+    protected static function getSqliteBaseStatements(string $recordClass, bool $historyVariant): array
+    {
+        $queryString = [];
 
         if ($historyVariant) {
             $queryString[] = '`RevisionID` INTEGER PRIMARY KEY AUTOINCREMENT';
         }
 
-        $queryString = array_merge($queryString, static::compileFields($recordClass, $historyVariant));
+        return array_merge($queryString, static::compileFields($recordClass, $historyVariant));
+    }
 
-        if (!$historyVariant && $recordClass::fieldExists('ContextClass') && $recordClass::fieldExists('ContextID')) {
-            $postCreateStatements[] = static::getContextIndex($recordClass);
-        }
-
+    protected static function appendSqliteIndexes(array &$postCreateStatements, string $recordClass, array $indexes): void
+    {
         foreach ($indexes as $indexName => $index) {
-            foreach ($index['fields'] as &$indexField) {
-                $indexField = $recordClass::getColumnName($indexField);
-            }
-
             if (!empty($index['fulltext'])) {
                 continue;
             }
@@ -79,103 +122,64 @@ class SQLite extends MySQL
                 join('`,`', $index['fields'])
             );
         }
-
-        $createSQL = sprintf(
-            "CREATE TABLE IF NOT EXISTS `%s` (\n\t%s\n);",
-            $historyVariant ? $recordClass::getHistoryTable() : $recordClass::$tableName,
-            join("\n\t,", $queryString)
-        );
-
-        if (!$historyVariant && is_subclass_of($recordClass, 'VersionedRecord')) {
-            $postCreateStatements[] = static::getCreateTable($recordClass, true);
-        }
-
-        if (!empty($postCreateStatements)) {
-            $createSQL .= PHP_EOL . PHP_EOL . join(";" . PHP_EOL, $postCreateStatements) . ';';
-        }
-
-        return $createSQL;
     }
 
     public static function getSQLType($field)
     {
-        switch ($field['type']) {
-            case 'boolean':
-                return 'INTEGER';
-            case 'tinyint':
-            case 'smallint':
-            case 'mediumint':
-            case 'bigint':
-            case 'uint':
-            case 'int':
-            case 'integer':
-            case 'year':
-                return 'INTEGER';
-            case 'decimal':
-            case 'float':
-            case 'double':
-                return 'REAL';
-
-            case 'password':
-            case 'string':
-            case 'varchar':
-            case 'list':
-            case 'clob':
-            case 'serialized':
-            case 'json':
-            case 'enum':
-            case 'set':
-            case 'timestamp':
-            case 'datetime':
-            case 'time':
-            case 'date':
-                return 'TEXT';
-
-            case 'blob':
-            case 'binary':
-                return 'BLOB';
-
-            default:
-                throw new Exception("getSQLType: unhandled type $field[type]");
+        if (isset(static::DIRECT_SQL_TYPES[$field['type']])) {
+            return static::DIRECT_SQL_TYPES[$field['type']];
         }
+
+        if (in_array($field['type'], ['password', 'string', 'varchar', 'list'], true)) {
+            return 'TEXT';
+        }
+
+        throw new Exception("getSQLType: unhandled type $field[type]");
     }
 
     public static function getFieldDefinition($recordClass, $fieldName, $historyVariant = false)
     {
-        $field = static::getAggregateFieldOptions($recordClass, $fieldName);
-        $rootClass = $recordClass::getRootClassName();
-
-        if ($rootClass && !$rootClass::fieldExists($fieldName)) {
-            $field['notnull'] = false;
-        }
-
-        if ($field['columnName'] == 'Class' && $field['type'] == 'enum' && !in_array($rootClass, $field['values']) && !count($rootClass::getStaticSubClasses())) {
-            array_unshift($field['values'], $rootClass);
-        }
+        $field = static::normalizeFieldOptions($recordClass, $fieldName);
 
         if (!empty($field['primary']) && !empty($field['autoincrement']) && !$historyVariant) {
             return '`'.$field['columnName'].'` INTEGER PRIMARY KEY AUTOINCREMENT';
         }
 
+        $fieldDef = static::buildSqliteFieldPrefix($field, $historyVariant);
+        $fieldDef .= ' '.($field['notnull'] ? 'NOT NULL' : 'NULL');
+
+        return static::appendSqliteFieldDefault($fieldDef, $field);
+    }
+
+    protected static function buildSqliteFieldPrefix(array $field, bool $historyVariant): string
+    {
         $fieldDef = '`'.$field['columnName'].'` '.static::getSQLType($field);
 
         if (!empty($field['primary']) && !$historyVariant) {
             $fieldDef .= ' PRIMARY KEY';
         }
 
-        $fieldDef .= ' '.($field['notnull'] ? 'NOT NULL' : 'NULL');
+        return $fieldDef;
+    }
 
+    protected static function appendSqliteFieldDefault(string $fieldDef, array $field): string
+    {
         if (($field['type'] == 'timestamp') && ($field['default'] == 'CURRENT_TIMESTAMP')) {
-            $fieldDef .= ' DEFAULT CURRENT_TIMESTAMP';
-        } elseif (empty($field['notnull']) && ($field['default'] == null)) {
-            $fieldDef .= ' DEFAULT NULL';
-        } elseif (isset($field['default'])) {
-            $fieldDef .= sprintf(
-                " DEFAULT '%s'",
-                str_replace("'", "''", (string) $field['default'])
-            );
+            return $fieldDef . ' DEFAULT CURRENT_TIMESTAMP';
         }
 
-        return $fieldDef;
+        if (empty($field['notnull']) && ($field['default'] == null)) {
+            return $fieldDef . ' DEFAULT NULL';
+        }
+
+        if (!isset($field['default'])) {
+            return $fieldDef;
+        }
+
+        return sprintf(
+            "%s DEFAULT '%s'",
+            $fieldDef,
+            str_replace("'", "''", (string) $field['default'])
+        );
     }
 }
