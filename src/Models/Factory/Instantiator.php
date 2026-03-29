@@ -11,7 +11,11 @@
 namespace Divergence\Models\Factory;
 
 use ReflectionClass;
+use Divergence\Models\Model;
 
+/**
+ * @template TModel of Model
+ */
 class Instantiator
 {
     /**
@@ -32,6 +36,9 @@ class Instantiator
     /**
      * @param string $modelClass
      */
+    /**
+     * @param ModelMetadata $metadata
+     */
     public function __construct(ModelMetadata $metadata)
     {
         $this->metadata = $metadata;
@@ -39,6 +46,10 @@ class Instantiator
         $this->prototypeRegistry = new PrototypeRegistry();
     }
 
+    /**
+     * @param array<string, mixed> $record
+     * @return class-string<TModel>
+     */
     protected function getRecordClass($record)
     {
         $className = $this->metadata->getModelClass();
@@ -57,8 +68,8 @@ class Instantiator
     }
 
     /**
-     * @param array $record
-     * @return \Divergence\Models\Model|null
+     * @param array<string, mixed>|null $record
+     * @return TModel|null
      */
     public function instantiateRecord($record)
     {
@@ -66,8 +77,8 @@ class Instantiator
     }
 
     /**
-     * @param array $records
-     * @return array<\Divergence\Models\Model>|null
+     * @param array<array-key, array<string, mixed>>|array<string, array<string, mixed>> $records
+     * @return array<array-key, TModel>|array<string, TModel>
      */
     public function instantiateRecords($records)
     {
@@ -78,6 +89,10 @@ class Instantiator
         return $records;
     }
 
+    /**
+     * @param array<string, mixed>|null $record
+     * @return TModel|null
+     */
     protected function instantiateModel($record)
     {
         $className = $this->getRecordClass($record);

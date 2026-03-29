@@ -49,25 +49,25 @@ class Media extends Model
 
     public static $tableName = 'media';
 
-    #[Column(notnull: false, default:null)]
-    private $ContextClass;
+    #[Column(default:null)]
+    private ?string $ContextClass;
 
-    #[Column(type:'int', notnull: false, default:null)]
-    private $ContextID;
+    #[Column(type:'int', default:null)]
+    private ?int $ContextID;
 
     private $MIMEType;
 
-    #[Column(type:'int', unsigned: true, notnull:false)]
-    private $Width;
+    #[Column(type:'int', unsigned: true)]
+    private ?int $Width;
 
-    #[Column(type:'int', unsigned: true, notnull:false)]
-    private $Height;
+    #[Column(type:'int', unsigned: true)]
+    private ?int $Height;
 
-    #[Column(type: 'decimal', notnull: false, precision: 12, scale: 6, default: 0)]
-    private $Duration;
+    #[Column(type: 'decimal', precision: 12, scale: 6, default: 0)]
+    private ?float $Duration;
 
-    #[Column(notnull:false)]
-    private $Caption;
+    #[Column]
+    private ?string $Caption;
 
 
     public static $relationships = [

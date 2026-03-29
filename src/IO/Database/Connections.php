@@ -14,6 +14,9 @@ Use \Divergence\App;
 use Exception;
 use PDO;
 
+/**
+ * Connection resolver and backend selector for framework database access.
+ */
 class Connections
 {
     /**
@@ -161,7 +164,7 @@ class Connections
     /**
      * Gets the concrete storage class for the current connection config.
      *
-     * @return string
+     * @return class-string<self>
      */
     public static function getConnectionType(): string
     {
@@ -198,7 +201,7 @@ class Connections
      * Gets the concrete storage class for a specific connection label.
      *
      * @param string|null $label
-     * @return string
+     * @return class-string<self>
      */
     protected static function getConnectionTypeForLabel(?string $label): string
     {
@@ -219,7 +222,7 @@ class Connections
     /**
      * Gets the database config and sets it to static::$Config
      *
-     * @return array static::$Config
+     * @return array<string, array<string, mixed>> static::$Config
      */
     protected static function config()
     {

@@ -1304,7 +1304,10 @@ class ActiveRecord implements JsonSerializable
                     foreach ($attributes as $attribute) {
                         $attributeName = $attribute->getName();
                         if ($attributeName === Column::class) {
-                            $fields[$property->getName()] = array_merge($attribute->getArguments(), ['attributeField'=>true]);
+                            $fields[$property->getName()] = static::applyAttributeFieldNullability(
+                                $property,
+                                array_merge($attribute->getArguments(), ['attributeField' => true])
+                            );
                         }
 
                         if ($attributeName === Relation::class) {
@@ -1315,7 +1318,10 @@ class ActiveRecord implements JsonSerializable
                 } else {
                     // default
                     if (!$isRelationship) {
-                        $fields[$property->getName()] = ['attributeField' => true];
+                        $fields[$property->getName()] = static::applyAttributeFieldNullability(
+                            $property,
+                            ['attributeField' => true]
+                        );
                     }
                 }
             }
@@ -1324,6 +1330,15 @@ class ActiveRecord implements JsonSerializable
             'fields' => $fields,
             'relations' => $relations
         ];
+    }
+
+    protected static function applyAttributeFieldNullability(ReflectionProperty $property, array $field): array
+    {
+        if ($type = $property->getType()) {
+            $field['notnull'] = !$type->allowsNull();
+        }
+
+        return $field;
     }
 
 
@@ -1663,6 +1678,10 @@ class ActiveRecord implements JsonSerializable
         }
     }
 
+    /**
+     * @param array<int, string>|null $fields
+     * @return array<string, mixed>
+     */
     protected function _prepareRecordValues(?array $fields = null)
     {
         $record = [];
@@ -1709,6 +1728,10 @@ class ActiveRecord implements JsonSerializable
         return $record;
     }
 
+    /**
+     * @param array<string, array<string, mixed>>|null $fieldConfigs
+     * @return array<int, string>
+     */
     public function preparePersistedSet(?array $fieldConfigs = null): array
     {
         $set = [];
@@ -1778,6 +1801,11 @@ class ActiveRecord implements JsonSerializable
         return $set;
     }
 
+    /**
+     * @param array<string, mixed> $recordValues
+     * @param array<string, array<string, mixed>>|null $fieldConfigs
+     * @return array<int, string>
+     */
     protected static function _mapValuesToSet($recordValues, ?array $fieldConfigs = null)
     {
         $set = [];
@@ -1807,22 +1835,41 @@ class ActiveRecord implements JsonSerializable
         return $set;
     }
 
+    /**
+     * @param array<int, string>|null $fields
+     * @return array<string, mixed>
+     */
     public function preparePersistedRecordValues(?array $fields = null): array
     {
         return $this->_prepareRecordValues($fields);
     }
 
+    /**
+     * @param array<string, mixed> $recordValues
+     * @param array<string, array<string, mixed>>|null $fieldConfigs
+     * @return array<int, string>
+     */
     public static function mapPreparedValuesToSet(array $recordValues, ?array $fieldConfigs = null): array
     {
         return static::_mapValuesToSet($recordValues, $fieldConfigs);
     }
 
+    /**
+     * @param string $field
+     * @param mixed $value
+     * @return void
+     */
     public function primeFieldForSave(string $field, $value): void
     {
         unset($this->_convertedValues[$field]);
         $this->setRecordValueAndSynchronizeField($field, static::_cn($field), $value);
     }
 
+    /**
+     * @param int|string $insertID
+     * @param bool $isIntegerPrimaryKey
+     * @return void
+     */
     public function finalizeInsert($insertID, bool $isIntegerPrimaryKey = false): void
     {
         if ($isIntegerPrimaryKey) {
@@ -1846,6 +1893,10 @@ class ActiveRecord implements JsonSerializable
         $this->_isDirty = false;
     }
 
+    /**
+     * @param array<int, string> $set
+     * @return void
+     */
     public function cachePreparedPersistedSet(array $set): void
     {
         $this->_preparedPersistedSet = $set;

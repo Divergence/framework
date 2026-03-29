@@ -23,7 +23,7 @@ class ModelMetadata
     protected $modelClass;
 
     /**
-     * @var array
+     * @var array<string, array<string, mixed>>
      */
     protected $classFields;
 
@@ -63,7 +63,7 @@ class ModelMetadata
     protected $classColumnName;
 
     /**
-     * @var array
+     * @var array{0: class-string, 1: string}
      */
     protected $handleExceptionCallback;
 
@@ -73,7 +73,7 @@ class ModelMetadata
     protected $persistedFields = [];
 
     /**
-     * @var array<string, array>
+     * @var array<string, array<string, mixed>>
      */
     protected $persistedFieldConfigs = [];
 
@@ -143,6 +143,9 @@ class ModelMetadata
         return $this->modelClass;
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     public function getClassFields(): array
     {
         return $this->classFields;
@@ -188,6 +191,9 @@ class ModelMetadata
         return $this->classColumnName;
     }
 
+    /**
+     * @return array{0: class-string, 1: string}
+     */
     public function getHandleExceptionCallback(): array
     {
         return $this->handleExceptionCallback;
@@ -218,6 +224,9 @@ class ModelMetadata
         return $this->persistedFields;
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     public function getPersistedFieldConfigs(): array
     {
         return $this->persistedFieldConfigs;
