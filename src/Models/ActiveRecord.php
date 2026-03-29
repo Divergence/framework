@@ -1648,7 +1648,11 @@ class ActiveRecord implements JsonSerializable
                 }
         }
 
-        if ($forceDirty || (empty($this->_record[$field]) && isset($value)) || ($this->_record[$field] !== $value)) {
+        $columnName = static::_cn($field);
+        $recordHasValue = array_key_exists($columnName, $this->_record);
+        $currentValue = $recordHasValue ? $this->_record[$columnName] : null;
+
+        if ($forceDirty || (!$recordHasValue && isset($value)) || ($recordHasValue && $currentValue !== $value)) {
             $this->_setValueAndMarkDirty($field, $value, $fieldOptions);
             return true;
         } else {
