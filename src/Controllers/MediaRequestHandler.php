@@ -36,6 +36,16 @@ use Divergence\Responders\MediaResponse;
 use GuzzleHttp\Psr7\ServerRequest;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * @method ResponseInterface handleUploadRequest()
+ * @method ResponseInterface handleMediaRequest($mediaID)
+ * @method ResponseInterface handleInfoRequest($mediaID)
+ * @method ResponseInterface handleDownloadRequest($mediaID, $filename = null)
+ * @method ResponseInterface handleCaptionRequest($mediaID)
+ * @method ResponseInterface handleThumbnailRequest()
+ * @method ResponseInterface handleMediaBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = [])
+ * @method ResponseInterface handleMediaDeleteRequest($mediaID = null)
+ */
 class MediaRequestHandler extends RecordsRequestHandler
 {
     // RecordRequestHandler configuration

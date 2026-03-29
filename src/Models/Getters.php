@@ -24,6 +24,9 @@ trait Getters
      */
     protected static $_registeredGetterMethods = [];
 
+    /**
+     * @return Factory<static>
+     */
     public static function Factory(?string $modelClass = null): Factory
     {
         return new Factory($modelClass ?: static::class);

@@ -38,6 +38,30 @@ use Divergence\Models\Factory\ModelMetadata;
 use Divergence\IO\Database\Connections;
 use PDO;
 
+/**
+ * @template TModel of Model
+ *
+ * @method TModel|null getByContextObject(ActiveRecord $Record, $options = [])
+ * @method TModel|null getByContext($contextClass, $contextID, $options = [])
+ * @method TModel|null getByHandle($handle)
+ * @method TModel|null getByID($id)
+ * @method TModel|null getByField($field, $value, $cacheIndex = false)
+ * @method array<string, mixed>|null getRecordByField($field, $value, $cacheIndex = false)
+ * @method TModel|null getByWhere($conditions, $options = [])
+ * @method array<string, mixed>|null getRecordByWhere($conditions, $options = [])
+ * @method TModel|null getByQuery($query, $params = [])
+ * @method array<array-key, TModel> getAllByClass($className = false, $options = [])
+ * @method array<array-key, TModel> getAllByContextObject(ActiveRecord $Record, $options = [])
+ * @method array<array-key, TModel> getAllByContext($contextClass, $contextID, $options = [])
+ * @method array<array-key, TModel> getAllByField($field, $value, $options = [])
+ * @method array<array-key, TModel> getAllByWhere($conditions = [], $options = [])
+ * @method array<array-key, TModel> getAll($options = [])
+ * @method array<array-key, array<string, mixed>>|array<string, array<string, mixed>> getAllRecords($options = [])
+ * @method array<array-key, TModel> getAllByQuery($query, $params = [])
+ * @method array<array-key, TModel> getTableByQuery($keyField, $query, $params = [])
+ * @method array<array-key, array<string, mixed>>|array<string, array<string, mixed>> getAllRecordsByWhere($conditions = [], $options = [])
+ * @method string getUniqueHandle($text, $options = [])
+ */
 class Factory
 {
     /**

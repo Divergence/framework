@@ -15,14 +15,21 @@ use Divergence\Models\Factory;
 use Divergence\IO\Database\Connections;
 use Divergence\IO\Database\PostgreSQL;
 use Divergence\IO\Database\Query\Select;
+use Divergence\Models\Model;
 
+/**
+ * @template TModel of Model
+ */
 abstract class ModelGetter
 {
     /**
-     * @var Factory
+     * @var Factory<TModel>
      */
     protected $factory;
 
+    /**
+     * @param Factory<TModel> $factory
+     */
     public function __construct(Factory $factory)
     {
         $this->factory = $factory;
@@ -33,16 +40,27 @@ abstract class ModelGetter
         return $this->factory->getModelClass();
     }
 
+    /**
+     * @return object
+     */
     protected function getStorage()
     {
         return $this->factory->getStorage();
     }
 
+    /**
+     * @param array<string, mixed>|null $record
+     * @return TModel|null
+     */
     protected function instantiateRecord($record)
     {
         return $this->factory->instantiateRecord($record);
     }
 
+    /**
+     * @param array<array-key, array<string, mixed>>|array<string, array<string, mixed>> $records
+     * @return array<array-key, TModel>|array<string, TModel>
+     */
     protected function instantiateRecords($records)
     {
         return $this->factory->instantiateRecords($records);
@@ -55,13 +73,17 @@ abstract class ModelGetter
         return $className::fieldExists($field);
     }
 
-    protected function getColumnName(string $field)
+    protected function getColumnName(string $field): string
     {
         $className = $this->getModelClass();
 
         return $className::getColumnName($field);
     }
 
+    /**
+     * @param string|array<string, string>|array<int, string> $order
+     * @return array<int, string>
+     */
     protected function mapFieldOrder($order)
     {
         $className = $this->getModelClass();
@@ -69,6 +91,10 @@ abstract class ModelGetter
         return $className::mapFieldOrder($order);
     }
 
+    /**
+     * @param string|array<string, mixed>|array<int, mixed> $conditions
+     * @return array<int, string>
+     */
     protected function mapConditions($conditions)
     {
         $className = $this->getModelClass();
@@ -107,6 +133,11 @@ abstract class ModelGetter
         return 'Record';
     }
 
+    /**
+     * @param array<string, mixed>|false|null $options
+     * @param array<string, mixed> $defaults
+     * @return array<string, mixed>
+     */
     protected function prepareOptions($options, array $defaults)
     {
         return Util::prepareOptions($options, $defaults);
@@ -117,6 +148,10 @@ abstract class ModelGetter
         return new Select();
     }
 
+    /**
+     * @param string|array<string, string>|array<int, string>|false|null $columns
+     * @return string|null
+     */
     protected function buildExtraColumns($columns)
     {
         if (!empty($columns)) {
@@ -130,6 +165,11 @@ abstract class ModelGetter
         }
     }
 
+    /**
+     * @param string|array<string, mixed>|array<int, mixed>|false|null $having
+     * @param string|array<string, string>|array<int, string>|false|null $extraColumns
+     * @return string|null
+     */
     protected function buildHaving($having, $extraColumns = null)
     {
         if (!empty($having)) {
@@ -139,6 +179,11 @@ abstract class ModelGetter
         }
     }
 
+    /**
+     * @param string|array<string, mixed>|array<int, mixed>|false|null $having
+     * @param string|array<string, string>|array<int, string>|false|null $extraColumns
+     * @return string|array<string, mixed>|array<int, mixed>|false|null
+     */
     protected function replaceExtraColumnAliasesInHaving($having, $extraColumns)
     {
         if (Connections::getConnectionType() !== PostgreSQL::class || empty($extraColumns)) {
@@ -176,6 +221,10 @@ abstract class ModelGetter
         return is_string($having) ? $replaceAliases($having) : $having;
     }
 
+    /**
+     * @param string|array<string, string>|array<int, string>|false|null $columns
+     * @return array<string, string>
+     */
     protected function extractExtraColumnAliases($columns): array
     {
         $aliases = [];

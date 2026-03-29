@@ -18,6 +18,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+/**
+ * Base request handler with shared endpoint registration and dynamic endpoint dispatch.
+ */
 abstract class RequestHandler implements RequestHandlerInterface
 {
     /**
@@ -53,6 +56,11 @@ abstract class RequestHandler implements RequestHandlerInterface
         return new Response(new $className($responseID, $responseData));
     }
 
+    /**
+     * @param class-string $className
+     * @param string|null $endpointName
+     * @return void
+     */
     protected function registerEndpointClass(string $className, ?string $endpointName = null): void
     {
         if ($endpointName === null) {
@@ -69,6 +77,11 @@ abstract class RequestHandler implements RequestHandlerInterface
         $this->endpointClasses[$endpointName] = $className;
     }
 
+    /**
+     * @param string $name
+     * @param array<int, mixed> $arguments
+     * @return mixed
+     */
     public function __call(string $name, array $arguments)
     {
         $endpointName = strtolower($name);

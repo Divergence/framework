@@ -31,6 +31,14 @@ use Divergence\Models\ActiveRecord as ActiveRecord;
  *
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * @method ResponseInterface handleBrowseRequest($options = [], $conditions = [], $responseID = null, $responseData = [])
+ * @method ResponseInterface handleRecordRequest(ActiveRecord $Record, $action = false)
+ * @method ResponseInterface handleMultiSaveRequest()
+ * @method ResponseInterface handleMultiDestroyRequest()
+ * @method ResponseInterface handleCreateRequest(ActiveRecord $Record = null)
+ * @method ResponseInterface handleEditRequest(ActiveRecord $Record)
+ * @method ResponseInterface handleDeleteRequest(ActiveRecord $Record)
  */
 abstract class RecordsRequestHandler extends RequestHandler
 {

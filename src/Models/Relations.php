@@ -25,8 +25,15 @@ use Exception;
  */
 trait Relations
 {
+    /**
+     * @var array<string, mixed>
+     */
     protected $_relatedObjects = [];
 
+    /**
+     * @param string $relationship
+     * @return bool
+     */
     public static function _relationshipExists($relationship)
     {
         if (is_array(static::$_classRelationships[get_called_class()])) {
@@ -38,6 +45,8 @@ trait Relations
 
     /**
      * Called when anything relationships related is used for the first time to define relationships before _initRelationships
+     *
+     * @return void
      */
     protected static function _defineRelationships()
     {
@@ -59,6 +68,8 @@ trait Relations
     /**
      * Called after _defineRelationships to initialize and apply defaults to the relationships property
      * Must be idempotent as it may be applied multiple times up the inheritence chain
+     *
+     * @return void
      */
     protected static function _initRelationships()
     {
@@ -74,6 +85,11 @@ trait Relations
         }
     }
 
+    /**
+     * @param string $relationship
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     */
     protected static function _prepareOneOne(string $relationship, array $options): array
     {
         $options['local'] = $options['local'] ?? $relationship . 'ID';
@@ -81,6 +97,11 @@ trait Relations
         return $options;
     }
 
+    /**
+     * @param string $classShortName
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     */
     protected static function _prepareOneMany(string $classShortName, array $options): array
     {
         $options['local'] = $options['local'] ?? 'ID';
@@ -92,6 +113,10 @@ trait Relations
         return $options;
     }
 
+    /**
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     */
     protected static function _prepareContextChildren($options): array
     {
         $options['local'] = $options['local'] ?? 'ID';
@@ -102,6 +127,10 @@ trait Relations
         return $options;
     }
 
+    /**
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     */
     protected static function _prepareContextParent($options): array
     {
         $options['local'] = $options['local'] ?? 'ContextID';
@@ -111,6 +140,11 @@ trait Relations
         return $options;
     }
 
+    /**
+     * @param string $classShortName
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     */
     protected static function _prepareManyMany($classShortName, $options): array
     {
         if (empty($options['class'])) {
@@ -132,6 +166,11 @@ trait Relations
     }
 
     // TODO: Make relations getPrimaryKeyValue() instead of using ID all the time.
+    /**
+     * @param string $relationship
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     */
     protected static function _initRelationship($relationship, $options)
     {
         $classShortName = basename(str_replace('\\', '/', static::getRootClassName()));
