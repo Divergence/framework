@@ -12,6 +12,9 @@ namespace Divergence\Models\Factory;
 
 use ReflectionProperty;
 
+/**
+ * @template TModel of \Divergence\Models\Model
+ */
 class EventBinder
 {
     /**
@@ -42,7 +45,13 @@ class EventBinder
         }
     }
 
-    public function bindPrototype($model)
+    /**
+     * Main instantiator
+     *
+     * @param TModel $model
+     * @return TModel
+     */
+    public function initPrototype($model)
     {
         $className = get_class($model);
 
@@ -69,10 +78,18 @@ class EventBinder
         return $model;
     }
 
-    public function bindRecord($model, array $record = [], bool $isDirty = false, ?bool $isPhantom = null)
+    /**
+     * Configures meta data fields
+     *
+     * @param TModel $model
+     * @param array $record
+     * @param boolean $isDirty
+     * @param boolean $isPhantom
+     * @return void
+     */
+    public function bindRecord($model, array $record = [], bool $isDirty = false, bool $isPhantom = false)
     {
         $className = get_class($model);
-        $isPhantom = isset($isPhantom) ? $isPhantom : empty($record);
 
         if ($className::fieldExists('Class')) {
             $columnName = $className::getColumnName('Class');

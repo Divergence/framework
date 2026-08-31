@@ -42,8 +42,8 @@ class SQLTest extends TestCase
 
     public function testGetCreateTable()
     {
-        $Expected[Tag::class] = 'ae3e735ba26bdd70332877d0458a5ff98a6580dc';
-        $Expected[Canary::class] = '9aca8005cf7bf72f3873de36c14dbf121c4bca35';
+        $Expected[Tag::class] = '2a6459dc1f43846be657a77347c221e76a66f88a';
+        $Expected[Canary::class] = 'c80a4195924a505ef974aa43c6e91d7c688fc460';
 
         foreach ($Expected as $Class=>$Hash) {
             $this->assertEquals($Hash, sha1(SQL::getCreateTable($Class)));
@@ -52,7 +52,7 @@ class SQLTest extends TestCase
 
     public function testGetCreateTableVersioned()
     {
-        $Expected[Canary::class] = '492078c2af3848f4b4d4448b8bdf1086310e2bd5';
+        $Expected[Canary::class] = '950d3081e5c841834cda565bc1e70e4e3420a65a';
         foreach ($Expected as $Class=>$Hash) {
             $this->assertEquals($Hash, sha1(SQL::getCreateTable($Class, true)));
         }

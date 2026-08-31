@@ -12,7 +12,7 @@ namespace Divergence\Controllers;
 
 use Divergence\App;
 use Divergence\Responders\Response;
-use BadMethodCallException;
+use Error;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -87,7 +87,7 @@ abstract class RequestHandler implements RequestHandlerInterface
         $endpointName = strtolower($name);
 
         if (!isset($this->endpointClasses[$endpointName])) {
-            throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
+            throw new Error(sprintf('Call to undefined method %s::%s()', static::class, $name));
         }
 
         if (!isset($this->endpoints[$endpointName])) {

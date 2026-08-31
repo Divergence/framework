@@ -11,6 +11,7 @@
 namespace Divergence\Tests\Controllers;
 
 use Divergence\App;
+use Error;
 use ReflectionClass;
 use Twig\Error\LoaderError;
 use Divergence\Helpers\JSON;
@@ -920,7 +921,7 @@ class RecordsRequestHandlerTest extends TestCase
     // write access denied
     public function testProcessDatumSaveNoWriteAccess()
     {
-        $this->expectException('Exception');
+        $this->expectException(Error::class);
         $controller = new SecureCanaryRequestHandler();
         $controller->processDatumSave([
             'ID' => '1',
@@ -931,7 +932,7 @@ class RecordsRequestHandlerTest extends TestCase
     // database error
     public function testProcessDatumSaveDatabaseError()
     {
-        $this->expectException('Exception');
+        $this->expectException(Error::class);
         $controller = new CanaryRequestHandler();
         $controller->processDatumSave([
             'Created' => 'fake',
@@ -941,7 +942,7 @@ class RecordsRequestHandlerTest extends TestCase
     // write access denied
     public function testProcessDatumDestroyNoWriteAccess()
     {
-        $this->expectException('Exception');
+        $this->expectException(Error::class);
         $controller = new SecureCanaryRequestHandler();
         $controller->processDatumDestroy([
             'ID' => '1',
@@ -951,7 +952,7 @@ class RecordsRequestHandlerTest extends TestCase
     // missing key
     public function testProcessDatumDestroyNoKey()
     {
-        $this->expectException('Exception');
+        $this->expectException(Error::class);
         $controller = new CanaryRequestHandler();
         $controller->processDatumDestroy([
             'fake' => 'fake',
@@ -962,7 +963,7 @@ class RecordsRequestHandlerTest extends TestCase
     public function testProcessDatumDestroyFailed()
     {
         DB::nonQuery('LOCK TABLES `canaries` READ');
-        $this->expectException('Exception');
+        $this->expectException(Error::class);
         $controller = new CanaryRequestHandler();
         $controller->processDatumDestroy([
             'ID' => '1',

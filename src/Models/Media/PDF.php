@@ -21,8 +21,7 @@ use Exception;
  */
 class PDF extends Media
 {
-    // configurables
-    public static $extractPageCommand = 'convert \'%1$s[%2$u]\' JPEG:- 2>/dev/null'; // 1=pdf path, 2=page
+    public static $extractPageCommand = 'convert %1$s JPEG:- 2>/dev/null'; // 1=escaped 'pdf path[page]' argument
     public static $extractPageIndex = 0;
 
     public function getValue($name)
@@ -44,31 +43,35 @@ class PDF extends Media
                         throw new Exception('Unable to find document extension for mime-type: '.$this->getValue('MIMEType'));
                 }
 
-                // no break
             default:
                 return parent::getValue($name);
         }
     }
 
-
-    // public methods
     public function getImage($sourceFile = null): false|\GdImage
     {
         if (!isset($sourceFile)) {
             $sourceFile = $this->FilesystemPath ? $this->FilesystemPath : $this->BlankPath;
         }
 
-        $cmd = sprintf(static::$extractPageCommand, $sourceFile, static::$extractPageIndex);
-        $fileImage = imagecreatefromstring(shell_exec($cmd));
+        $cmd = sprintf(static::$extractPageCommand, escapeshellarg($sourceFile . '[' . static::$extractPageIndex . ']'));
 
-        return $fileImage;
+        if (!$imageData = shell_exec($cmd)) {
+            return false;
+        }
+
+        return imagecreatefromstring($imageData);
     }
 
-    // static methods
     public static function analyzeFile($filename, $mediaInfo = [])
     {
-        $cmd = sprintf(static::$extractPageCommand, $filename, static::$extractPageIndex);
-        $pageIm = @imagecreatefromstring(shell_exec($cmd));
+        $cmd = sprintf(static::$extractPageCommand, escapeshellarg($filename . '[' . static::$extractPageIndex . ']'));
+
+        if (!$imageData = shell_exec($cmd)) {
+            throw new Exception('Unable to convert PDF, ensure that imagemagick is installed on the server');
+        }
+
+        $pageIm = imagecreatefromstring($imageData);
 
         if (!$pageIm) {
             throw new Exception('Unable to convert PDF, ensure that imagemagick is installed on the server');

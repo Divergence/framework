@@ -33,6 +33,7 @@ use Divergence\IO\Database\Query\Insert;
 use Divergence\IO\Database\Query\Update;
 use Divergence\Models\Mapping\DefaultGetMapper;
 use Divergence\Models\Mapping\DefaultSetMapper;
+use Divergence\Models\Factory as ModelFactory;
 
 /**
  * ActiveRecord
@@ -729,12 +730,8 @@ class ActiveRecord implements JsonSerializable
      */
     public static function create($values = [], $save = false)
     {
-        $className = get_called_class();
-
-        // create class
         /** @var ActiveRecord */
-        $ActiveRecord = new $className();
-        $ActiveRecord->setFields($values);
+        $ActiveRecord = ModelFactory::get(static::class)->instantiatePhantomRecord($values);
 
         if ($save) {
             $ActiveRecord->save();
@@ -1895,6 +1892,15 @@ class ActiveRecord implements JsonSerializable
     public function finalizeSave(): void
     {
         $this->_isDirty = false;
+    }
+
+    public function restoreState(self $state): void
+    {
+        foreach (get_object_vars($state) as $property => $value) {
+            $this->$property = $value;
+        }
+
+        $this->initializeAttributeFields();
     }
 
     /**

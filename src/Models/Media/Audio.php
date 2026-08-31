@@ -53,7 +53,7 @@ class Audio extends Media
         }
     }
 
-    public function getImage($sourceFile = null)
+    public function getImage($sourceFile = null): \GdImage|false
     {
         if (!isset($sourceFile)) {
             $sourceFile = $this->BlankPath;
@@ -72,10 +72,10 @@ class Audio extends Media
             $startTime = 0;
         }
 
-        $previewPath = tempnam('/tmp', 'mediaPreview');
+        $previewPath = tempnam(sys_get_temp_dir(), 'mediaPreview');
 
         // generate preview
-        $cmd = sprintf(static::$previewExtractCommand, $this->FilesystemPath, $previewPath, $startTime, static::$previewDuration);
+        $cmd = sprintf(static::$previewExtractCommand, escapeshellarg($this->FilesystemPath), escapeshellarg($previewPath), $startTime, static::$previewDuration);
         shell_exec($cmd);
 
         if (!filesize($previewPath)) {
