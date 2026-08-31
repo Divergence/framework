@@ -221,14 +221,21 @@ class Media extends Model
             case 'image/tiff':
 
                 //Converts PSD to PNG temporarily on the real file system.
-                $tempFile = tempnam('/tmp', 'media_convert');
-                exec("convert -density 100 ".$this->getValue('FilesystemPath')."[0] -flatten $tempFile.png");
+                $tempFile = tempnam(sys_get_temp_dir(), 'media_convert');
+                $cmd = 'convert -density 100 ' . escapeshellarg($this->getValue('FilesystemPath') . '[0]') . ' -flatten ' . escapeshellarg($tempFile . '.png');
+                exec($cmd);
 
-                return imagecreatefrompng("$tempFile.png");
+                return imagecreatefrompng($tempFile . '.png');
 
             case 'application/postscript':
 
-                return imagecreatefromstring(shell_exec("gs -r150 -dEPSCrop -dNOPAUSE -dBATCH -sDEVICE=png48 -sOutputFile=- -q $this->getValue('FilesystemPath')"));
+                $cmd = 'gs -r150 -dEPSCrop -dNOPAUSE -dBATCH -sDEVICE=png48 -sOutputFile=- -q ' . escapeshellarg($this->getValue('FilesystemPath'));
+
+                if (!$imageData = shell_exec($cmd)) {
+                    throw new Exception('Failed to convert postscript file with gs, ensure ghostscript is installed');
+                }
+
+                return imagecreatefromstring($imageData);
 
             default:
 
@@ -468,10 +475,12 @@ class Media extends Model
 
     public static function createFromFile($file, $fieldValues = []): static | false
     {
+        $Media = null;
+
         try {
             // handle url input
             if (filter_var($file, FILTER_VALIDATE_URL)) {
-                $tempName = tempnam('/tmp', 'remote_media');
+                $tempName = tempnam(sys_get_temp_dir(), 'remote_media');
                 copy($file, $tempName);
                 $file = $tempName;
             }
@@ -496,15 +505,13 @@ class Media extends Model
 
             return $Media;
         } catch (Exception $e) {
+            // remove partially-created media record
+            if ($Media) {
+                $Media->destroy();
+            }
+
             throw $e;
         }
-
-        // remove photo record
-        if ($Media) {
-            $Media->destroy();
-        }
-
-        return false;
     }
 
     public function initializeFromAnalysis($mediaInfo)
@@ -597,6 +604,13 @@ class Media extends Model
     public function getMIMEType(): string
     {
         return $this->getValue('MIMEType');
+    }
+
+    public function isVariantAvailable($variant): bool
+    {
+        $path = $this->getFilesystemPath($variant);
+
+        return $path !== null && is_readable($path);
     }
 
     public function writeFile($sourceFile): bool

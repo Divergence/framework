@@ -12,6 +12,8 @@ namespace Divergence\Models\Factory;
 
 use ReflectionClass;
 use Divergence\Models\Model;
+use Divergence\Models\Mapping\InMemoryIndexing;
+use Divergence\Models\Collections\RecordCollection;
 
 /**
  * @template TModel of Model
@@ -29,9 +31,14 @@ class Instantiator
     protected $eventBinder;
 
     /**
-     * @var PrototypeRegistry
+     * @var RecordCollection<TModel>|null
      */
-    protected $prototypeRegistry;
+    protected $Collection;
+
+    /**
+     * @var InMemoryIndexing|null
+     */
+    protected $indexingConfig;
 
     /**
      * @param string $modelClass
@@ -43,7 +50,14 @@ class Instantiator
     {
         $this->metadata = $metadata;
         $this->eventBinder = new EventBinder();
-        $this->prototypeRegistry = new PrototypeRegistry();
+
+        $modelClass = $this->metadata->getModelClass();
+        $attributes = (new ReflectionClass($modelClass))->getAttributes(InMemoryIndexing::class);
+
+        if ($attributes) {
+            $this->indexingConfig = $attributes[0]->newInstance();
+            $this->instantiateCollection();
+        }
     }
 
     /**
@@ -68,47 +82,82 @@ class Instantiator
     }
 
     /**
+     * @param array<string, mixed> $record
+     * @return TModel
+     */
+    public function instantiatePhantomRecord($record = [])
+    {
+        $className = $this->getRecordClass($record);
+        $prototype = $this->createPrototype($className);
+        $model = clone $prototype;
+
+        $model = $this->eventBinder->bindRecord($model, [], false, true);
+        $model->setFields($record);
+
+        return $model;
+    }
+
+    /**
      * @param array<string, mixed>|null $record
      * @return TModel|null
      */
     public function instantiateRecord($record)
     {
-        return $this->instantiateModel($record);
+        if ($record === false || $record === null) {
+            return null;
+        }
+
+        return $this->instantiateModel($record, false);
     }
 
     /**
      * @param array<array-key, array<string, mixed>>|array<string, array<string, mixed>> $records
-     * @return array<array-key, TModel>|array<string, TModel>
+     * @return array<array-key, TModel>|array<string, TModel>|RecordCollection<TModel>
      */
     public function instantiateRecords($records)
     {
-        foreach ($records as &$record) {
-            $record = $this->instantiateModel($record);
+        $Collection = $this->Collection;
+
+        if ($Collection) {
+            $this->instantiateCollection();
         }
 
-        return $records;
+        foreach ($records as &$record) {
+            $record = $this->instantiateModel($record);
+
+            if ($Collection) {
+                $Collection->add($record);
+            }
+        }
+
+        return $Collection ?: $records;
+    }
+
+    protected function instantiateCollection(): void
+    {
+        $modelClass = $this->metadata->getModelClass();
+        $this->Collection = new RecordCollection([], $this->indexingConfig->indexes, $modelClass);
     }
 
     /**
-     * @param array<string, mixed>|null $record
-     * @return TModel|null
+     * @param array<string, mixed> $record
+     * @return TModel
      */
-    protected function instantiateModel($record)
+    protected function instantiateModel(array $record, bool $phantom = false)
     {
         $className = $this->getRecordClass($record);
 
-        if (!$record) {
-            return null;
-        }
-
-        $prototype = $this->prototypeRegistry->get($className, function () use ($className) {
-            $model = (new ReflectionClass($className))->newInstanceWithoutConstructor();
-
-            return $this->eventBinder->bindPrototype($model);
-        });
+        $prototype = $this->createPrototype($className);
 
         $model = clone $prototype;
 
-        return $this->eventBinder->bindRecord($model, $record);
+        return $this->eventBinder->bindRecord($model, $record, false, $phantom);
+    }
+
+    protected function createPrototype(string $className)
+    {
+        $model = (new ReflectionClass($className))->newInstanceWithoutConstructor();
+
+        return $this->eventBinder->initPrototype($model);
     }
 }

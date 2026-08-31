@@ -10,7 +10,7 @@
 
 namespace Divergence\Models;
 
-use BadMethodCallException;
+use Error;
 use Exception;
 use Divergence\Models\Factory\Instantiator;
 use Divergence\Models\Factory\Getters\GetAll;
@@ -64,6 +64,11 @@ use PDO;
  */
 class Factory
 {
+    /**
+     * @var array<string, static>
+     */
+    protected static $InstanceRegistry = [];
+
     /**
      * @var array<string, object>
      */
@@ -120,6 +125,15 @@ class Factory
      * @var ModelMetadata
      */
     protected $modelMetadata;
+
+    public static function get(string $modelClass): static
+    {
+        if (!isset(static::$InstanceRegistry[$modelClass])) {
+            static::$InstanceRegistry[$modelClass] = new static($modelClass);
+        }
+
+        return static::$InstanceRegistry[$modelClass];
+    }
 
     /**
      * @param string $modelClass
@@ -181,7 +195,7 @@ class Factory
         $getterName = strtolower($name);
 
         if (!isset($this->getterClasses[$getterName])) {
-            throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
+            throw new Error(sprintf('Call to undefined method %s::%s()', static::class, $name));
         }
 
         if (!isset($this->getters[$getterName])) {
@@ -262,6 +276,17 @@ class Factory
     public function instantiateRecord($record)
     {
         return $this->instantiator->instantiateRecord($record);
+    }
+
+    /**
+     * Creates a new phantom model from the provided values.
+     *
+     * @param array $record
+     * @return Model
+     */
+    public function instantiatePhantomRecord($record = [])
+    {
+        return $this->instantiator->instantiatePhantomRecord($record);
     }
 
     /**

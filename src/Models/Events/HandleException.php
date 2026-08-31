@@ -15,6 +15,7 @@ class HandleException extends AbstractHandler
         $errorMessage = strtolower($errorInfo[2] ?? $e->getMessage());
 
         if (static::isMissingTableError($errorCode, $errorMessage) && $className::$autoCreateTables) {
+            $transactionStarted = $connection->inTransaction();
             $writerClass = static::getWriterClass();
             $rootClass = $className::getRootClassName();
             $statements = [$writerClass::getCreateTable($rootClass)];
@@ -38,6 +39,10 @@ class HandleException extends AbstractHandler
                 if ($errorInfo[0] != '00000') {
                     return static::handle($className, $e, $query, $queryLog, $parameters);
                 }
+            }
+
+            if ($transactionStarted && !$connection->inTransaction()) {
+                $connection->beginTransaction();
             }
 
             return $connection->query((string) $query);

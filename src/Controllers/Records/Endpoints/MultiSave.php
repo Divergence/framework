@@ -64,7 +64,7 @@ class MultiSave extends AbstractRecordsEndpoint
 
         if (empty($datum[$PrimaryKey])) {
             $defaultClass = $className::getDefaultClassName();
-            $record = new $defaultClass();
+            $record = $defaultClass::create();
             $this->handler->onRecordCreatedHook($record, $datum);
 
             return $record;
