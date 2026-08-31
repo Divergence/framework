@@ -16,6 +16,11 @@ class HandleException extends AbstractHandler
 
         if (static::isMissingTableError($errorCode, $errorMessage) && $className::$autoCreateTables) {
             $transactionStarted = $connection->inTransaction();
+
+            if ($transactionStarted && $connection->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'pgsql') {
+                $connection->rollBack();
+            }
+
             $writerClass = static::getWriterClass();
             $rootClass = $className::getRootClassName();
             $statements = [$writerClass::getCreateTable($rootClass)];
