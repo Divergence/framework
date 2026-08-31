@@ -6,7 +6,10 @@ checks:
 build:
   image: default-jammy
   environment:
-    php: 8.4.11
+    php:
+      version: 8.4.11
+      ini:
+        memory_limit: "512M"
   nodes:
     coverage:
       services:
