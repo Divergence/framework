@@ -22,45 +22,59 @@ use Exception;
 class Video extends Media
 {
     // configurables
-    public static $ExtractFrameCommand = 'avconv -ss %2$u -i %1$s -an -vframes 1 -f mjpeg -'; // 1=video path, 2=position
+    public static $ExtractFrameCommand = 'ffmpeg -ss %2$u -i %1$s -an -vframes 1 -f mjpeg pipe:1 2>/dev/null';
     public static $ExtractFramePosition = 3;
+
     public static $encodingProfiles = [
-        // from https://www.virag.si/2012/01/web-video-encoding-tutorial-with-ffmpeg-0-9/
         'h264-high-480p' => [
             'enabled' => true,
             'extension' => 'mp4',
             'mimeType' => 'video/mp4',
             'inputOptions' => [],
-            'videoCodec' => 'h264',
+            'videoCodec' => 'libx264',
             'videoOptions' => [
                 'profile:v' => 'high',
                 'preset' => 'slow',
                 'b:v' => '500k',
                 'maxrate' => '500k',
                 'bufsize' => '1000k',
-                'vf' => 'scale="trunc(oh*a/2)*2:480"', // http://superuser.com/questions/571141/ffmpeg-avconv-force-scaled-output-to-be-divisible-by-2
+                'vf' => 'scale=trunc(oh*a/2)*2:480',
             ],
             'audioCodec' => 'aac',
-            'audioOptions' => [
-                'strict' => 'experimental',
-            ],
+            'audioOptions' => [],
         ],
 
-        // from http://superuser.com/questions/556463/converting-video-to-webm-with-ffmpeg-avconv
         'webm-480p' => [
             'enabled' => true,
             'extension' => 'webm',
             'mimeType' => 'video/webm',
             'inputOptions' => [],
-            'videoCodec' => 'libvpx',
+            'videoCodec' => 'libvpx-vp9',
             'videoOptions' => [
-                'vf' => 'scale=-1:480',
+                'vf' => 'scale=-2:480',
+                'b:v' => '500k',
+                'deadline' => 'good',
+                'cpu-used' => '2',
             ],
-            'audioCodec' => 'libvorbis',
+            'audioCodec' => 'libopus',
+            'audioOptions' => [],
         ],
     ];
 
 
+    public static $mimeTypeExtensions = [
+        'video/mp4'        => 'mp4',
+        'video/webm'       => 'webm',
+        'video/ogg'        => 'ogv',
+        'video/x-matroska' => 'mkv',
+        'video/x-msvideo'  => 'avi',
+        'video/quicktime'  => 'mov',
+        'video/x-flv'      => 'flv',
+        'video/3gpp'       => '3gp',
+        'video/x-ms-wmv'   => 'wmv',
+        'video/mpeg'       => 'mpg',
+        'video/x-m4v'      => 'm4v',
+    ];
 
     public function getValue($name)
     {
@@ -69,78 +83,79 @@ class Video extends Media
                 return 'image/jpeg';
 
             case 'Extension':
-
-                switch ($this->getValue('MIMEType')) {
-                    case 'video/x-flv':
-                        return 'flv';
-
-                    case 'video/mp4':
-                        return 'mp4';
-
-                    case 'video/quicktime':
-                        return 'mov';
-
-                    default:
-                        throw new Exception('Unable to find video extension for mime-type: '.$this->getValue('MIMEType'));
+                $mime = $this->getValue('MIMEType');
+                if (isset(static::$mimeTypeExtensions[$mime])) {
+                    return static::$mimeTypeExtensions[$mime];
                 }
+                if (str_starts_with($mime, 'video/')) {
+                    return substr($mime, 6);
+                }
+                throw new Exception('Unable to find video extension for mime-type: ' . $mime);
 
-                // no break
             default:
                 return parent::getValue($name);
         }
     }
 
-
-    // public methods
     public function getImage($sourceFile = null): false|\GdImage
     {
         if (!isset($sourceFile)) {
-            $sourceFile = $this->getValue('FilesystemPath') ? $this->getValue('FilesystemPath') : $this->getValue('BlankPath');
+            $sourceFile = $this->getValue('FilesystemPath') ?: $this->getValue('BlankPath');
         }
 
-        $cmd = sprintf(self::$ExtractFrameCommand, $sourceFile, min(self::$ExtractFramePosition, floor($this->getValue('Duration'))));
+        $duration = (float)$this->getValue('Duration');
+        $position = min(static::$ExtractFramePosition, max(0, (int)floor($duration)));
+
+        $cmd = sprintf(static::$ExtractFrameCommand, escapeshellarg($sourceFile), $position);
 
         if ($imageData = shell_exec($cmd)) {
             return imagecreatefromstring($imageData);
-        } elseif ($sourceFile != $this->getValue('BlankPath')) {
+        } elseif ($sourceFile !== $this->getValue('BlankPath')) {
             return static::getImage($this->getValue('BlankPath'));
         }
 
-        return null;
+        return false;
     }
 
     /**
-     * Uses ffprobe to analyze the given file and returns meta data from the first video stream found
-     *
      * @param string $filename
      * @param array $mediaInfo
      * @return array
      */
     public static function analyzeFile($filename, $mediaInfo = [])
     {
-        // examine media with ffprobe
-        $output = shell_exec("ffprobe -of json -show_streams -v quiet $filename");
+        $output = shell_exec('ffprobe -of json -show_streams -show_format -v quiet ' . escapeshellarg($filename));
 
         if (!$output || !($json = json_decode($output, true)) || empty($json['streams'])) {
-            throw new \Exception('Unable to examine video with ffprobe, ensure ffmpeg with ffprobe is installed');
+            throw new Exception('Unable to examine video with ffprobe, ensure ffmpeg (with ffprobe) is installed');
         }
 
-        // extract video streams
-        $videoStreams = array_filter($json['streams'], function ($streamInfo) {
-            return $streamInfo['codec_type'] == 'video';
-        });
+        $videoStreams = array_values(array_filter($json['streams'], fn ($s) => $s['codec_type'] === 'video'));
 
         if (!count($videoStreams)) {
-            throw new Exception('avprobe did not detect any video streams');
+            throw new Exception('ffprobe did not detect any video streams');
         }
 
-        // convert and write interesting information to mediaInfo
-        $mediaInfo['streams'] = $json['streams'];
-        $mediaInfo['videoStream'] = array_shift($videoStreams);
+        $mediaInfo['streams']     = $json['streams'];
+        $mediaInfo['videoStream'] = $videoStreams[0];
 
-        $mediaInfo['width'] = (int)$mediaInfo['videoStream']['width'];
-        $mediaInfo['height'] = (int)$mediaInfo['videoStream']['height'];
-        $mediaInfo['duration'] = (float)$mediaInfo['videoStream']['duration'];
+        $mediaInfo['width']    = (int)$mediaInfo['videoStream']['width'];
+        $mediaInfo['height']   = (int)$mediaInfo['videoStream']['height'];
+
+        $mediaInfo['duration'] = (float)(
+            $mediaInfo['videoStream']['duration']
+            ?? $json['format']['duration']
+            ?? 0
+        );
+
+        $rotation = 0;
+        foreach ($mediaInfo['videoStream']['side_data_list'] ?? [] as $sideData) {
+            if (($sideData['side_data_type'] ?? '') === 'Display Matrix') {
+                $rotation = (int)abs($sideData['rotation'] ?? 0);
+                break;
+            }
+        }
+        $mediaInfo['rotation'] = $rotation;
 
         return $mediaInfo;
     }
@@ -149,16 +164,8 @@ class Video extends Media
     {
         parent::writeFile($sourceFile);
 
-
-        // determine rotation metadata with exiftool
-        $exifToolOutput = exec("exiftool -S -Rotation $this->FilesystemPath");
-
-        if (!$exifToolOutput || !preg_match('/Rotation\s*:\s*(?<rotation>\d+)/', $exifToolOutput, $matches)) {
-            throw new Exception('Unable to examine video with exiftool, ensure libimage-exiftool-perl is installed on the host system');
-        }
-
-        $sourceRotation = intval($matches['rotation']);
-
+        $mediaInfo = static::analyzeFile($this->FilesystemPath);
+        $sourceRotation = (int)($mediaInfo['rotation'] ?? 0);
 
         // fork encoding job with each configured profile
         foreach (static::$encodingProfiles as $profileName => $profile) {
@@ -166,76 +173,72 @@ class Video extends Media
                 continue;
             }
 
-
             // build paths and create directories if needed
             $outputPath = $this->getFilesystemPath($profileName);
             if (!is_dir($outputDir = dirname($outputPath))) {
                 mkdir($outputDir, static::$newDirectoryPermissions, true);
             }
 
-            $tmpOutputPath = $outputDir.'/'.'tmp-'.basename($outputPath);
-            ;
+            $tmpOutputPath = $outputDir . '/tmp-' . basename($outputPath);
 
-
-            // build avconv command
-            $cmd = ['avconv', '-loglevel quiet'];
+            $cmd = ['ffmpeg', '-loglevel quiet', '-y'];
 
             // -- input options
             if (!empty($profile['inputOptions'])) {
-                static::_appendAvconvOptions($cmd, $profile['inputOptions']);
+                static::_appendFfmpegOptions($cmd, $profile['inputOptions']);
             }
             $cmd[] = '-i';
-            $cmd[] = $this->FilesystemPath;
+            $cmd[] = escapeshellarg($this->FilesystemPath);
 
-            // -- video output options
             $cmd[] = '-codec:v';
             $cmd[] = $profile['videoCodec'];
-            if (!empty($profile['videoOptions'])) {
-                static::_appendAvconvOptions($cmd, $profile['videoOptions']);
+
+            $videoOptions = $profile['videoOptions'] ?? [];
+
+            if ($sourceRotation !== 0) {
+                $transpose = match($sourceRotation) {
+                    90  => 'transpose=1',
+                    180 => 'transpose=1,transpose=1',
+                    270 => 'transpose=2',
+                    default => null,
+                };
+                if ($transpose) {
+                    $videoOptions['vf'] = isset($videoOptions['vf'])
+                        ? $videoOptions['vf'] . ',' . $transpose
+                        : $transpose;
+                }
             }
 
-            // -- audio output options
+            if (!empty($videoOptions)) {
+                static::_appendFfmpegOptions($cmd, $videoOptions);
+            }
+
+            $cmd[] = '-metadata:s:v:0';
+            $cmd[] = 'rotate=0';
+
             $cmd[] = '-codec:a';
             $cmd[] = $profile['audioCodec'];
             if (!empty($profile['audioOptions'])) {
-                static::_appendAvconvOptions($cmd, $profile['audioOptions']);
-            }
-
-            // -- normalize smartphone rotation
-            $cmd[] = '-metadata:s:v rotate="0"';
-
-            if ($sourceRotation == 90) {
-                $cmd[] = '-vf "transpose=1"';
-            } elseif ($sourceRotation == 180) {
-                $cmd[] = '-vf "transpose=1,transpose=1"';
-            } elseif ($sourceRotation == 270) {
-                $cmd[] = '-vf "transpose=1,transpose=1,transpose=1"';
+                static::_appendFfmpegOptions($cmd, $profile['audioOptions']);
             }
 
             // -- general output options
             if (!empty($profile['outputOptions'])) {
-                static::_appendAvconvOptions($cmd, $profile['outputOptions']);
+                static::_appendFfmpegOptions($cmd, $profile['outputOptions']);
             }
-            $cmd[] = $tmpOutputPath;
 
+            $cmd[] = escapeshellarg($tmpOutputPath);
+            $cmd[] = '&& mv ' . escapeshellarg($tmpOutputPath) . ' ' . escapeshellarg($outputPath);
 
-            // move to final path after it finished
-            $cmd[] = "&& mv $tmpOutputPath $outputPath";
+            $fullCmd = '(nohup ' . implode(' ', $cmd) . ') > /dev/null 2>/dev/null & echo $!';
 
-
-            // convert command to string and decorate for process control
-            $cmd = '(nohup '.implode(' ', $cmd).') > /dev/null 2>/dev/null & echo $! &';
-
-
-            // execute command and retrieve the spawned PID
-            $pid = exec($cmd);
-            // TODO: store PID somewhere in APCU cache so we can do something smarter when a video is requested before it's done encoding
+            $pid = exec($fullCmd);
         }
 
         return true;
     }
 
-    public function getFilesystemPath($variant = 'original', $filename = null): string
+    public function getFilesystemPath($variant = 'original', $filename = null): ?string
     {
         if (!$filename && array_key_exists($variant, static::$encodingProfiles)) {
             $filename = $this->ID.'.'.static::$encodingProfiles[$variant]['extension'];
@@ -254,7 +257,7 @@ class Video extends Media
         return parent::getMIMEType($variant);
     }
 
-    public function isVariantAvailable($variant)
+    public function isVariantAvailable($variant): bool
     {
         if (
             array_key_exists($variant, static::$encodingProfiles) &&
@@ -267,15 +270,14 @@ class Video extends Media
         return parent::isVariantAvailable($variant);
     }
 
-    protected static function _appendAvconvOptions(array &$cmd, array $options)
+    protected static function _appendFfmpegOptions(array &$cmd, array $options): void
     {
         foreach ($options as $key => $value) {
             if (!is_int($key)) {
-                $cmd[] = '-'.$key;
+                $cmd[] = '-' . $key;
             }
-
-            if ($value) {
-                $cmd[] = $value;
+            if ($value !== null && $value !== false) {
+                $cmd[] = escapeshellarg((string) $value);
             }
         }
     }

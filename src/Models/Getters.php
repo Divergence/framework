@@ -10,7 +10,7 @@
 
 namespace Divergence\Models;
 
-use BadMethodCallException;
+use Error;
 
 /**
  * @property string $handleField Defined in the model
@@ -29,7 +29,7 @@ trait Getters
      */
     public static function Factory(?string $modelClass = null): Factory
     {
-        return new Factory($modelClass ?: static::class);
+        return Factory::get($modelClass ?: static::class);
     }
 
     protected static function registerGetterMethods(): void
@@ -55,6 +55,6 @@ trait Getters
             return $factory->$name(...$arguments);
         }
 
-        throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
+        throw new Error(sprintf('Call to undefined method %s::%s()', static::class, $name));
     }
 }

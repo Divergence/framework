@@ -25,7 +25,7 @@ class Create extends AbstractRecordsEndpoint
         if (!$Record) {
             $className = $this->handler::$recordClass;
             $defaultClass = $className::getDefaultClassName();
-            $Record = new $defaultClass();
+            $Record = $defaultClass::create();
         }
 
         $this->handler->onRecordCreatedHook($Record, $_REQUEST);
