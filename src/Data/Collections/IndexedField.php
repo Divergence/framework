@@ -14,6 +14,30 @@ use RuntimeException;
 
 class IndexedField
 {
+    private const FINDERS = [
+        CriteriaType::Equal => 'findEquality',
+        CriteriaType::NotEqual => 'findEquality',
+        CriteriaType::GreaterThan => 'findOrderedComparison',
+        CriteriaType::GreaterThanOrEqual => 'findOrderedComparison',
+        CriteriaType::LessThan => 'findOrderedComparison',
+        CriteriaType::LessThanOrEqual => 'findOrderedComparison',
+        CriteriaType::Like => 'findPattern',
+        CriteriaType::NotLike => 'findPattern',
+        CriteriaType::In => 'findMembership',
+        CriteriaType::NotIn => 'findMembership',
+        CriteriaType::Nulled => 'findNullComparison',
+        CriteriaType::NotNulled => 'findNullComparison',
+        CriteriaType::Exists => 'findNullComparison',
+        CriteriaType::NotExists => 'findNullComparison',
+    ];
+
+    private const ORDERED_COMPARISONS = [
+        CriteriaType::GreaterThan => [false, false],
+        CriteriaType::GreaterThanOrEqual => [false, true],
+        CriteriaType::LessThan => [true, false],
+        CriteriaType::LessThanOrEqual => [true, true],
+    ];
+
     public $field;
     public $type;
 
@@ -44,57 +68,19 @@ class IndexedField
 
     /**
      * @param mixed $value
-     * @return array|false
      */
-    public function find($value, int $operator = CriteriaType::Equal)
+    public function find($value = [], int $operator = CriteriaType::Equal): array
     {
-        if ($operator === CriteriaType::In) {
-            return $this->findIn((array) $value);
-        }
-
-        if ($operator === CriteriaType::NotIn) {
-            return array_diff_key($this->allKeys(), $this->findIn((array) $value) ?: []) ?: false;
-        }
-
-        $value = $this->indexableValue($value);
-
-        switch ($operator) {
-            case CriteriaType::Equal:
-                return $this->findEqual($value);
-            case CriteriaType::NotEqual:
-                return array_diff_key($this->allKeys(), $this->findEqual($value) ?: []) ?: false;
-            case CriteriaType::GreaterThan:
-                return $this->findOrdered($value, false, false);
-            case CriteriaType::GreaterThanOrEqual:
-                return $this->findOrdered($value, false, true);
-            case CriteriaType::LessThan:
-                return $this->findOrdered($value, true, false);
-            case CriteriaType::LessThanOrEqual:
-                return $this->findOrdered($value, true, true);
-            case CriteriaType::Nulled:
-            case CriteriaType::NotExists:
-                return $this->findEqual(null);
-            case CriteriaType::NotNulled:
-            case CriteriaType::Exists:
-                return array_diff_key($this->allKeys(), $this->findEqual(null) ?: []) ?: false;
-        }
-
-        if ($operator !== CriteriaType::Like && $operator !== CriteriaType::NotLike) {
+        if (!isset(self::FINDERS[$operator])) {
             throw new RuntimeException(sprintf('Criteria operator "%s" cannot be evaluated in-memory', $operator));
         }
 
-        $matches = [];
+        $finder = self::FINDERS[$operator];
 
-        foreach ($this->cardinality as $cardinality => $indexedValue) {
-            if ($this->matchesValue($indexedValue, $value, $operator)) {
-                $matches += $this->index[$cardinality];
-            }
-        }
-
-        return $matches ?: false;
+        return $this->{$finder}($value, $operator);
     }
 
-    public function findByIndex(IndexedField $Index, int $operator)
+    public function findByIndex(IndexedField $Index, int $operator): array
     {
         $matches = [];
 
@@ -114,7 +100,7 @@ class IndexedField
             }
         }
 
-        return $matches ?: false;
+        return $matches;
     }
 
     public function clearExistingIndexForValue($record)
@@ -210,30 +196,84 @@ class IndexedField
         $this->orderedRecordKeys = null;
     }
 
-    private function findEqual($value)
+    private function findEquality($value, int $operator): array
+    {
+        $matches = $this->findEqual($this->indexableValue($value));
+
+        if ($operator === CriteriaType::Equal) {
+            return $matches;
+        }
+
+        return array_diff_key($this->allKeys(), $matches);
+    }
+
+    private function findOrderedComparison($value, int $operator): array
+    {
+        [$lessThan, $inclusive] = self::ORDERED_COMPARISONS[$operator];
+
+        return $this->findOrdered($this->indexableValue($value), $lessThan, $inclusive);
+    }
+
+    private function findPattern($value, int $operator): array
+    {
+        $value = $this->indexableValue($value);
+        $matches = [];
+
+        foreach ($this->cardinality as $cardinality => $indexedValue) {
+            if ($this->matchesValue($indexedValue, $value, $operator)) {
+                $matches += $this->index[$cardinality];
+            }
+        }
+
+        return $matches;
+    }
+
+    private function findMembership($value, int $operator): array
+    {
+        $matches = $this->findIn((array) $value);
+
+        if ($operator === CriteriaType::In) {
+            return $matches;
+        }
+
+        return array_diff_key($this->allKeys(), $matches);
+    }
+
+    private function findNullComparison($_value, int $operator): array
+    {
+        $matches = $this->findEqual(null);
+
+        if ($operator === CriteriaType::Nulled || $operator === CriteriaType::NotExists) {
+            return $matches;
+        }
+
+        return array_diff_key($this->allKeys(), $matches);
+    }
+
+    private function findEqual($value): array
     {
         $cardinality = $this->cardinalityKey($value);
 
         if (array_key_exists($cardinality, $this->cardinality)
             && $this->cardinality[$cardinality] === $value) {
-            return $this->index[$cardinality] ?: false;
+            return $this->index[$cardinality];
         }
 
-        return false;
+        return [];
     }
 
-    private function findIn(array $values)
+    private function findIn(array $values): array
     {
         $matches = [];
 
         foreach ($values as $value) {
-            $matches += $this->findEqual($this->indexableValue($value)) ?: [];
+            $matches += $this->findEqual($this->indexableValue($value));
         }
 
-        return $matches ?: false;
+        return $matches;
     }
 
-    private function findOrdered($value, bool $lessThan, bool $inclusive)
+    private function findOrdered($value, bool $lessThan, bool $inclusive): array
     {
         $this->buildOrdering();
 
@@ -245,7 +285,7 @@ class IndexedField
             $keys = array_slice($this->orderedRecordKeys, $start);
         }
 
-        return $keys ? array_fill_keys($keys, true) : false;
+        return $keys ? array_fill_keys($keys, true) : [];
     }
 
     private function buildOrdering(): void

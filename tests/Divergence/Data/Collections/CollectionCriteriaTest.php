@@ -556,7 +556,7 @@ class CollectionCriteriaTest extends TestCase
             CriteriaType::In
         );
 
-        $this->assertCount(1, $matches ?: []);
+        $this->assertCount(1, $matches);
     }
 
     public function testTimestampNotInOperatorAcceptsArrays(): void
@@ -566,7 +566,17 @@ class CollectionCriteriaTest extends TestCase
             CriteriaType::NotIn
         );
 
-        $this->assertCount(1, $matches ?: []);
+        $this->assertCount(1, $matches);
+    }
+
+    public function testIndexedFieldFindDefaultsToAnEmptyArray(): void
+    {
+        $this->assertSame([], (new IndexedField('Value'))->find());
+    }
+
+    public function testIndexedFieldFindReturnsAnEmptyArrayWhenNothingMatches(): void
+    {
+        $this->assertSame([], $this->buildTimestampIndex()->find('2030-01-01 00:00:00'));
     }
 
     public function testTimestampIndexNormalizesUnixEpoch(): void
