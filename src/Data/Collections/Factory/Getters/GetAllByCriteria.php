@@ -17,6 +17,15 @@ use Divergence\Models\Expr\CriteriaType;
 
 class GetAllByCriteria extends AbstractGetter
 {
+    private const FIELD_OPERATORS = [
+        CriteriaType::FieldEqual => CriteriaType::Equal,
+        CriteriaType::FieldNotEqual => CriteriaType::NotEqual,
+        CriteriaType::FieldGreaterThan => CriteriaType::GreaterThan,
+        CriteriaType::FieldGreaterThanOrEqual => CriteriaType::GreaterThanOrEqual,
+        CriteriaType::FieldLessThan => CriteriaType::LessThan,
+        CriteriaType::FieldLessThanOrEqual => CriteriaType::LessThanOrEqual,
+    ];
+
     /**
      * @param Collection $collection
      * @param Criteria|Criteria[]|CriteriaGroup $CriteriaGroup
@@ -48,61 +57,13 @@ class GetAllByCriteria extends AbstractGetter
      */
     private static function searchByCriteria(Collection $collection, $CriteriaGroup)
     {
-        if (!is_array($CriteriaGroup) && !is_a($CriteriaGroup, CriteriaGroup::class)) {
-			throw new \Exception('Collection->GetAllByCriteria($CriteriaGroup) expects CriteriaGroup[].');
-		}
-
-		if (is_array($CriteriaGroup)) {
-			$CriteriaGroup = new CriteriaGroup($CriteriaGroup);
-		}
+		$CriteriaGroup = self::normalizeCriteriaGroup($CriteriaGroup);
 
         $results = [];
 		foreach ($CriteriaGroup->criteria as $crit) {
 			if (is_a($crit, Criteria::class)) {
-				// just-in-time create the index if needed
-                // this is obviously slower than pre-indexing
-				if (!isset($collection->Indexes[$crit->key])) {
-					$collection->createIndexByField($crit->key);
-				}
-				// fetch index
-				switch ($crit->operator) {
-					case CriteriaType::FieldEqual:
-						$operator = CriteriaType::Equal;
-					break;
-
-					case CriteriaType::FieldNotEqual:
-						$operator = CriteriaType::NotEqual;
-					break;
-
-					case CriteriaType::FieldGreaterThan:
-						$operator = CriteriaType::GreaterThan;
-					break;
-
-					case CriteriaType::FieldGreaterThanOrEqual:
-						$operator = CriteriaType::GreaterThanOrEqual;
-					break;
-
-					case CriteriaType::FieldLessThan:
-						$operator = CriteriaType::LessThan;
-					break;
-
-					case CriteriaType::FieldLessThanOrEqual:
-						$operator = CriteriaType::LessThanOrEqual;
-					break;
-
-					default:
-						$operator = null;
-				}
-
-				if ($operator) {
-					if (!isset($collection->Indexes[$crit->value])) {
-						$collection->createIndexByField($crit->value);
-					}
-					$result = $collection->Indexes[$crit->key]->findByIndex($collection->Indexes[$crit->value], $operator);
-				} else {
-					$result = $collection->Indexes[$crit->key]->find($crit->value, $crit->operator);
-				}
-				$results[] = $result ?: [];
+				$result = self::searchByCriterion($collection, $crit);
+				$results[] = $result;
 
 				// when processing a Group Conjunction::GroupAnd must be found in all indexes to match the operation
 				if ($CriteriaGroup->conjunction == Conjunction::GroupAnd && !$result) {
@@ -127,23 +88,7 @@ class GetAllByCriteria extends AbstractGetter
 		}
 
 		if (count($results)>1) {
-			switch ($CriteriaGroup->conjunction) {
-				case Conjunction::GroupAnd:
-				case Conjunction::GroupNotAnd:
-					$found = call_user_func_array('array_intersect_key', $results);
-				break;
-
-				case Conjunction::GroupOr:
-				case Conjunction::GroupNotOr:
-					$orKeys = [];
-					foreach ($results as $orResults) {
-						if (is_array($orResults)) {
-							$orKeys = array_merge($orKeys, array_keys($orResults));
-						}
-                    }
-					$results = array_unique($orKeys);
-					$found = array_fill_keys($results, 1);
-			}
+			$found = self::combineResults($results, $CriteriaGroup->conjunction);
 		}
 
 		switch ($CriteriaGroup->conjunction) {
@@ -154,5 +99,59 @@ class GetAllByCriteria extends AbstractGetter
 		}
 
 		return $found ?: [];
+    }
+
+    private static function normalizeCriteriaGroup($CriteriaGroup)
+    {
+        if (!is_array($CriteriaGroup) && !is_a($CriteriaGroup, CriteriaGroup::class)) {
+            throw new \Exception('Collection->GetAllByCriteria($CriteriaGroup) expects CriteriaGroup[].');
+        }
+
+        if (is_array($CriteriaGroup)) {
+            return new CriteriaGroup($CriteriaGroup);
+        }
+
+        return $CriteriaGroup;
+    }
+
+    private static function searchByCriterion(Collection $collection, Criteria $crit)
+    {
+        // just-in-time create the index if needed
+        // this is obviously slower than pre-indexing
+        if (!isset($collection->Indexes[$crit->key])) {
+            $collection->createIndexByField($crit->key);
+        }
+        // fetch index
+        $operator = self::FIELD_OPERATORS[$crit->operator] ?? null;
+
+        if ($operator) {
+            if (!isset($collection->Indexes[$crit->value])) {
+                $collection->createIndexByField($crit->value);
+            }
+
+            return $collection->Indexes[$crit->key]->findByIndex($collection->Indexes[$crit->value], $operator);
+        }
+
+        return $collection->Indexes[$crit->key]->find($crit->value, $crit->operator);
+    }
+
+    private static function combineResults(array $results, int $conjunction)
+    {
+        switch ($conjunction) {
+            case Conjunction::GroupAnd:
+            case Conjunction::GroupNotAnd:
+                return call_user_func_array('array_intersect_key', $results);
+
+            case Conjunction::GroupOr:
+            case Conjunction::GroupNotOr:
+                $orKeys = [];
+                foreach ($results as $orResults) {
+                    if (is_array($orResults)) {
+                        $orKeys = array_merge($orKeys, array_keys($orResults));
+                    }
+                }
+                $results = array_unique($orKeys);
+                return array_fill_keys($results, 1);
+        }
     }
 }
