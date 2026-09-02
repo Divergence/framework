@@ -85,7 +85,7 @@ class EventBinder
      * @param array $record
      * @param boolean $isDirty
      * @param boolean $isPhantom
-     * @return void
+     * @return TModel
      */
     public function bindRecord($model, array $record = [], bool $isDirty = false, bool $isPhantom = false)
     {

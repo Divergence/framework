@@ -10,6 +10,7 @@
 
 namespace Divergence\Controllers;
 
+use Exception;
 use Divergence\Controllers\Media\Endpoints\Browse;
 use Divergence\Controllers\Media\Endpoints\Caption;
 use Divergence\Controllers\Media\Endpoints\Create;

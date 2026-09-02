@@ -293,7 +293,7 @@ class Factory
      * Converts an array of database records to a model corresponding to each record. Will attempt to use the record's Class field value to as the class to instantiate as or the name of this class if none is provided.
      *
      * @param array $record An array of database rows.
-     * @return array<Model>|null An array of instantiated ActiveRecord models from the provided data.
+     * @return array<array-key, Model>|\Divergence\Models\Collections\RecordCollection<Model> An array or collection of instantiated ActiveRecord models from the provided data.
      */
     public function instantiateRecords($records)
     {
