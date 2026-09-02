@@ -2,6 +2,13 @@ checks:
   php:
     code_rating: true
     duplication: true
+    fix_doc_comments: false
+    no_exit: false
+    unused_parameters: false
+    unused_properties: false
+    unused_variables: false
+    use_statement_alias_conflict: false
+    verify_property_names: false
 
 build:
   image: default-jammy

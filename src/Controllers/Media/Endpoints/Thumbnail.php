@@ -41,7 +41,8 @@ class Thumbnail extends AbstractMediaEndpoint
             return $response;
         }
 
-        if (preg_match('/^(\d+)x(\d+)(x([0-9A-F]{6})?)?$/i', $this->handler->peekPath(), $matches)) {
+        $size = $this->handler->peekPath();
+        if (is_string($size) && preg_match('/^(\d+)x(\d+)(x([0-9A-F]{6})?)?$/i', $size, $matches)) {
             $this->handler->shiftPath();
             $maxWidth = $matches[1];
             $maxHeight = $matches[2];
