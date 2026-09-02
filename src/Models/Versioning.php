@@ -28,6 +28,8 @@ use Divergence\IO\Database\Query\Select;
  * @property static[] $History All revisions for this object. This is hooked in the Relations trait.
  * @property string $historyTable
  * @property callable $createRevisionOnSave
+ * @method array|null getPreparedPersistedSet()
+ * @method mixed getPrimaryKeyValue()
  */
 trait Versioning
 {

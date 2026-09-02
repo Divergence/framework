@@ -21,7 +21,7 @@ class Util
     /**
      * Prepares options.
      *
-     * @param string|array $value Option. If provided a string will be assumed to be json and it will attempt to json_decode it and merge it with defaults. Or provide the array yourself.
+     * @param string|array|false|null $value Option. If provided a string will be assumed to be json and it will attempt to json_decode it and merge it with defaults. Or provide the array yourself.
      * @param array $defaults Defaults for the options array
      * @return array Merged array from $defaults and $value
      */

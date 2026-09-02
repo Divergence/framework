@@ -59,7 +59,7 @@ abstract class ModelGetter
 
     /**
      * @param array<array-key, array<string, mixed>>|array<string, array<string, mixed>> $records
-     * @return array<array-key, TModel>|array<string, TModel>
+     * @return array<array-key, TModel>|array<string, TModel>|\Divergence\Models\Collections\RecordCollection<TModel>
      */
     protected function instantiateRecords($records)
     {
