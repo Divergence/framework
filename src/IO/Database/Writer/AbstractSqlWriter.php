@@ -2,6 +2,10 @@
 
 namespace Divergence\IO\Database\Writer;
 
+/**
+ * @method static string escape(string $value)
+ * @method static string getContextIndex(string $recordClass)
+ */
 abstract class AbstractSqlWriter
 {
     /**

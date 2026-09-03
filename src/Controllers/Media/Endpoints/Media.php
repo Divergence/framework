@@ -66,6 +66,10 @@ class Media extends AbstractMediaEndpoint
         set_time_limit(0);
         $filePath = $Media->getFilesystemPath($variant);
 
+        if ($filePath === null) {
+            return $this->handler->throwNotFoundError();
+        }
+
         if (!empty($_server['HTTP_IF_NONE_MATCH']) || !empty($_server['HTTP_IF_MODIFIED_SINCE'])) {
             $this->handler->responseBuilder = EmptyBuilder::class;
             $response = $this->handler->respondEmpty($filePath);

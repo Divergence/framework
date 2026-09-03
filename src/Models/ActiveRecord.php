@@ -63,7 +63,7 @@ use Divergence\Models\Factory as ModelFactory;
  * @method static void _defineRelationships()
  * @method static void _initRelationships()
  * @method static bool _relationshipExists(string $value)
- * @method static array<ActiveRecord>|ActiveRecord|null _getRelationshipValue(string $value)
+ * @method mixed _getRelationshipValue(string $value)
  * @method void beforeVersionedSave()
  * @method void afterVersionedSave()
  * @method static string getHistoryTable()
@@ -187,7 +187,7 @@ class ActiveRecord implements JsonSerializable
     /**
      * Internal registry of relationships that are part of this class. The setting of this variable of every parent derived from a child model will get merged.
      *
-     * @var array $_classFields
+     * @var array<class-string, array<string, array<string, mixed>>> $_classRelationships
      */
     protected static $_classRelationships = [];
 
@@ -359,7 +359,6 @@ class ActiveRecord implements JsonSerializable
      *
      * @uses static::init
      *
-     * @return static Instance of the value of $this->Class
      */
     public function __construct($record = [], $isDirty = false, $isPhantom = null)
     {
@@ -403,11 +402,11 @@ class ActiveRecord implements JsonSerializable
      * @param string $name Name of the magic field to set.
      * @param mixed $value Value to set.
      *
-     * @return mixed The return of $this->setValue($name,$value)
+     * @return void
      */
     public function __set($name, $value)
     {
-        return $this->setValue($name, $value);
+        $this->setValue($name, $value);
     }
 
     /**
@@ -421,6 +420,14 @@ class ActiveRecord implements JsonSerializable
     {
         $value = $this->getValue($name);
         return isset($value);
+    }
+
+    /**
+     * @return Factory<static>
+     */
+    public static function Factory(?string $modelClass = null): Factory
+    {
+        return Factory::get($modelClass ?: static::class);
     }
 
     /**
@@ -753,8 +760,8 @@ class ActiveRecord implements JsonSerializable
     /**
      * Used to instantiate a new model of a different class with this model's field's. Useful when you have similar classes or subclasses with the same parent.
      *
-     * @param string $className If you leave this blank the return will be $this
-     * @param array $fieldValues Optional. Any field values you want to override.
+     * @param string|false $className If you leave this blank the return will be $this
+     * @param array|false $fieldValues Optional. Any field values you want to override.
      * @return static A new model of a different class with this model's field's. Useful when you have similar classes or subclasses with the same parent.
      */
     public function changeClass($className = false, $fieldValues = false)
@@ -1092,7 +1099,7 @@ class ActiveRecord implements JsonSerializable
      * Get a validation error for a given field.
      *
      * @param string $field Name of the field.
-     * @return string|null A validation error for the field. Null is no validation error found.
+     * @return array|string|null A validation error for the field. Null is no validation error found.
      */
     public function getValidationError($field)
     {
@@ -1181,10 +1188,10 @@ class ActiveRecord implements JsonSerializable
      * If the error code from MySQL 42S02 (table not found) is thrown this method will attempt to create the table before running the original query and returning.
      * Other errors will be routed through to DB::handleException
      *
-     * @param Exception $exception
-     * @param string $query
-     * @param array $queryLog
-     * @param array|string $parameters
+     * @param Exception $e
+     * @param string|null $query
+     * @param array|null $queryLog
+     * @param array|string|null $parameters
      * @return mixed Retried query result or the return from DB::handleException
      */
     public static function handleException(\Exception $e, $query = null, $queryLog = null, $parameters = null)
@@ -1946,7 +1953,7 @@ class ActiveRecord implements JsonSerializable
     }
 
     /**
-     * @param array<string,null|string|array{'operator': string, 'value': string}> $conditions
+     * @param array<string, null|string|array{operator:string, value:string}> $conditions
      * @return array
      */
     protected static function _mapConditions($conditions)
@@ -1959,7 +1966,7 @@ class ActiveRecord implements JsonSerializable
                     $fieldOptions = static::$_classFields[get_called_class()][$field];
                 }
 
-                if ($condition === null || ($condition == '' && $fieldOptions['blankisnull'])) {
+                if ($condition === null || ($condition == '' && ($fieldOptions['blankisnull'] ?? false))) {
                     $condition = sprintf('`%s` IS NULL', static::_cn($field));
                 } elseif (is_array($condition)) {
                     $condition = sprintf('`%s` %s %s', static::_cn($field), $condition['operator'], $storageClass::quote($condition['value']));

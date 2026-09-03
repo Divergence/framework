@@ -142,6 +142,11 @@ class MySQL extends AbstractSqlWriter
         return array_merge($queryString, static::compileFields($recordClass, $historyVariant));
     }
 
+    /**
+     * @param array<int, string> $queryString
+     * @param array<int, string> $fulltextColumns
+     * @param array<string, array{fields:array<int, string>, fulltext?:bool, unique?:bool}> $indexes
+     */
     protected static function appendMySqlIndexes(array &$queryString, array &$fulltextColumns, array $indexes): void
     {
         foreach ($indexes as $indexName => $index) {

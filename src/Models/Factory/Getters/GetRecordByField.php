@@ -2,6 +2,10 @@
 
 namespace Divergence\Models\Factory\Getters;
 
+/**
+ * @template TModel of \Divergence\Models\ActiveRecord
+ * @extends ModelGetter<TModel>
+ */
 class GetRecordByField extends ModelGetter
 {
     public function getRecordByField($field, $value, $cacheIndex = false)

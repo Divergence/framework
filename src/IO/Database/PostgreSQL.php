@@ -62,6 +62,9 @@ class PostgreSQL extends StorageType
         return static::oneValue('SELECT LASTVAL()');
     }
 
+    /**
+     * @param array{database:string, username:string, password:string, host?:string, port?:int, sslmode?:string} $config
+     */
     protected static function createConnection(array $config, string $label): PDO
     {
         $config = array_merge([

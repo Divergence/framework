@@ -16,6 +16,10 @@ class GetAllByField extends AbstractGetter
 {
     public static function handle(Collection $collection, $field = null, $value = null)
     {
+        if (!$collection instanceof \Divergence\Models\Collections\RecordCollection) {
+            throw new \InvalidArgumentException('GetAllByField requires a RecordCollection.');
+        }
+
         $Models = [];
 
         if (isset($collection->Indexes[$field])) {

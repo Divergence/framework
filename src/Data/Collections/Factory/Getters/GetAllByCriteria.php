@@ -83,6 +83,7 @@ class GetAllByCriteria extends AbstractGetter
 		}
 
 		// if one thing is found use that one thing
+		$found = [];
 		if (count($results) === 1) {
 			$found = array_shift($results);
 		}

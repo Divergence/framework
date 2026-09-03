@@ -41,6 +41,9 @@ class Download extends AbstractMediaEndpoint
         }
 
         $filePath = $Media->getFilesystemPath('original');
+        if ($filePath === null) {
+            return $this->handler->throwNotFoundError();
+        }
         $this->handler->responseBuilder = MediaBuilder::class;
         $response = $this->handler->respondWithMedia($Media, 'original', $filePath);
 

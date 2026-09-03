@@ -39,16 +39,16 @@ use Divergence\IO\Database\Connections;
 use PDO;
 
 /**
- * @template TModel of Model
+ * @template TModel of ActiveRecord
  *
  * @method TModel|null getByContextObject(ActiveRecord $Record, $options = [])
  * @method TModel|null getByContext($contextClass, $contextID, $options = [])
  * @method TModel|null getByHandle($handle)
  * @method TModel|null getByID($id)
  * @method TModel|null getByField($field, $value, $cacheIndex = false)
- * @method array<string, mixed>|null getRecordByField($field, $value, $cacheIndex = false)
+ * @method array<string, mixed>|false getRecordByField($field, $value, $cacheIndex = false)
  * @method TModel|null getByWhere($conditions, $options = [])
- * @method array<string, mixed>|null getRecordByWhere($conditions, $options = [])
+ * @method array<string, mixed>|false getRecordByWhere($conditions, $options = [])
  * @method TModel|null getByQuery($query, $params = [])
  * @method array<array-key, TModel> getAllByClass($className = false, $options = [])
  * @method array<array-key, TModel> getAllByContextObject(ActiveRecord $Record, $options = [])
@@ -65,12 +65,12 @@ use PDO;
 class Factory
 {
     /**
-     * @var array<string, static>
+     * @var array<string, Factory<ActiveRecord>>
      */
     protected static $InstanceRegistry = [];
 
     /**
-     * @var array<string, object>
+     * @var array<string, \Divergence\IO\Database\StorageType>
      */
     protected static $storages = [];
 
@@ -80,34 +80,34 @@ class Factory
     protected static $connections = [];
 
     /**
-     * @var array<string, Instantiator>
+     * @var array<string, Instantiator<ActiveRecord>>
      */
     protected static $instantiators = [];
 
     /**
-     * @var array<string, ModelMetadata>
+     * @var array<string, ModelMetadata<ActiveRecord>>
      */
     protected static $metadata = [];
 
     /**
-     * @var array<string, class-string>
+     * @var array<string, class-string<ModelGetter<TModel>>>
      */
     protected $getterClasses = [];
 
     /**
-     * @var array<string, ModelGetter>
+     * @var array<string, ModelGetter<TModel>>
      */
     protected $getters = [];
 
     /**
      * Fully-qualified model class name.
      *
-     * @var string
+     * @var class-string<TModel>
      */
     protected $modelClass;
 
     /**
-     * @var object
+     * @var \Divergence\IO\Database\StorageType
      */
     protected $storage;
 
@@ -117,15 +117,20 @@ class Factory
     protected $connection;
 
     /**
-     * @var Instantiator
+     * @var Instantiator<TModel>
      */
     protected $instantiator;
 
     /**
-     * @var ModelMetadata
+     * @var ModelMetadata<TModel>
      */
     protected $modelMetadata;
 
+    /**
+     * @template TRequestedModel of ActiveRecord
+     * @param class-string<TRequestedModel> $modelClass
+     * @return static<TRequestedModel>
+     */
     public static function get(string $modelClass): static
     {
         if (!isset(static::$InstanceRegistry[$modelClass])) {
@@ -136,7 +141,7 @@ class Factory
     }
 
     /**
-     * @param string $modelClass
+     * @param class-string<TModel> $modelClass
      */
     public function __construct(string $modelClass)
     {
@@ -250,13 +255,16 @@ class Factory
     }
 
     /**
-     * @return string
+     * @return class-string<TModel>
      */
     public function getModelClass(): string
     {
         return $this->modelMetadata->getModelClass();
     }
 
+    /**
+     * @return \Divergence\IO\Database\StorageType
+     */
     public function getStorage()
     {
         return $this->storage;
@@ -270,8 +278,8 @@ class Factory
     /**
      * Converts database record array to a model. Will attempt to use the record's Class field value to as the class to instantiate as or the name of this class if none is provided.
      *
-     * @param array $record Database row as an array.
-     * @return Model|null An instantiated ActiveRecord model from the provided data.
+     * @param array<string, mixed>|false|null $record Database row as an array.
+     * @return TModel|null An instantiated ActiveRecord model from the provided data.
      */
     public function instantiateRecord($record)
     {
@@ -282,7 +290,7 @@ class Factory
      * Creates a new phantom model from the provided values.
      *
      * @param array $record
-     * @return Model
+     * @return TModel
      */
     public function instantiatePhantomRecord($record = [])
     {
@@ -292,8 +300,8 @@ class Factory
     /**
      * Converts an array of database records to a model corresponding to each record. Will attempt to use the record's Class field value to as the class to instantiate as or the name of this class if none is provided.
      *
-     * @param array $record An array of database rows.
-     * @return array<array-key, Model>|\Divergence\Models\Collections\RecordCollection<Model> An array or collection of instantiated ActiveRecord models from the provided data.
+     * @param array $records An array of database rows.
+     * @return array<array-key, TModel>|array<string, TModel>|\Divergence\Models\Collections\RecordCollection<TModel> An array or collection of instantiated ActiveRecord models from the provided data.
      */
     public function instantiateRecords($records)
     {
@@ -306,7 +314,7 @@ class Factory
         $className = $this->modelClass;
 
         do {
-            $handle = substr(md5(mt_rand(0, mt_getrandmax())), 0, $length);
+            $handle = substr(md5((string)mt_rand(0, mt_getrandmax())), 0, $length);
         } while ($this->getByField($className::$handleField, $handle));
 
         return $handle;

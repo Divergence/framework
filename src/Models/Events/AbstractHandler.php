@@ -17,10 +17,13 @@ use ReflectionProperty;
 abstract class AbstractHandler
 {
     /**
-     * @var array<string, object>
+     * @var array<string, \Divergence\IO\Database\StorageType>
      */
     protected static $storageInstances = [];
 
+    /**
+     * @return \Divergence\IO\Database\StorageType
+     */
     protected static function getStorage()
     {
         $storageClass = Connections::getConnectionType();

@@ -6,6 +6,10 @@
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
+ *
+ * @phan-file-suppress PhanUndeclaredStaticProperty
+ * @phan-file-suppress PhanUndeclaredStaticMethod
+ * @phan-file-suppress PhanAccessSignatureMismatch
  */
 
 namespace Divergence\Models;
@@ -18,10 +22,16 @@ use Exception;
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
  *
- * @property array $_classRelationships
- * @property array $_classFields
- * @property string $rootClass
- * @property array $contextClasses
+ * @require-extends \Divergence\Models\ActiveRecord
+ * @method mixed _getFieldValue($field, $useDefault = true)
+ * @method mixed getPrimaryKeyValue()
+ * @phan-type OneOneRelationship = array{type:'one-one', class:class-string<\Divergence\Models\ActiveRecord>, local:string, foreign:string}
+ * @phan-type OneManyRelationship = array{type:'one-many', class:class-string<\Divergence\Models\ActiveRecord>, local:string, foreign:string, indexField:string|false, conditions:array<array-key, mixed>, order:array|string|false}
+ * @phan-type ContextChildrenRelationship = array{type:'context-children', class:class-string<\Divergence\Models\ActiveRecord>, local:string, contextClass:class-string<\Divergence\Models\ActiveRecord>, indexField:string|false, conditions:array<array-key, mixed>, order:array|string|false}
+ * @phan-type ContextParentRelationship = array{type:'context-parent', local:string, foreign:string, classField:string, allowedClasses:array|null}
+ * @phan-type ManyManyRelationship = array{type:'many-many', class:class-string<\Divergence\Models\ActiveRecord>, linkClass:class-string<\Divergence\Models\ActiveRecord>, linkLocal:string, linkForeign:string, local:string, foreign:string, indexField:string|false, conditions:array<array-key, mixed>, order:array|string|false}
+ * @phan-type HistoryRelationship = array{type:'history', class:class-string<\Divergence\Models\ActiveRecord>, order:array|string|false}
+ * @phan-type NormalizedRelationship = OneOneRelationship|OneManyRelationship|ContextChildrenRelationship|ContextParentRelationship|ManyManyRelationship|HistoryRelationship
  */
 trait Relations
 {
@@ -123,6 +133,7 @@ trait Relations
         $options['contextClass'] = $options['contextClass'] ?? get_called_class();
         $options['indexField'] = $options['indexField'] ?? false;
         $options['conditions'] = $options['conditions'] ?? [];
+        $options['conditions'] = is_string($options['conditions']) ? [$options['conditions']] : $options['conditions'];
         $options['order'] = $options['order'] ?? false;
         return $options;
     }
@@ -161,6 +172,7 @@ trait Relations
         $options['foreign'] = $options['foreign'] ?? 'ID';
         $options['indexField'] = $options['indexField'] ?? false;
         $options['conditions'] = $options['conditions'] ?? [];
+        $options['conditions'] = is_string($options['conditions']) ? [$options['conditions']] : $options['conditions'];
         $options['order'] = $options['order'] ?? false;
         return $options;
     }
@@ -208,6 +220,14 @@ trait Relations
     }
 
     /**
+     * @return NormalizedRelationship|false
+     */
+    protected static function _getRelationshipDefinition(string $relationship)
+    {
+        return static::$_classRelationships[get_called_class()][$relationship];
+    }
+
+    /**
      * Retrieves given relationship's value
      * @param string $relationship Name of relationship
      * @return mixed value
@@ -215,9 +235,11 @@ trait Relations
     protected function _getRelationshipValue($relationship)
     {
         if (!isset($this->_relatedObjects[$relationship])) {
-            $rel = static::$_classRelationships[get_called_class()][$relationship];
+            $rel = static::_getRelationshipDefinition($relationship);
 
-            if ($rel['type'] == 'one-one') {
+            if ($rel === false) {
+                $this->_relatedObjects[$relationship] = null;
+            } elseif ($rel['type'] === 'one-one') {
                 if ($value = $this->_getFieldValue($rel['local'])) {
                     $this->_relatedObjects[$relationship] = $rel['class']::getByField($rel['foreign'], $value);
 
@@ -226,7 +248,7 @@ trait Relations
                 } else {
                     $this->_relatedObjects[$relationship] = null;
                 }
-            } elseif ($rel['type'] == 'one-many') {
+            } elseif ($rel['type'] === 'one-many') {
                 if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
@@ -245,7 +267,7 @@ trait Relations
 
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
-            } elseif ($rel['type'] == 'context-children') {
+            } elseif ($rel['type'] === 'context-children') {
                 if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
@@ -265,14 +287,14 @@ trait Relations
 
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
-            } elseif ($rel['type'] == 'context-parent') {
+            } elseif ($rel['type'] === 'context-parent') {
                 $className = $this->_getFieldValue($rel['classField']);
                 $this->_relatedObjects[$relationship] = $className ? $className::getByID($this->_getFieldValue($rel['local'])) : null;
 
                 // hook both relationships for invalidation
                 static::$_classFields[get_called_class()][$rel['classField']]['relationships'][$relationship] = true;
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
-            } elseif ($rel['type'] == 'many-many') {
+            } elseif ($rel['type'] === 'many-many') {
                 if (!empty($rel['indexField']) && !$rel['class']::fieldExists($rel['indexField'])) {
                     $rel['indexField'] = false;
                 }
@@ -294,7 +316,7 @@ trait Relations
 
                 // hook relationship for invalidation
                 static::$_classFields[get_called_class()][$rel['local']]['relationships'][$relationship] = true;
-            } elseif ($rel['type'] == 'history' && static::isVersioned()) {
+            } elseif ($rel['type'] === 'history' && static::isVersioned()) {
                 $this->_relatedObjects[$relationship] = $rel['class']::getRevisionsByID($this->getPrimaryKeyValue(), $rel);
             }
         }

@@ -27,6 +27,7 @@ use Divergence\Models\Collections\Factory\Factory;
 
 /**
  * @template TModel of ActiveRecord
+ * @extends \Divergence\Data\Collections\Collection<TModel>
  */
 class RecordCollection extends Collection
 {

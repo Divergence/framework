@@ -17,6 +17,10 @@ class CreateIndexByField extends AbstractHandler
 {
     public static function handle(Collection $collection, $field = null): void
     {
+        if (!$collection instanceof \Divergence\Models\Collections\RecordCollection) {
+            throw new \InvalidArgumentException('CreateIndexByField requires a RecordCollection.');
+        }
+
         $fieldOptions = $collection->recordClassName::getClassFields()[$field] ?? [];
         $type = $fieldOptions['type'] ?? null;
         $index = new IndexedRecordField($field, $type);

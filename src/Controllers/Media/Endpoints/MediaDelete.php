@@ -39,7 +39,7 @@ class MediaDelete extends AbstractMediaEndpoint
 
         $deleted = [];
         foreach ($mediaArray as $mediaId => $Media) {
-            if ($Media->delete()) {
+            if ($Media->destroy()) {
                 $deleted[] = $mediaId;
             }
         }
