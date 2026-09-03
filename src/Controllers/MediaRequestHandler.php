@@ -34,7 +34,6 @@ use Divergence\Responders\EmptyResponse;
 use Divergence\Responders\MediaBuilder;
 use Psr\Http\Message\ResponseInterface;
 use Divergence\Responders\MediaResponse;
-use GuzzleHttp\Psr7\ServerRequest;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -90,7 +89,7 @@ class MediaRequestHandler extends RecordsRequestHandler
         ],
     ];
 
-    private ?ServerRequest $request;
+    private ?ServerRequestInterface $request;
 
     public function __construct()
     {
@@ -120,7 +119,7 @@ class MediaRequestHandler extends RecordsRequestHandler
         }
     }
 
-    public function getRequest(): ?ServerRequest
+    public function getRequest(): ?ServerRequestInterface
     {
         return $this->request;
     }
@@ -230,6 +229,11 @@ class MediaRequestHandler extends RecordsRequestHandler
         ->withHeader('Pragma', 'public');
     }
 
+    /**
+     * @param string $variant
+     * @param string $responseID
+     * @param array<string, mixed> $responseData
+     */
     public function respondWithMedia(Media $Media, $variant, $responseID, $responseData = []): ResponseInterface
     {
         if ($this->responseBuilder != MediaBuilder::class) {
@@ -242,6 +246,9 @@ class MediaRequestHandler extends RecordsRequestHandler
 
 
         $size = filesize($responseID);
+        if ($size === false) {
+            throw new Exception('Unable to determine media file size.');
+        }
         $length = $size;
         $start = 0;
         $end = $size - 1;
@@ -297,18 +304,23 @@ class MediaRequestHandler extends RecordsRequestHandler
                 $response = $response->withStatus(206);
             }
             $response = $response->withHeader('Content-Range', "bytes $start-$end/$size")
-            ->withHeader('Content-Length', $length);
+            ->withHeader('Content-Length', (string)$length);
         } else {
             // range
-            $filesize = filesize($Media->getFilesystemPath($variant));
+            $filesize = $size;
             $end = $filesize - 1;
             $response = $response->withHeader('Content-Range', 'bytes 0-'.$end.'/'.$filesize)
-                ->withHeader('Content-Length', $filesize);
+                ->withHeader('Content-Length', (string)$filesize);
         }
 
         return $response;
     }
 
+    /**
+     * @param string $variant
+     * @param string $responseID
+     * @param array<string, mixed> $responseData
+     */
     public function respondWithThumbnail(Media $Media, $variant, $responseID, $responseData = []): ResponseInterface
     {
         if ($this->responseBuilder != MediaBuilder::class) {
@@ -322,8 +334,13 @@ class MediaRequestHandler extends RecordsRequestHandler
         $response = new MediaResponse($responseBuilder);
         $response = $this->setCache($response);
 
+        $filesize = filesize($responseID);
+        if ($filesize === false) {
+            throw new Exception('Unable to determine thumbnail file size.');
+        }
+
         $response = $response->withHeader('ETag', "media-$Media->ID-$variant")
-            ->withHeader('Content-Length', filesize($responseID));
+            ->withHeader('Content-Length', (string)$filesize);
 
         return $response;
     }

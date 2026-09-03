@@ -63,7 +63,7 @@ class Thumbnail extends AbstractMediaEndpoint
             $thumbPath = $Media->getThumbnail($maxWidth, $maxHeight, $fillColor, $cropped);
             $this->handler->responseBuilder = MediaBuilder::class;
 
-            return $this->handler->respondWithThumbnail($Media, "$maxWidth-$maxHeight-$fillColor-$cropped", $thumbPath);
+            return $this->handler->respondWithThumbnail($Media, "$maxWidth-$maxHeight-$fillColor-".(int)$cropped, $thumbPath);
         } catch (Exception $e) {
             return $this->handler->throwNotFoundError();
         }

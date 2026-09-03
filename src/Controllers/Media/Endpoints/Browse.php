@@ -1,4 +1,7 @@
 <?php
+/**
+ * @phan-file-suppress PhanUndeclaredClassMethod
+ */
 
 namespace Divergence\Controllers\Media\Endpoints;
 

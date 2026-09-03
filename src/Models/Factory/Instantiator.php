@@ -6,6 +6,8 @@
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
+ *
+ * @phan-file-suppress PhanTypeMismatchReturn
  */
 
 namespace Divergence\Models\Factory;
@@ -16,12 +18,12 @@ use Divergence\Models\Mapping\InMemoryIndexing;
 use Divergence\Models\Collections\RecordCollection;
 
 /**
- * @template TModel of Model
+ * @template TModel of \Divergence\Models\ActiveRecord
  */
 class Instantiator
 {
     /**
-     * @var ModelMetadata
+     * @var ModelMetadata<TModel>
      */
     protected $metadata;
 
@@ -44,7 +46,7 @@ class Instantiator
      * @param string $modelClass
      */
     /**
-     * @param ModelMetadata $metadata
+     * @param ModelMetadata<TModel> $metadata
      */
     public function __construct(ModelMetadata $metadata)
     {
@@ -98,7 +100,7 @@ class Instantiator
     }
 
     /**
-     * @param array<string, mixed>|null $record
+     * @param array<string, mixed>|false|null $record
      * @return TModel|null
      */
     public function instantiateRecord($record)
@@ -122,8 +124,8 @@ class Instantiator
             $this->instantiateCollection();
         }
 
-        foreach ($records as &$record) {
-            $record = $this->instantiateModel($record);
+        foreach ($records as $key => $record) {
+            $records[$key] = $record = $this->instantiateModel($record);
 
             if ($Collection) {
                 $Collection->add($record);

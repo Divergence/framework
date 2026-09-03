@@ -39,7 +39,7 @@ class MySQL extends StorageType
     }
 
     /**
-     * @param array $config
+     * @param array{database:string, username:string, password:string, socket?:string, host?:string, port?:int} $config
      * @param string $label
      * @return PDO
      */

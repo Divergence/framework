@@ -12,9 +12,6 @@ namespace Divergence\Models\Factory;
 
 use ReflectionProperty;
 
-/**
- * @template TModel of \Divergence\Models\Model
- */
 class EventBinder
 {
     /**
@@ -46,6 +43,7 @@ class EventBinder
     }
 
     /**
+     * @template TModel of \Divergence\Models\ActiveRecord
      * Main instantiator
      *
      * @param TModel $model
@@ -79,6 +77,7 @@ class EventBinder
     }
 
     /**
+     * @template TModel of \Divergence\Models\ActiveRecord
      * Configures meta data fields
      *
      * @param TModel $model

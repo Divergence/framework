@@ -2,6 +2,10 @@
 
 namespace Divergence\Models\Factory\Getters;
 
+/**
+ * @template TModel of \Divergence\Models\ActiveRecord
+ * @extends ModelGetter<TModel>
+ */
 class GetRecordByWhere extends ModelGetter
 {
     public function getRecordByWhere($conditions, $options = [])

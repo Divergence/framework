@@ -162,13 +162,18 @@ class IndexedFieldFinder
     private function findOrdered($value, bool $lessThan, bool $inclusive): array
     {
         $this->buildOrdering();
+        $recordKeys = $this->IndexedField->getOrderedRecordKeys();
+
+        if ($recordKeys === null) {
+            throw new RuntimeException('Ordered record keys were not initialized.');
+        }
 
         if ($lessThan) {
             $end = $this->lowerBoundary($value, $inclusive);
-            $keys = array_slice($this->IndexedField->getOrderedRecordKeys(), 0, $end);
+            $keys = array_slice($recordKeys, 0, $end);
         } else {
             $start = $this->upperBoundary($value, $inclusive);
-            $keys = array_slice($this->IndexedField->getOrderedRecordKeys(), $start);
+            $keys = array_slice($recordKeys, $start);
         }
 
         return $keys ? array_fill_keys($keys, true) : [];
@@ -200,14 +205,20 @@ class IndexedFieldFinder
 
     private function lowerBoundary($value, bool $inclusive): int
     {
+        $orderedValues = $this->IndexedField->getOrderedValues();
+
+        if ($orderedValues === null) {
+            throw new RuntimeException('Ordered values were not initialized.');
+        }
+
         $low = 0;
-        $high = count($this->IndexedField->getOrderedValues());
+        $high = count($orderedValues);
 
         while ($low < $high) {
             $middle = intdiv($low + $high, 2);
             $matches = $inclusive
-                ? $this->IndexedField->getOrderedValues()[$middle] <= $value
-                : $this->IndexedField->getOrderedValues()[$middle] < $value;
+                ? $orderedValues[$middle] <= $value
+                : $orderedValues[$middle] < $value;
 
             if ($matches) {
                 $low = $middle + 1;
@@ -221,14 +232,20 @@ class IndexedFieldFinder
 
     private function upperBoundary($value, bool $inclusive): int
     {
+        $orderedValues = $this->IndexedField->getOrderedValues();
+
+        if ($orderedValues === null) {
+            throw new RuntimeException('Ordered values were not initialized.');
+        }
+
         $low = 0;
-        $high = count($this->IndexedField->getOrderedValues());
+        $high = count($orderedValues);
 
         while ($low < $high) {
             $middle = intdiv($low + $high, 2);
             $matches = $inclusive
-                ? $this->IndexedField->getOrderedValues()[$middle] < $value
-                : $this->IndexedField->getOrderedValues()[$middle] <= $value;
+                ? $orderedValues[$middle] < $value
+                : $orderedValues[$middle] <= $value;
 
             if ($matches) {
                 $low = $middle + 1;

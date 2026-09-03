@@ -13,6 +13,8 @@ namespace Divergence\Models;
 use Error;
 
 /**
+ * @require-extends \Divergence\Models\ActiveRecord
+ * @mixin \Divergence\Models\ActiveRecord
  * @property string $handleField Defined in the model
  * @property string $primaryKey Defined in the model
  * @property string $tableName Defined in the model
@@ -23,14 +25,6 @@ trait Getters
      * @var array<string, array<string, bool>>
      */
     protected static $_registeredGetterMethods = [];
-
-    /**
-     * @return Factory<static>
-     */
-    public static function Factory(?string $modelClass = null): Factory
-    {
-        return Factory::get($modelClass ?: static::class);
-    }
 
     protected static function registerGetterMethods(): void
     {

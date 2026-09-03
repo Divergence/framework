@@ -4,6 +4,10 @@ namespace Divergence\Models\Factory\Getters;
 
 use Exception;
 
+/**
+ * @template TModel of \Divergence\Models\ActiveRecord
+ * @extends ModelGetter<TModel>
+ */
 class GetAllByContext extends ModelGetter
 {
     public function getAllByContext($contextClass, $contextID, $options = [])

@@ -17,7 +17,7 @@ class Add extends AbstractHandler
 {
     public static function handle(Collection $collection, $record = null): void
     {
-        if ($collection->validate($record)) {
+        if ($collection->validate($record) && $record instanceof \Divergence\Models\ActiveRecord) {
             $primaryKey = $record->getPrimaryKeyValue();
             $modelKey = RecordKey::get($record);
 

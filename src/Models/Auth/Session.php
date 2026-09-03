@@ -155,9 +155,7 @@ class Session extends Model
             $Session->setFields($sessionData);
             if (function_exists('fastcgi_finish_request')) {
                 // @codeCoverageIgnoreStart
-                register_shutdown_function(function ($Session) {
-                    $Session->save();
-                }, $Session);
+                register_shutdown_function([$Session, 'save']);
             // @codeCoverageIgnoreEnd
             } else {
                 $Session->save();

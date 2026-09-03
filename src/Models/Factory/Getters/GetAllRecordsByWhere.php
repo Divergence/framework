@@ -5,6 +5,10 @@ namespace Divergence\Models\Factory\Getters;
 use Divergence\IO\Database\Connections;
 use Divergence\IO\Database\PostgreSQL;
 
+/**
+ * @template TModel of \Divergence\Models\ActiveRecord
+ * @extends ModelGetter<TModel>
+ */
 class GetAllRecordsByWhere extends ModelGetter
 {
     public function getAllRecordsByWhere($conditions = [], $options = [])

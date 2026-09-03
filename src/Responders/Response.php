@@ -21,6 +21,7 @@ use Psr\Http\Message\ResponseInterface;
  * I would have simply extended it but I didn't like the constructor design so I instead copied the code.
  *
  * {@inheritDoc}
+ * @method self withHeader(string $name, string|string[] $value)
  */
 class Response implements ResponseInterface
 {
@@ -116,7 +117,7 @@ class Response implements ResponseInterface
         array $headers = [],
         $body = null,
         string $version = '1.1',
-        string $reason = null
+        ?string $reason = null
     ) {
         $this->assertStatusCodeRange($status);
 
@@ -148,6 +149,9 @@ class Response implements ResponseInterface
         return $this->reasonPhrase;
     }
 
+    /**
+     * @return static
+     */
     public function withStatus($code, $reasonPhrase = ''): ResponseInterface
     {
         $this->assertStatusCodeIsInteger($code);

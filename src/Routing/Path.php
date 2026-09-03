@@ -76,7 +76,7 @@ class Path
     {
         if (!isset($this->pathStack)) {
             $parsedURL = parse_url($requestURI);
-            $this->pathStack = $this->requestPath = explode('/', ltrim($parsedURL['path'], '/'));
+            $this->pathStack = $this->requestPath = explode('/', ltrim($parsedURL['path'] ?? '', '/'));
         }
 
         $this->_path = $this->pathStack;
