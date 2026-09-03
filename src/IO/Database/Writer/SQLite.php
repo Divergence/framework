@@ -107,6 +107,10 @@ class SQLite extends MySQL
         return array_merge($queryString, static::compileFields($recordClass, $historyVariant));
     }
 
+    /**
+     * @param array<int, string> $postCreateStatements
+     * @param array<string, array{fields:array<int, string>, fulltext?:bool, unique?:bool}> $indexes
+     */
     protected static function appendSqliteIndexes(array &$postCreateStatements, string $recordClass, array $indexes): void
     {
         foreach ($indexes as $indexName => $index) {

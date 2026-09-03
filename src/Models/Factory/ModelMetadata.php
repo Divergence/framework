@@ -10,15 +10,18 @@
 
 namespace Divergence\Models\Factory;
 
+/**
+ * @template TModel of \Divergence\Models\ActiveRecord
+ */
 class ModelMetadata
 {
     /**
-     * @var array<string, self>
+     * @var array<string, ModelMetadata<\Divergence\Models\ActiveRecord>>
      */
     protected static $instances = [];
 
     /**
-     * @var string
+     * @var class-string<TModel>
      */
     protected $modelClass;
 
@@ -97,6 +100,11 @@ class ModelMetadata
      */
     protected $integerPrimaryKey;
 
+    /**
+     * @template TRequestedModel of \Divergence\Models\ActiveRecord
+     * @param class-string<TRequestedModel> $modelClass
+     * @return self<TRequestedModel>
+     */
     public static function get(string $modelClass): self
     {
         if (!isset(static::$instances[$modelClass])) {
@@ -106,6 +114,9 @@ class ModelMetadata
         return static::$instances[$modelClass];
     }
 
+    /**
+     * @param class-string<TModel> $modelClass
+     */
     public function __construct(string $modelClass)
     {
         $this->modelClass = $modelClass;
@@ -138,6 +149,9 @@ class ModelMetadata
         }
     }
 
+    /**
+     * @return class-string<TModel>
+     */
     public function getModelClass(): string
     {
         return $this->modelClass;
@@ -186,9 +200,9 @@ class ModelMetadata
         return $this->hasClassField;
     }
 
-    public function getClassColumnName(): ?string
+    public function getClassColumnName(): string
     {
-        return $this->classColumnName;
+        return $this->classColumnName ?? throw new \LogicException('Class column name requested for a model without a Class field.');
     }
 
     /**

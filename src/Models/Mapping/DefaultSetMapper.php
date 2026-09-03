@@ -89,7 +89,7 @@ class DefaultSetMapper implements FieldSetMapper
                 is_numeric($value['dd']) ? $value['dd'] : 0
             );
         } else {
-            if ($value = strtotime($value)) {
+            if (!is_array($value) && ($value = strtotime($value))) {
                 $value = date('Y-m-d', $value) ?: null;
             } else {
                 $value = null;

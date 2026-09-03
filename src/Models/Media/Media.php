@@ -324,7 +324,7 @@ class Media extends Model
      * @param string $thumbPath
      * @param int $maxWidth
      * @param int $maxHeight
-     * @param boolean|int $fillColor Background canvas color. See gd documentation.
+     * @param string|false $fillColor Background canvas color. See gd documentation.
      * @param boolean $cropped If cropped is enable the image will instead fill the smaller of width or height and cut the edges off.
      * @return void
      */
@@ -417,8 +417,8 @@ class Media extends Model
             imagecopyresampled(
                 $image,
                 $srcImage,
-                round(($thumbWidth - $scaledWidth) / 2),
-                round(($thumbHeight - $scaledHeight) / 2),
+                (int)round(($thumbWidth - $scaledWidth) / 2),
+                (int)round(($thumbHeight - $scaledHeight) / 2),
                 0,
                 0,
                 $scaledWidth,
@@ -450,6 +450,10 @@ class Media extends Model
     }
 
     // static methods
+    /**
+     * @param array{error?:int, name?:string, tmp_name:string}|string $uploadedFile
+     * @param array<string, mixed> $fieldValues
+     */
     public static function createFromUpload($uploadedFile, $fieldValues = []): static | false
     {
         // handle recieving a field array from $_FILES
@@ -473,6 +477,10 @@ class Media extends Model
         return static::createFromFile($uploadedFile, $fieldValues);
     }
 
+    /**
+     * @param string $file
+     * @param array<string, mixed> $fieldValues
+     */
     public static function createFromFile($file, $fieldValues = []): static | false
     {
         $Media = null;
@@ -539,8 +547,6 @@ class Media extends Model
             throw new Exception('Unable to load media file info');
         }
 
-        finfo_close($finfo);
-
         // dig deeper if only generic mimetype returned
         if ($mimeType == 'application/octet-stream') {
             $finfo = finfo_open(FILEINFO_NONE, static::$magicPath);
@@ -548,8 +554,6 @@ class Media extends Model
             if (!$finfo || !($fileInfo = finfo_file($finfo, $filename))) {
                 throw new Exception('Unable to load media file info');
             }
-
-            finfo_close($finfo);
 
             // detect EPS
             if (preg_match('/^DOS EPS/i', $fileInfo)) {
@@ -589,7 +593,7 @@ class Media extends Model
             return null;
         }
 
-        return App::$App->ApplicationPath.'/media/'.$variant.'/'.($filename ?: $this->getFilename($variant));
+        return App::$App->ApplicationPath.'/media/'.$variant.'/'.($filename ?: $this->getFilename());
     }
 
     public function getFilename(): string

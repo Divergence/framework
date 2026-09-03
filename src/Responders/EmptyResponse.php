@@ -6,6 +6,6 @@ class EmptyResponse extends Response
 {
     public function __construct(ResponseBuilder $responseBuilder)
     {
-        return $this;
+        parent::__construct($responseBuilder);
     }
 }

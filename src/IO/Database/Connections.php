@@ -64,7 +64,7 @@ class Connections
     /**
      * Current resolved storage class for the active connection label.
      *
-     * @var class-string<Connections>|null
+     * @var class-string<StorageType>|null
      */
     protected static $currentConnectionType = null;
 
@@ -106,7 +106,7 @@ class Connections
     /**
      * Sets the connection that should be returned by getConnection when $label is null
      *
-     * @param string $label
+     * @param string|null $label
      * @return void
      */
     public static function setConnection(?string $label = null)
@@ -143,6 +143,10 @@ class Connections
             $label = static::$currentConnection;
         }
 
+        if ($label === null) {
+            throw new Exception('No database connection label could be resolved.');
+        }
+
         if (!isset(static::$Connections[$label])) {
             $config = static::config();
 
@@ -164,7 +168,7 @@ class Connections
     /**
      * Gets the concrete storage class for the current connection config.
      *
-     * @return class-string<self>
+     * @return class-string<StorageType>
      */
     public static function getConnectionType(): string
     {
@@ -201,7 +205,7 @@ class Connections
      * Gets the concrete storage class for a specific connection label.
      *
      * @param string|null $label
-     * @return class-string<self>
+     * @return class-string<StorageType>
      */
     protected static function getConnectionTypeForLabel(?string $label): string
     {
@@ -262,7 +266,7 @@ class Connections
     /**
      * Create a PDO connection for the resolved backend without relying on caller-side late static binding.
      *
-     * @param class-string<Connections> $driverClass
+     * @param class-string<StorageType> $driverClass
      * @param array $config
      * @param string $label
      * @return PDO
@@ -289,7 +293,7 @@ class Connections
     /**
      * Apply backend-specific post-connect configuration for a resolved backend.
      *
-     * @param class-string<Connections> $driverClass
+     * @param class-string<StorageType> $driverClass
      * @param PDO $connection
      * @return void
      */

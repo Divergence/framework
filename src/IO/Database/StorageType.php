@@ -78,8 +78,8 @@ class StorageType extends Connections
     /**
      * Formats a query with vsprintf if you pass an array and sprintf if you pass a string.
      *
-     * @param string $query A database query.
-     * @param array|string $parameters Parameter(s) for vsprintf (array) or sprintf (string)
+     * @param string|\Stringable $query A database query.
+     * @param array|string|null $parameters Parameter(s) for vsprintf (array) or sprintf (string)
      * @return string A formatted query.
      */
     public static function prepareQuery($query, $parameters = [])
@@ -96,13 +96,14 @@ class StorageType extends Connections
     /**
      * Run a query that returns no data (like update or insert)
      *
-     * @param string $query A database query
-     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleException
+     * @param string|\Stringable $query A database query
+     * @param array|string|null $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable|null $errorHandler A callback that will run in the event of an error instead of static::handleException
      * @return void
      */
     public static function nonQuery($query, $parameters = [], $errorHandler = null)
     {
+        $queryLog = false;
         try {
             $resolvedStorageClass = static::getConnectionType();
             $query = $resolvedStorageClass::preprocessQuery($query, $parameters);
@@ -118,7 +119,7 @@ class StorageType extends Connections
             $queryLog = static::startQueryLog($query);
             static::$LastAffectedRows = static::getConnection()->exec($query);
             static::$LastStatement = null;
-        } catch (\Exception $e) {
+        } catch (\PDOException $e) {
             $ErrorInfo = $e->errorInfo;
             if ($ErrorInfo[0] != '00000') {
                 static::handleException($e, $query, $queryLog, $errorHandler);
@@ -133,14 +134,15 @@ class StorageType extends Connections
     /**
      * Run a query and return a PDO statement
      *
-     * @param string $query A database query
-     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleException
+     * @param string|\Stringable $query A database query
+     * @param array|string|null $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable|null $errorHandler A callback that will run in the event of an error instead of static::handleException
      * @throws Exception
      * @return \PDOStatement
      */
     public static function query($query, $parameters = [], $errorHandler = null)
     {
+        $queryLog = false;
         try {
             $resolvedStorageClass = static::getConnectionType();
             $query = $resolvedStorageClass::preprocessQuery($query, $parameters);
@@ -150,7 +152,7 @@ class StorageType extends Connections
             static::finishQueryLog($queryLog);
 
             return $Statement;
-        } catch (\Exception $e) {
+        } catch (\PDOException $e) {
             $ErrorInfo = $e->errorInfo;
             if ($ErrorInfo[0] != '00000') {
                 $handledException = static::handleException($e, $query, $queryLog, $errorHandler);
@@ -172,10 +174,10 @@ class StorageType extends Connections
      * Runs a query and returns all results as an associative array with $tableKey as the index.
      *
      * @param string $tableKey A column to use as an index for the returned array.
-     * @param string $query A database query
-     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param string $nullKey Optional fallback column to use as an index if the $tableKey param isn't found in a returned record.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleException
+     * @param string|\Stringable $query A database query
+     * @param array|string|null $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param string|null $nullKey Optional fallback column to use as an index if the $tableKey param isn't found in a returned record.
+     * @param callable|null $errorHandler A callback that will run in the event of an error instead of static::handleException
      * @return array Result from query or an empty array if nothing found.
      */
     public static function table($tableKey, $query, $parameters = [], $nullKey = '', $errorHandler = null)
@@ -193,9 +195,9 @@ class StorageType extends Connections
     /**
      * Runs a query and returns all results as an associative array.
      *
-     * @param string $query A database query
-     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleException
+     * @param string|\Stringable $query A database query
+     * @param array|string|null $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable|null $errorHandler A callback that will run in the event of an error instead of static::handleException
      * @return array Result from query or an empty array if nothing found.
      */
     public static function allRecords($query, $parameters = [], $errorHandler = null)
@@ -214,9 +216,9 @@ class StorageType extends Connections
      * Gets one column from every record.
      *
      * @param string $valueKey The name of the column you want.
-     * @param string $query A database query
-     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleException
+     * @param string|\Stringable $query A database query
+     * @param array|string|null $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable|null $errorHandler A callback that will run in the event of an error instead of static::handleException
      * @return array
      */
     public static function allValues($valueKey, $query, $parameters = [], $errorHandler = null)
@@ -246,10 +248,10 @@ class StorageType extends Connections
      * Returns the first database record from a query with caching
      *
      * @param string $cacheKey A key for the cache to use for this query.
-     * @param string $query A database query
-     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleException
-     * @return array Result from query or an empty array if nothing found.
+     * @param string|\Stringable $query A database query
+     * @param array|string|null $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable|null $errorHandler A callback that will run in the event of an error instead of static::handleException
+     * @return array<string, mixed>|false Result from query or false if nothing found.
      */
     public static function oneRecordCached($cacheKey, $query, $parameters = [], $errorHandler = null)
     {
@@ -268,10 +270,10 @@ class StorageType extends Connections
     /**
      * Returns the first database record from a query.
      *
-     * @param string $query A database query
-     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleException
-     * @return array Result from query or an empty array if nothing found.
+     * @param string|\Stringable $query A database query
+     * @param array|string|null $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable|null $errorHandler A callback that will run in the event of an error instead of static::handleException
+     * @return array<string, mixed>|false Result from query or false if nothing found.
      */
     public static function oneRecord($query, $parameters = [], $errorHandler = null)
     {
@@ -282,9 +284,9 @@ class StorageType extends Connections
     /**
      * Returns the first value of the first database record from a query.
      *
-     * @param string $query A database query
-     * @param array|string $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
-     * @param callable $errorHandler A callback that will run in the event of an error instead of static::handleException
+     * @param string|\Stringable $query A database query
+     * @param array|string|null $parameters Optional parameters for vsprintf (array) or sprintf (string) to use for formatting the query.
+     * @param callable|null $errorHandler A callback that will run in the event of an error instead of static::handleException
      * @return string|false First field from the first record from a query or false if nothing found.
      */
     public static function oneValue($query, $parameters = [], $errorHandler = null)
@@ -325,10 +327,9 @@ class StorageType extends Connections
         $message = $error[2];
 
         if (App::$App->Config['environment'] == 'dev') {
-            /** @var \Whoops\Handler\PrettyPageHandler */
             $Handler = \Divergence\App::$App->whoops->popHandler();
 
-            if ($Handler::class === \Whoops\Handler\PrettyPageHandler::class) {
+            if ($Handler instanceof \Whoops\Handler\PrettyPageHandler) {
                 $Handler->addDataTable('Query Information', [
                     'Query' => $query,
                     'Error' => $message,
@@ -338,7 +339,7 @@ class StorageType extends Connections
             }
         }
 
-        throw new \RuntimeException(sprintf("Database error: [%s]", static::getConnection()->errorCode()).$message);
+        throw new \RuntimeException(sprintf("Database error: [%s]", static::getConnection()->errorCode() ?? '').$message);
     }
 
     /**
@@ -408,7 +409,7 @@ class StorageType extends Connections
 
         return [
             'query' => $query,
-            'time_start' => sprintf('%f', microtime(true)),
+            'time_start' => microtime(true),
         ];
     }
 
@@ -425,7 +426,7 @@ class StorageType extends Connections
             return false;
         }
 
-        $queryLog['time_finish'] = sprintf('%f', microtime(true));
+        $queryLog['time_finish'] = microtime(true);
         $queryLog['time_duration_ms'] = ($queryLog['time_finish'] - $queryLog['time_start']) * 1000;
 
         if ($result) {

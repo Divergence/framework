@@ -71,6 +71,12 @@ final class Column implements MappingAttribute
     public $unsigned;
 
     /**
+     * @var mixed
+     * @readonly
+     */
+    public $default;
+
+    /**
      * @var bool
      * @readonly
      */
@@ -133,15 +139,16 @@ final class Column implements MappingAttribute
         bool $unique = false,
         bool $notnull = true,
         bool $autoincrement = false,
-        bool $unsigned = null,
+        ?bool $unsigned = null,
         bool $primary = false,
         bool $insertable = true,
         bool $updatable = true,
-        string $delimiter = null,
+        ?string $delimiter = null,
         array $values = [],
         array $options = [],
         ?string $columnDefinition = null,
-        ?string $generated = null
+        ?string $generated = null,
+        mixed $default = null
     ) {
         $this->columnName       = $columnName;
         $this->type             = $type;
@@ -152,6 +159,7 @@ final class Column implements MappingAttribute
         $this->notnull          = $notnull;
         $this->autoincrement    = $autoincrement;
         $this->unsigned         = $unsigned;
+        $this->default          = $default;
         $this->primary          = $primary;
         $this->insertable       = $insertable;
         $this->updatable        = $updatable;

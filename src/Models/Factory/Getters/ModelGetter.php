@@ -18,7 +18,7 @@ use Divergence\IO\Database\Query\Select;
 use Divergence\Models\Model;
 
 /**
- * @template TModel of Model
+ * @template TModel of \Divergence\Models\ActiveRecord
  */
 abstract class ModelGetter
 {
@@ -41,7 +41,7 @@ abstract class ModelGetter
     }
 
     /**
-     * @return object
+     * @return \Divergence\IO\Database\StorageType
      */
     protected function getStorage()
     {
@@ -49,7 +49,7 @@ abstract class ModelGetter
     }
 
     /**
-     * @param array<string, mixed>|null $record
+     * @param array<string, mixed>|false|null $record
      * @return TModel|null
      */
     protected function instantiateRecord($record)

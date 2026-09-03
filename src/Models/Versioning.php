@@ -6,6 +6,8 @@
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
+ *
+ * @phan-file-suppress PhanUndeclaredStaticProperty
  */
 
 namespace Divergence\Models;
@@ -24,12 +26,16 @@ use Divergence\IO\Database\Query\Select;
  * @package Divergence
  * @author  Henry Paradiz <henry.paradiz@gmail.com>
  * @inheritDoc
+ * @require-extends \Divergence\Models\ActiveRecord
+ * @mixin \Divergence\Models\ActiveRecord
  * @property int $RevisionID ID of revision in the history table.
  * @property static[] $History All revisions for this object. This is hooked in the Relations trait.
- * @property string $historyTable
- * @property callable $createRevisionOnSave
- * @method array|null getPreparedPersistedSet()
- * @method mixed getPrimaryKeyValue()
+ * @method static static[] instantiateRecords(array $records)
+ * @method static string _cn(string $field)
+ * @method static array<int, string> _mapConditions(array $conditions)
+ * @method static array<int, string>|null _mapFieldOrder(array|string $order)
+ * @method array<string, mixed> _prepareRecordValues(?array $fields = null)
+ * @method static array<int, string> _mapValuesToSet(array $recordValues, ?array $fieldConfigs = null)
  */
 trait Versioning
 {

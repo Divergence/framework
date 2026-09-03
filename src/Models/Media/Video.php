@@ -175,6 +175,9 @@ class Video extends Media
 
             // build paths and create directories if needed
             $outputPath = $this->getFilesystemPath($profileName);
+            if ($outputPath === null) {
+                throw new Exception('Unable to determine encoded video output path.');
+            }
             if (!is_dir($outputDir = dirname($outputPath))) {
                 mkdir($outputDir, static::$newDirectoryPermissions, true);
             }
@@ -254,15 +257,18 @@ class Video extends Media
             return static::$encodingProfiles[$variant]['mimeType'];
         }
 
-        return parent::getMIMEType($variant);
+        return parent::getMIMEType();
     }
 
     public function isVariantAvailable($variant): bool
     {
+        $path = $this->getFilesystemPath($variant);
+
         if (
             array_key_exists($variant, static::$encodingProfiles) &&
             !empty(static::$encodingProfiles[$variant]['enabled']) &&
-            is_readable($this->getFilesystemPath($variant))
+            $path !== null &&
+            is_readable($path)
         ) {
             return true;
         }

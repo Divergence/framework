@@ -21,6 +21,10 @@ class Record extends AbstractRecordsEndpoint
     {
         [$Record, $action] = array_pad($arguments, 2, false);
 
+        if (!$Record instanceof ActiveRecord) {
+            return $this->handler->throwNotFoundError();
+        }
+
         if (!$this->handler->checkReadAccess($Record)) {
             return $this->handler->throwUnauthorizedError();
         }
