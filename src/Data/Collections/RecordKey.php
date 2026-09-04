@@ -1,4 +1,12 @@
 <?php
+/**
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Data\Collections;
 
 use Divergence\Data\KeyToHashInt;
@@ -15,7 +23,7 @@ class RecordKey
             if ($primaryKey !== null) {
                 // if we get a hash we return right away
                 return KeyToHashInt::hashForKeys([$primaryKey]);
-            } 
+            }
         }
 
         // this is phantoms and all non ORM objects that are indexed

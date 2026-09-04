@@ -12,6 +12,7 @@ namespace Divergence\IO\Database;
 
 use PDO;
 use Divergence\IO\Database\Writer\MySQL as StorageWriter;
+
 /**
  * MySQL.
  *

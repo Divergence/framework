@@ -11,6 +11,7 @@
 namespace Divergence\Tests\MockSite\Models;
 
 use Divergence\Models\Mapping\InMemoryIndexing;
+
 /**
  * This test demonstrates a technique where you have the
  * indexed one piggyback on an existing Model definition.

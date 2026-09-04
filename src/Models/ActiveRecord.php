@@ -240,7 +240,7 @@ class ActiveRecord implements JsonSerializable
      * @var array $_record Raw array data for this model.
      */
     protected array $_record = [] {
-        set (array $value) {
+        set(array $value) {
             $this->_record = $value;
             if (empty($this->_suppressRecordSynchronization)) {
                 $this->synchronizeAuthoritativePropertiesFromRecord();
@@ -547,7 +547,7 @@ class ActiveRecord implements JsonSerializable
                     }
                     // handle relationship
                     elseif (!empty(static::$_classRelationships[$className]) && static::_relationshipExists($name)) {
-                            $value = $this->_getRelationshipValue($name);
+                        $value = $this->_getRelationshipValue($name);
                     }
                     // default Handle to ID if not caught by fieldExists
                     elseif ($name == static::$handleField) {
@@ -1297,7 +1297,7 @@ class ActiveRecord implements JsonSerializable
                 // skip these because they are built in
                 if (in_array($property->getName(), [
                     '_classFields','_classRelationships','_classBeforeSave','_classAfterSave','_fieldsDefined','_relationshipsDefined','_eventsDefined','_record','_validator','_validatorRecord'
-                    ,'_validationErrors','_isDirty','_isValid','_convertedValues','_originalValues','_isPhantom','_wasPhantom','_isNew','_isUpdated','_relatedObjects','_preparedPersistedSet','_suppressRecordSynchronization'
+                    ,'_validationErrors','_isDirty','_isValid','_convertedValues','_originalValues','_isPhantom','_wasPhantom','_isNew','_isUpdated','_relatedObjects','_preparedPersistedSet','_suppressRecordSynchronization',
                 ])) {
                     continue;
                 }
@@ -1332,7 +1332,7 @@ class ActiveRecord implements JsonSerializable
         }
         return [
             'fields' => $fields,
-            'relations' => $relations
+            'relations' => $relations,
         ];
     }
 
@@ -1515,14 +1515,14 @@ class ActiveRecord implements JsonSerializable
             // apply type-dependent transformations
             switch ($fieldOptions['type']) {
                 case 'timestamp':
-                        return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getTimestampValue($value));
+                    return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getTimestampValue($value));
 
                 case 'serialized':
-                        return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getSerializedValue($value));
+                    return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getSerializedValue($value));
 
                 case 'set':
                 case 'list':
-                        return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getListValue($value, $fieldOptions['delimiter'] ?? null));
+                    return $this->applyNewValue($fieldOptions['type'], $field, $defaultGetMapper::getListValue($value, $fieldOptions['delimiter'] ?? null));
 
                 case 'int':
                 case 'integer':

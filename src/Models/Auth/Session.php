@@ -156,7 +156,7 @@ class Session extends Model
             if (function_exists('fastcgi_finish_request')) {
                 // @codeCoverageIgnoreStart
                 register_shutdown_function([$Session, 'save']);
-            // @codeCoverageIgnoreEnd
+                // @codeCoverageIgnoreEnd
             } else {
                 $Session->save();
             }

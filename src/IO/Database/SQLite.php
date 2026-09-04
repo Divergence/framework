@@ -123,7 +123,7 @@ class SQLite extends StorageType
 
         $query = preg_replace("/\bformat\s*\((.+?),\s*2\s*\)/i", "printf('%.2f', \\1)", $query);
 
-            return $query;
+        return $query;
     }
 
     public static function interceptNonQuery(string $query): ?bool

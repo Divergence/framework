@@ -385,7 +385,7 @@ class MediaRequestHandlerTest extends TestCase
         $this->assertEquals('bytes 0-1062814/1062815', $response->getHeader('Content-Range')[0]);
         $this->assertEquals('1062815', $response->getHeader('Content-Length')[0]);
 
-        $expectedOutput = $this->file_get_contents_at_seek(0, $mp4); 
+        $expectedOutput = $this->file_get_contents_at_seek(0, $mp4);
         $this->expectOutputString($expectedOutput);
         (new Emitter($response))->emit();
     }
