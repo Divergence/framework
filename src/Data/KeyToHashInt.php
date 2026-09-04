@@ -1,5 +1,12 @@
 <?php
-
+/**
+ * This file is part of the Divergence package.
+ *
+ * (c) Henry Paradiz <henry.paradiz@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Divergence\Data;
 
 /**
@@ -20,7 +27,7 @@ class KeyToHashInt
 
     public function getSingular()
     {
-         // If a single key PK is already an int, return it as-is
+        // If a single key PK is already an int, return it as-is
         if (is_int($this->keys[0])) {
             $this->hash = $this->keys[0];
             return $this->hash;
@@ -31,7 +38,7 @@ class KeyToHashInt
             if (ctype_digit($this->keys[0])) {
                 $this->hash = (int)($this->keys[0]);
                 return $this->hash;
-            // if it's a non-numeric string but still being used as a PK then we'll hash it for a 64 bit int
+                // if it's a non-numeric string but still being used as a PK then we'll hash it for a 64 bit int
             } else {
                 $this->hash = intval(hexdec(hash('xxh64', $this->keys[0])));
                 return $this->hash;
