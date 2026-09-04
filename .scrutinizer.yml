@@ -1,6 +1,5 @@
 checks:
   php:
-    type_analyzer_migration_checks: false 
     argument_type_checks: false 
     code_rating: true
     duplication: true
