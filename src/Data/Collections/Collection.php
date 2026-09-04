@@ -90,6 +90,179 @@ class Collection implements Iterator, Countable, ArrayAccess, Indexing
         return $this->Index;
     }
 
+    /**
+     * @param callable(TRecord): (int|float) $selector
+     */
+    public function sum(callable $selector): int|float
+    {
+        return Math\Aggregates::sum($this, $selector);
+    }
+
+    /**
+     * @param callable(TRecord): (int|float) $selector
+     */
+    public function median(callable $selector): int|float|null
+    {
+        return Math\Aggregates::median($this, $selector);
+    }
+
+    /**
+     * @param callable(TRecord): (int|float) $selector
+     */
+    public function percentile(callable $selector, float $percentile): int|float|null
+    {
+        return Math\Aggregates::percentile($this, $selector, $percentile);
+    }
+
+    /**
+     * Uses the nearest-rank definition.
+     * Rank products within floating-point epsilon of an integer are treated as exact boundaries.
+     *
+     * @param callable(TRecord): (int|float) $selector
+     */
+    public function quantile(callable $selector, float $quantile): int|float|null
+    {
+        return Math\Aggregates::quantile($this, $selector, $quantile);
+    }
+
+    /**
+     * Calculates population variance.
+     *
+     * @param callable(TRecord): (int|float) $selector
+     */
+    public function variance(callable $selector): ?float
+    {
+        return Math\Deviations::variance($this, $selector);
+    }
+
+    /**
+     * Calculates population standard deviation.
+     *
+     * @param callable(TRecord): (int|float) $selector
+     */
+    public function stddev(callable $selector): ?float
+    {
+        return Math\Deviations::stddev($this, $selector);
+    }
+
+    /**
+     * Buckets are half-open except for the final bucket, which includes its maximum.
+     * A constant distribution returns one bucket.
+     *
+     * @param callable(TRecord): (int|float) $selector
+     * @return list<array{min: float, max: float, count: int}>
+     */
+    public function histogram(callable $selector, int $bucketCount = 10): array
+    {
+        return Math\Distributions::histogram($this, $selector, $bucketCount);
+    }
+
+    /**
+     * Returns every tied mode in first-seen order.
+     *
+     * @param callable(TRecord): mixed $selector
+     * @return list<mixed>
+     */
+    public function mode(callable $selector): array
+    {
+        return Math\Distributions::mode($this, $selector);
+    }
+
+    /**
+     * Calculates population covariance.
+     *
+     * @param callable(TRecord): (int|float) $firstSelector
+     * @param callable(TRecord): (int|float) $secondSelector
+     */
+    public function covariance(callable $firstSelector, callable $secondSelector): ?float
+    {
+        return Math\Relationships::covariance($this, $firstSelector, $secondSelector);
+    }
+
+    /**
+     * @param callable(TRecord): (int|float) $firstSelector
+     * @param callable(TRecord): (int|float) $secondSelector
+     */
+    public function correlation(callable $firstSelector, callable $secondSelector): ?float
+    {
+        return Math\Relationships::correlation($this, $firstSelector, $secondSelector);
+    }
+
+    /**
+     * @param callable(TRecord): (int|float) $selector
+     * @return list<TRecord>
+     */
+    public function topK(callable $selector, int $count): array
+    {
+        return Math\Rankings::topK($this, $selector, $count);
+    }
+
+    /**
+     * @param callable(TRecord): (int|float) $selector
+     * @return list<TRecord>
+     */
+    public function bottomK(callable $selector, int $count): array
+    {
+        return Math\Rankings::bottomK($this, $selector, $count);
+    }
+
+    /**
+     * Values are grouped by type and value so PHP array-key coercion cannot merge distinct values.
+     *
+     * @param callable(TRecord): mixed $selector
+     * @return list<array{value: mixed, count: int}>
+     */
+    public function frequency(callable $selector): array
+    {
+        return Math\Distributions::frequency($this, $selector);
+    }
+
+    /**
+     * @param callable(TRecord): mixed $selector
+     * @return list<array{value: mixed, count: int}>
+     */
+    public function countBy(callable $selector): array
+    {
+        return Math\Distributions::countBy($this, $selector);
+    }
+
+    /**
+     * @param callable(TRecord): (int|float) $selector
+     * @return list<int|float>
+     */
+    public function movingAverage(callable $selector, int $windowSize): array
+    {
+        return Math\Windows::movingAverage($this, $selector, $windowSize);
+    }
+
+    /**
+     * @template TResult
+     * @param callable(list<TRecord>): TResult $callback
+     * @return list<TResult>
+     */
+    public function rolling(int $windowSize, callable $callback): array
+    {
+        return Math\Windows::rolling($this, $windowSize, $callback);
+    }
+
+    /**
+     * @param callable(TRecord): (int|float) $selector
+     * @return list<float>
+     */
+    public function zScore(callable $selector): array
+    {
+        return Math\Deviations::zScore($this, $selector);
+    }
+
+    /**
+     * @param callable(TRecord): (int|float) $selector
+     * @return list<TRecord>
+     */
+    public function outliers(callable $selector, float $threshold = 3): array
+    {
+        return Math\Deviations::outliers($this, $selector, $threshold);
+    }
+
     /* ### Implements IndexedFields Internally in the Collection ### */
 
     public function createIndexByField($field)
