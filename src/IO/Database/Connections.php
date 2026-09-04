@@ -10,7 +10,7 @@
 
 namespace Divergence\IO\Database;
 
-Use \Divergence\App;
+use \Divergence\App;
 use Exception;
 use PDO;
 

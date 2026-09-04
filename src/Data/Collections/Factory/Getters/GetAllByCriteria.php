@@ -44,10 +44,10 @@ class GetAllByCriteria extends AbstractGetter
                     if (isset($collection->HashKeyIndex[$key])) {
                         $output[] = $collection->HashKeyIndex[$key];
                     }
-                }   
+                }
             }
         }
-		return $output;
+        return $output;
     }
 
     /**
@@ -57,49 +57,49 @@ class GetAllByCriteria extends AbstractGetter
      */
     private static function searchByCriteria(Collection $collection, $CriteriaGroup)
     {
-		$CriteriaGroup = self::normalizeCriteriaGroup($CriteriaGroup);
+        $CriteriaGroup = self::normalizeCriteriaGroup($CriteriaGroup);
 
         $results = [];
-		foreach ($CriteriaGroup->criteria as $crit) {
-			if (is_a($crit, Criteria::class)) {
-				$result = self::searchByCriterion($collection, $crit);
-				$results[] = $result;
+        foreach ($CriteriaGroup->criteria as $crit) {
+            if (is_a($crit, Criteria::class)) {
+                $result = self::searchByCriterion($collection, $crit);
+                $results[] = $result;
 
-				// when processing a Group Conjunction::GroupAnd must be found in all indexes to match the operation
-				if ($CriteriaGroup->conjunction == Conjunction::GroupAnd && !$result) {
-					return [];
-				}
-			}
+                // when processing a Group Conjunction::GroupAnd must be found in all indexes to match the operation
+                if ($CriteriaGroup->conjunction == Conjunction::GroupAnd && !$result) {
+                    return [];
+                }
+            }
 
-			if (is_a($crit, CriteriaGroup::class)) {
-				$results[] = static::searchByCriteria($collection, $crit) ?: [];
-			}
-		}
+            if (is_a($crit, CriteriaGroup::class)) {
+                $results[] = static::searchByCriteria($collection, $crit) ?: [];
+            }
+        }
 
-		// no criteria in the group found anything.
-		// we return an empty array immediately.
-		if (count($results) === 0) {
-			return [];
-		}
+        // no criteria in the group found anything.
+        // we return an empty array immediately.
+        if (count($results) === 0) {
+            return [];
+        }
 
-		// if one thing is found use that one thing
-		$found = [];
-		if (count($results) === 1) {
-			$found = array_shift($results);
-		}
+        // if one thing is found use that one thing
+        $found = [];
+        if (count($results) === 1) {
+            $found = array_shift($results);
+        }
 
-		if (count($results)>1) {
-			$found = self::combineResults($results, $CriteriaGroup->conjunction);
-		}
+        if (count($results)>1) {
+            $found = self::combineResults($results, $CriteriaGroup->conjunction);
+        }
 
-		switch ($CriteriaGroup->conjunction) {
-			case Conjunction::GroupNotAnd:
-			case Conjunction::GroupNotOr:
-				$found = array_diff_key(array_fill_keys(array_keys($collection->HashKeyIndex), 1), $found);
-			break;
-		}
+        switch ($CriteriaGroup->conjunction) {
+            case Conjunction::GroupNotAnd:
+            case Conjunction::GroupNotOr:
+                $found = array_diff_key(array_fill_keys(array_keys($collection->HashKeyIndex), 1), $found);
+                break;
+        }
 
-		return $found ?: [];
+        return $found ?: [];
     }
 
     private static function normalizeCriteriaGroup($CriteriaGroup)

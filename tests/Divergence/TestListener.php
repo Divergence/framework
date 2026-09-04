@@ -113,9 +113,13 @@ class TestListener implements PHPUnit_TestListener
         }
     }
 
-    public function startTest(Test $test): void {}
+    public function startTest(Test $test): void
+    {
+    }
 
-    public function endTest(Test $test, float $time): void {}
+    public function endTest(Test $test, float $time): void
+    {
+    }
 
     public function startTestSuite(TestSuite $suite): void
     {
